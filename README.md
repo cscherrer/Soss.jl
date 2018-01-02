@@ -2,7 +2,7 @@
 
 Soss is a library for manipulating source-code representation of probabilistic models.
 
-**SAUCE IS "PRE-ALPHA" SOFTWARE -- BREAKING CHANGES ARE IMMINENT**
+**Soss IS "PRE-ALPHA" SOFTWARE -- BREAKING CHANGES ARE IMMINENT**
 
 
 Here's a very simple model in Soss:
