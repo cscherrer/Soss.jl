@@ -3,7 +3,7 @@ module Soss
 using Distributions
 using StatsFuns
 using MacroTools
-using MacroTools: postwalk
+using MacroTools: postwalk, @q, prettify
 
 include("utils.jl")
 
