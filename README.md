@@ -41,11 +41,11 @@ You can decide to pass one of the parameters as a function argument:
 ```julia
 > func(normalModel, :σ)
 :(σ->begin
-            μ ~ Normal(0, 5)
-            for x = DATA
-                x < ~(Normal(μ, σ))
-            end
-        end)
+    μ ~ Normal(0, 5)
+    for x = DATA
+        x <~ Normal(μ, σ)
+    end
+end)
 ```
 
 Or you can transform it to a form suitable for specialized inference algorithms. For example, a Stan-like approach:
