@@ -1,5 +1,10 @@
 module Soss
 
-# package code goes here
+using Distributions
+using StatsFuns
+using MacroTools
+using MacroTools: postwalk
+
+include("utils.jl")
 
 end # module
