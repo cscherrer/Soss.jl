@@ -94,7 +94,7 @@ function logdensity(model)
         end
     end
     fQuoted = quote
-        function(θ, DATA)
+        function(θ::SVector{$j,Float64}, DATA)
             ℓ = 0.0
             $body
             return ℓ
