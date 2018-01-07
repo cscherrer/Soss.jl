@@ -84,19 +84,20 @@ Dict{Symbol,Any} with 3 entries:
 
 Or you can transform it to a form suitable for specialized inference algorithms. For example, a Stan-like approach:
 
-(coming soon, here it is for a different model)
+(works for older implementation, but for now this is just a mockup) 
 ```julia
-> logdensity(normalModel)
-:(function (θ, DATA)
+> logdensity(lr3)
+:(function ((N,x,y), θ)
         ℓ = 0.0
-        μ = θ[1]
-        ℓ += logpdf(Normal(0, 5), μ)
-        σ = softplus(θ[2])
-        ℓ += abs(σ - θ[2])
+        α = θ[1]
+        ℓ += logpdf(Cauchy(0, 10), α)
+        β = θ[2]
+        ℓ += logpdf(Cauchy(0, 2.5), β)
+        σ = softplus(θ[3])
+        ℓ += abs(σ - θ[3])
         ℓ += logpdf(Truncated(Cauchy(0, 3), 0, Inf), σ)
-        for x = DATA
-            ℓ += logpdf(Normal(μ, σ), x)
-        end
+        ŷ = α + β .* x
+        ℓ += logpdf(For(((n,)->Normal(ŷ[n], σ)), 1:N), y)
         return ℓ
     end)
 ```
