@@ -20,9 +20,6 @@ function supports(model)
     return supps
 end
 
-    body = postwalk(body) do x 
-        if @capture(x, v_ ~ dist_) && v in vs
-            quote 
        
 
 
