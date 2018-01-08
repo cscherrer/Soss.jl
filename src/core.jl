@@ -1,4 +1,10 @@
-macro model(v,ex)
+macro model(vs::Expr,ex)
+    body = Expr(:function, vs, ex)
+    Expr(:quote, prettify(body))
+end
+
+
+macro model(v::Symbol,ex)
     body = :(function($v,) $ex end)
     Expr(:quote, prettify(body))
 end
@@ -40,8 +46,12 @@ function observe(model, vs :: Vector{Symbol})
         args = union(args, vs)
     else 
         args = vs
-    end 
-         $v <~ $dist
+    end
+
+    body = postwalk(body) do x 
+        if @capture(x, v_ ~ dist_) && v in vs
+            quote 
+                $v <~ $dist
             end
         else 
             x
