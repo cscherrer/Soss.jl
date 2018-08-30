@@ -1,3 +1,20 @@
+using MacroTools: striplines, flatten, unresolve, resyntax, @q
+using MacroTools
+
+function nobegin(ex)
+    postwalk(ex) do x
+        if @capture(x, begin body__ end)
+            unblock(x)
+        else
+            x
+        end
+    end
+end
+
+pretty = nobegin ∘ striplines
+
+
+
 function parameters(model)
     params :: Vector{Symbol} = []
     body = postwalk(model) do x
@@ -19,10 +36,6 @@ function supports(model)
     end
     return supps
 end
-
-       
-
-
 
 function xform(R, v, supp)
     @assert typeof(supp) == RealInterval
@@ -48,7 +61,6 @@ function xform(R, v, supp)
 
     return body
 end
-
 
 function logdensity(model)
     j = 0
@@ -79,3 +91,30 @@ function logdensity(model)
     return prettify(fQuoted)
 end
 
+function mapbody(f,functionExpr)
+    ans = deepcopy(functionExpr)
+    ans.args[2] = f(ans.args[2])
+    ans
+end
+
+function samp(m)
+    func = postwalk(m) do x
+        if @capture(x, v_ ~ dist_) 
+            @q begin
+                $v = rand($dist)
+                val = merge(val, ($v=$v,))
+            end
+        else x
+        end
+    end
+
+    mapbody(func) do body
+        @q begin
+            val = NamedTuple()
+            $body
+            val
+        end
+    end
+end;
+
+sampleFrom(m) = eval(samp(m))
