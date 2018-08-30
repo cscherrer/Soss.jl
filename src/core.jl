@@ -1,17 +1,16 @@
 macro model(vs::Expr,ex)
     body = Expr(:function, vs, ex)
-    Expr(:quote, prettify(body))
+    Expr(:quote, pretty(body))
 end
-
 
 macro model(v::Symbol,ex)
     body = :(function($v,) $ex end)
-    Expr(:quote, prettify(body))
+    Expr(:quote, pretty(body))
 end
 
 macro model(ex)   
     body = :(function() $ex end)
-    Expr(:quote, prettify(body))
+    Expr(:quote, pretty(body))
 end
 
 """
