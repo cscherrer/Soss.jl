@@ -1,5 +1,30 @@
 
 
+lda = @model (α, η, K, V, N) begin
+    M = length(N)
+
+    β ~ For(1:K) do _
+            Dirichlet(repeat([η],V))
+        end
+
+    θ ~ For(1:M) do _
+            Dirichlet(repeat([α],K))
+        end
+
+    z ~ For(1:M) do m
+            For(nats(N[m])) do _
+                Categorical(θ[m])
+            end
+        end
+
+    w ~ For(1:M) do m
+            For(nats(N[m])) do n
+                Categorical(β[z[m][n]])
+            end
+        end
+end
+
+
 normalModel = @model N begin
     μ ~ Normal(0,5)
     σ ~ Truncated(Cauchy(0,3), 0, Inf)
