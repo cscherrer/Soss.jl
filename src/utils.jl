@@ -1,3 +1,5 @@
+export arguments
+
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
 using MacroTools
 
@@ -118,3 +120,12 @@ function samp(m)
 end;
 
 sampleFrom(m) = eval(samp(m))
+
+function arguments(m)
+    if @capture(m, function(args__) body_ end)
+        return args
+    else 
+        throw(ArgumentError)
+    end
+
+end
