@@ -23,13 +23,15 @@ end
 
 
 
-linReg1D = @model (N,x) begin
+linReg1D = @model (x) begin
     # Priors chosen following Gelman(2008)
     α ~ Cauchy(0,10)
     β ~ Cauchy(0,2.5)
     σ ~ Truncated(Cauchy(0,3), 0, Inf)
     
-    ŷ = α + β .* x
+
+    ŷ = α .+ β .* x
+    N = length(x)
     y ~ For(1:N) do n 
         Normal(ŷ[n], σ)
     end
