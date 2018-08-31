@@ -133,3 +133,5 @@ end
 
 HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
 
+# Binomial distribution, parameterized by logit(p)
+LogisticBinomial(n,x)=Binomial(n,logistic(x))
