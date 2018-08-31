@@ -90,7 +90,7 @@ function logdensity(model)
         end
     end
 
-    return prettify(fQuoted)
+    return pretty(fQuoted)
 end
 
 function mapbody(f,functionExpr)
