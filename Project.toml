@@ -5,6 +5,8 @@ author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
+Iterators = "a4bce56a-f44e-563f-a45f-5312daf41243"
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+Mamba = "5424a776-8be3-5c5b-a13f-3551f69ba0e6"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
