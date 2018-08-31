@@ -7,4 +7,4 @@ struct For
     xs
 end
 
-rand(ex::For) = map(rand, map(ex.f,ex.xs))
+rand(dist::For) = map(rand, map(dist.f,dist.xs))
