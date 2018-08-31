@@ -12,13 +12,13 @@ lda = @model (α, η, K, V, N) begin
         end
 
     z ~ For(1:M) do m
-            For(nats(N[m])) do _
+            For(1:N[m]) do _
                 Categorical(θ[m])
             end
         end
 
     w ~ For(1:M) do m
-            For(nats(N[m])) do n
+            For(1:N[m]) do n
                 Categorical(β[z[m][n]])
             end
         end
