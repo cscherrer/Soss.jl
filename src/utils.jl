@@ -2,6 +2,7 @@ export arguments
 
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
 using MacroTools
+using StatsFuns
 
 function nobegin(ex)
     postwalk(ex) do x
