@@ -1,6 +1,6 @@
 module Soss
 
-export @model, For, Eval, logdensity, observe, parameters, supports, lda, sampleFrom, linReg1D
+export arguments, @model, For, Eval, logdensity, observe, parameters, supports, lda, sampleFrom, linReg1D
 
 using Reexport: @reexport
 
