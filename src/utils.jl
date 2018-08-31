@@ -129,3 +129,7 @@ function arguments(m)
     end
 
 end
+end
+
+HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
+
