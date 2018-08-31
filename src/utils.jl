@@ -14,7 +14,7 @@ function nobegin(ex)
     end
 end
 
-pretty = nobegin ∘ striplines
+pretty = striplines
 
 
 
