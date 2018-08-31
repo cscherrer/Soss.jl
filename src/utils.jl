@@ -1,4 +1,4 @@
-export arguments
+export arguments, LogisticBinomial
 
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
 using MacroTools
