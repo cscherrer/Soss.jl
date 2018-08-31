@@ -37,7 +37,7 @@ function observe(model, v :: Symbol)
 
     fQuoted = Expr(:function, :(($(args...),)), body)
 
-    return prettify(fQuoted)
+    return pretty(fQuoted)
 end 
 
 function observe(model, vs :: Vector{Symbol})
@@ -59,5 +59,5 @@ function observe(model, vs :: Vector{Symbol})
 
     fQuoted = Expr(:function, :(($(args...),)), body)
 
-    return prettify(fQuoted)
+    return pretty(fQuoted)
 end 
