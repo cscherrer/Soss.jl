@@ -1,3 +1,4 @@
+export rats, pumps, normalModel, seeds
 
 
 lda = @model (α, η, K, V, N) begin
