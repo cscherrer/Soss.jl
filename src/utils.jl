@@ -1,4 +1,4 @@
-export arguments, LogisticBinomial
+export arguments, LogisticBinomial, HalfCauchy
 
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
 using MacroTools
@@ -135,3 +135,4 @@ HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
 
 # Binomial distribution, parameterized by logit(p)
 LogisticBinomial(n,x)=Binomial(n,logistic(x))
+
