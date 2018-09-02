@@ -1,16 +1,40 @@
+export Model, convert
+
+struct Model
+    args
+    body
+end
+
+(m::Model)(;kwargs...) = begin
+    m2 = deepcopy(m)
+    setdiff!(m2.args.args, keys(kwargs))
+    assignments = [:($k = $v) for (k,v) in kwargs]
+    pushfirst!(m2.body.args, assignments...)
+    m2
+end
+
+
 macro model(vs::Expr,ex)
-    body = Expr(:function, vs, ex)
-    Expr(:quote, pretty(body))
+    Model(vs, pretty(ex))
 end
 
 macro model(v::Symbol,ex)
-    body = :(function($v,) $ex end)
-    Expr(:quote, pretty(body))
+    Model(:($v,), pretty(ex))
 end
 
 macro model(ex)   
-    body = :(function() $ex end)
-    Expr(:quote, pretty(body))
+    Model(:(Tuple()),pretty(ex))
+end
+
+import Base.convert
+convert(Expr, m::Model) = begin
+    func = @q function($(m.args),) $(m.body) end
+    pretty(func)
+end
+
+Base.show(io::IO, m::Model) = begin
+    print(io, "@model $(m.args) ")
+    println(io, m.body)
 end
 
 """
