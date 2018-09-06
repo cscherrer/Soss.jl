@@ -16,6 +16,9 @@ end
 
 pretty = striplines
 
+function args(model)
+    model.args.args
+end
 
 
 function parameters(model)
