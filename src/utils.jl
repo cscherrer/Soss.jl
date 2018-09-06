@@ -20,6 +20,17 @@ function args(model)
     model.args.args
 end
 
+"A stochastic node is any `v` in a model with `v ~ ...`"
+function stochastic(model)
+    nodes :: Vector{Symbol} = []
+    postwalk(model.body) do x
+        if @capture(x, v_ ~ dist_)
+            push!(nodes, v)
+        else x 
+        end
+    end
+    nodes
+end
 
 function parameters(model)
     nonpars = copy(args(model))
