@@ -5,18 +5,12 @@ using Iterators
 lda = @model (α, η, K, V, N) begin
     M = length(N)
 
-    β ~ For(1:K) do _
-            Dirichlet(repeat([η],V))
-        end
+    β ~ Dirichlet(repeat([η],V)) |> iid(K)
  
-    θ ~ For(1:M) do _
-            Dirichlet(repeat([α],K))
-        end
+    θ ~ Dirichlet(repeat([α],K)) |> iid(M)
 
     z ~ For(1:M) do m
-            For(1:N[m]) do _
-                Categorical(θ[m])
-            end
+            Categorical(θ[m]) |> iid(N[m]) 
         end
 
     w ~ For(1:M) do m
@@ -26,16 +20,11 @@ lda = @model (α, η, K, V, N) begin
         end
 end
 
-
 normalModel = @model N begin
     μ ~ Normal(0,5)
     σ ~ HalfCauchy(3)
-    x ~ For(1:N) do _ 
-        Normal(μ,σ)
-    end
+    x ~ Normal(μ,σ) |> iid(N)
 end
-
-
 
 mix = @model N begin
     p ~ Uniform()
@@ -43,14 +32,12 @@ mix = @model N begin
     μ2 ~ Normal(0,1)
     σ1 ~ Cauchy(0,3)
     σ2 ~ HalfCauchy(3)
-    x ~ For(1:N) do n
-        MixtureModel([Normal(μ1, σ1), Normal(μ2, σ2)], [p, 1-p])
-    end
+    x ~ MixtureModel([Normal(μ1, σ1), Normal(μ2, σ2)], [p, 1-p]) |> iid(N)
 end
 
 
 
-linReg1D = @model (x) begin
+linReg1D = @model (x,y) begin
     # Priors chosen following Gelman(2008)
     α ~ Cauchy(0,10)
     β ~ Cauchy(0,2.5)
