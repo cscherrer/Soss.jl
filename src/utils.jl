@@ -137,3 +137,48 @@ HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
 # Binomial distribution, parameterized by logit(p)
 LogisticBinomial(n,x)=Binomial(n,logistic(x))
 
+
+sampleFrom(m) = eval(samp(m))
+
+
+HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
+
+# Binomial distribution, parameterized by logit(p)
+LogisticBinomial(n,x)=Binomial(n,logistic(x))
+
+import Base.rand
+
+
+function findsubexprs(ex, vs)
+    result = Set()
+    MacroTools.postwalk(ex) do y
+      y in vs && push!(result, y)
+    end
+    return result
+end
+
+
+
+function updategraph!(g, v, rhs)
+
+end
+
+function graph(m)
+    g = DefaultDict{Symbol, Set{Symbol}}(Set{Symbol}())
+    for v in args(m)
+        add_vertex!(g,v) 
+    end
+
+end
+
+
+
+function rand(m :: Model)
+    if (observed(m) == []) && (args(m) == [])
+        print("ok")
+    elseif args(m) != []
+        throw(ArgumentError("rand called with nonempty args(m) == $(args(m))"))
+    elseif observed(m) != []
+        throw(ArgumentError("rand called with nonempty observed(m) == $(observed(m))"))
+    end
+end
