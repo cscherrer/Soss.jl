@@ -1,4 +1,4 @@
-function nuts(θ0, δ, L, ∇L, L∇L=θ->(L(θ),∇L(θ)), M=100, Madapt=M, verbose=true, Δ_max=1000)
+function nuts(θ0, L, ∇L, δ=0.85, L∇L=θ->(L(θ),∇L(θ)), M=100, Madapt=M, verbose=true, Δ_max=1000)
   doc"""
     - θ0      : initial model parameter
     - δ       : desirable average accept rate
