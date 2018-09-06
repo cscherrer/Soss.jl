@@ -6,11 +6,11 @@ struct Model
 end
 
 (m::Model)(;kwargs...) = begin
-    m2 = deepcopy(m)
-    setdiff!(m2.args.args, keys(kwargs))
+    result = deepcopy(m)
+    setdiff!(result.args.args, keys(kwargs))
     assignments = [:($k = $v) for (k,v) in kwargs]
-    pushfirst!(m2.body.args, assignments...)
-    m2
+    pushfirst!(result.body.args, assignments...)
+    result
 end
 
 
