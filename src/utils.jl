@@ -116,6 +116,8 @@ function logdensity(model)
         end
     end
 
+    end 
+
     return pretty(fQuoted)
 end
 
