@@ -184,7 +184,7 @@ end
 
 function rand(m :: Model)
     if (observed(m) == []) && (args(m) == [])
-        print("ok")
+        println("rand(::Model) not yet implemented")
     elseif args(m) != []
         throw(ArgumentError("rand called with nonempty args(m) == $(args(m))"))
     elseif observed(m) != []
