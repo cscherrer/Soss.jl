@@ -22,14 +22,16 @@ end
 
 
 function parameters(model)
-    params :: Vector{Symbol} = []
-    body = postwalk(model) do x
-        if @capture(x, v_ ~ dist_)
-            push!(params, v)
-        else x
+    nonpars = copy(args(model))
+    pars :: Vector{Symbol} = []
+    for line in model.body.args
+        if @capture(line, v_ = ex_)
+            push!(nonpars, v)
+        elseif @capture(line, v_ ~ dist_) && (v ∉ nonpars)
+            push!(pars, v)
         end
     end
-    return params
+    pars
 end
 
 function supports(model)
