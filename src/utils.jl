@@ -1,4 +1,4 @@
-export arguments, LogisticBinomial, HalfCauchy
+export arguments, LogisticBinomial, HalfCauchy, args, stochastic, observed, parameters, rand
 
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
 using MacroTools
