@@ -122,11 +122,8 @@ end;
 
 sampleFrom(m) = eval(samp(m))
 
-function arguments(m)
-    if @capture(m, function(args__) body_ end)
-        return args
-    else 
-        throw(ArgumentError)
+HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
+
     end
 
 end
