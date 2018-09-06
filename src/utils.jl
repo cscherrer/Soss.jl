@@ -86,24 +86,30 @@ end
 
 function logdensity(model)
     j = 0
-    body = postwalk(model) do x
+    body = postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
+            if v in parameters(model)
+
             j += 1
             supp = support(eval(dist)) 
             @assert (typeof(supp) == RealInterval) "Sampled values must have RealInterval support (for now)"
             quote
                 $(xform(:(θ[$j]), v, supp ))
                 ℓ += logpdf($dist, $v)
-            end
-        elseif @capture(x, v_ <~ dist_) 
+                end |> unblock
+            elseif v in observed(model)
             quote
                 ℓ += logpdf($dist, $v)
+                end |> unblock
+            else
+                print("bad")
             end
         else x
         end
     end
     fQuoted = quote
-        function(θ::SVector{$j,Float64}, DATA)
+        function($(model.args)...)
+            function(θ::Vector{Float64})
             ℓ = 0.0
             $body
             return ℓ
