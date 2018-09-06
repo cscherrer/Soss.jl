@@ -62,7 +62,8 @@ function xform(R, v, supp)
     @assert typeof(supp) == RealInterval
     lo = supp.lb
     hi = supp.ub
-    body = if (lo,hi) == (-Inf, Inf)  # no transform needed in this case
+    body = begin
+        if (lo,hi) == (-Inf, Inf)  # no transform needed in this case
         quote
             $v = $R
         end
@@ -79,7 +80,7 @@ function xform(R, v, supp)
     else 
         throw(error("Transform not implemented"))                            
     end
-
+    end
     return body
 end
 
