@@ -34,6 +34,8 @@ function parameters(model)
     pars
 end
 
+observed(model) = setdiff(stochastic(model), parameters(model))
+
 function supports(model)
     supps = Dict{Symbol, Any}()
     postwalk(model) do x
