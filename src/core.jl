@@ -23,7 +23,7 @@ macro model(v::Symbol,ex)
 end
 
 macro model(ex)   
-    Model(:(Tuple()),pretty(ex))
+    Model(:(()),pretty(ex))
 end
 
 import Base.convert
