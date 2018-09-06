@@ -146,24 +146,6 @@ HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
 # Binomial distribution, parameterized by logit(p)
 LogisticBinomial(n,x)=Binomial(n,logistic(x))
 
-    end
-
-end
-
-HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
-
-# Binomial distribution, parameterized by logit(p)
-LogisticBinomial(n,x)=Binomial(n,logistic(x))
-
-
-sampleFrom(m) = eval(samp(m))
-
-
-HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
-
-# Binomial distribution, parameterized by logit(p)
-LogisticBinomial(n,x)=Binomial(n,logistic(x))
-
 import Base.rand
 
 
