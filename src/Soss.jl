@@ -13,6 +13,7 @@ using MacroTools: postwalk, @q, striplines, replace
 
 include("core.jl")
 include("utils.jl")
+include("iid.jl")
 include("for.jl")
 include("examples.jl")
 
