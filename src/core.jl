@@ -41,27 +41,21 @@ end
     observe(model, var)
 """
 function observe(model, v :: Symbol)
-    if @capture(model, function(args__) body_ end)
-        if !(v in args)
-            push!(args, v)
-        end
-    else 
-        args = [v]
+    k = args(model)
+    if v ∉ k
+        push!(k, v)
     end 
-
-    body = postwalk(body) do x 
-        if @capture(x, v0_ ~ dist_) && v0 == v
+    body = postwalk(model.body) do x 
+        if @capture(x, $v ~ dist_)
             quote 
-                $v <~ $dist
+                $v ≅ $dist
             end
         else 
             x
         end
     end
+    Model(k, body)
 
-    fQuoted = Expr(:function, :(($(args...),)), body)
-
-    return pretty(fQuoted)
 end 
 
 function observe(model, vs :: Vector{Symbol})
