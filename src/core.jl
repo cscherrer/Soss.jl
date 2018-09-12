@@ -1,13 +1,13 @@
 export Model, convert
 
 struct Model
-    args
-    body
+    args :: Set{Symbol}
+    body :: Expr
 end
 
 (m::Model)(;kwargs...) = begin
     result = deepcopy(m)
-    setdiff!(result.args.args, keys(kwargs))
+    setdiff!(result.args, keys(kwargs))
     assignments = [:($k = $v) for (k,v) in kwargs]
     pushfirst!(result.body.args, assignments...)
     result
@@ -15,15 +15,15 @@ end
 
 
 macro model(vs::Expr,ex)
-    Model(vs, pretty(ex))
+    Model(Set(vs.args), pretty(ex))
 end
 
 macro model(v::Symbol,ex)
-    Model(:($v,), pretty(ex))
+    Model(Set([v]), pretty(ex))
 end
 
 macro model(ex)   
-    Model(:(()),pretty(ex))
+    Model(Set(),pretty(ex))
 end
 
 import Base.convert
@@ -44,7 +44,7 @@ function observe(model, v :: Symbol)
     k = args(model)
     if v ∉ k
         push!(k, v)
-    end 
+    end
     body = postwalk(model.body) do x 
         if @capture(x, $v ~ dist_)
             quote 
