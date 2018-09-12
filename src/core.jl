@@ -33,7 +33,7 @@ convert(Expr, m::Model) = begin
 end
 
 Base.show(io::IO, m::Model) = begin
-    print(io, "@model $(m.args) ")
+    print(io, "@model $(Expr(:tuple, [x for x in m.args]...)) ")
     println(io, m.body)
 end
 
