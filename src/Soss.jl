@@ -5,16 +5,16 @@ export arguments, @model, For, Eval, logdensity, observe, parameters, supports, 
 using Reexport: @reexport
 
 @reexport using Distributions
+@reexport using StatsFuns
 
-using StatsFuns
 using MacroTools
 using MacroTools: postwalk, @q, striplines, replace
-
 
 include("core.jl")
 include("utils.jl")
 include("iid.jl")
 include("for.jl")
 include("examples.jl")
+# include("nuts.jl")
 
 end # module
