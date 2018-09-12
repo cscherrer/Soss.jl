@@ -10,7 +10,8 @@ using Reexport: @reexport
 using MacroTools
 using MacroTools: postwalk, @q, striplines, replace
 
-include("core.jl")
+
+include("model.jl")
 include("utils.jl")
 include("iid.jl")
 include("for.jl")
