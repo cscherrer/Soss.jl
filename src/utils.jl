@@ -1,31 +1,20 @@
-export arguments, LogisticBinomial, HalfCauchy, args, stochastic, observed, parameters, rand
+export arguments, LogisticBinomial, HalfCauchy, args, stochastic, observed, parameters, rand, supports
+export paramSupport
 
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
 using MacroTools
 using StatsFuns
 
-function nobegin(ex)
-    postwalk(ex) do x
-        if @capture(x, begin body__ end)
-            unblock(x)
-        else
-            x
-        end
-    end
-end
 
 pretty = striplines
 
-function args(model)
-    model.args.args
-end
 
 "A stochastic node is any `v` in a model with `v ~ ...`"
 function stochastic(model)
-    nodes :: Vector{Symbol} = []
+    nodes = Set{Symbol}()
     postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
-            push!(nodes, v)
+            union!(nodes, [v])
         else x 
         end
     end
@@ -33,13 +22,10 @@ function stochastic(model)
 end
 
 function parameters(model)
-    nonpars = copy(args(model))
-    pars :: Vector{Symbol} = []
+    pars = Set{Symbol}()
     for line in model.body.args
-        if @capture(line, v_ = ex_)
-            push!(nonpars, v)
-        elseif @capture(line, v_ ~ dist_) && (v ∉ nonpars)
-            push!(pars, v)
+        if @capture(line, v_ ~ dist_)
+            union!(pars, [v])
         end
     end
     pars
@@ -47,11 +33,13 @@ end
 
 observed(model) = setdiff(stochastic(model), parameters(model))
 
-function supports(model)
+function paramSupport(model)
     supps = Dict{Symbol, Any}()
-    postwalk(model) do x
-        if @capture(x, v_ ~ dist_)
-            supps[v] = support(eval(dist))
+    postwalk(model.body) do x
+        if @capture(x, v_ ~ dist_(args__))
+            if v in parameters(model)
+                supps[v] = support(eval(dist))
+            end
         else x
         end
     end
@@ -64,22 +52,22 @@ function xform(R, v, supp)
     hi = supp.ub
     body = begin
         if (lo,hi) == (-Inf, Inf)  # no transform needed in this case
-        quote
-            $v = $R
+            quote
+                $v = $R
+            end
+        elseif (lo,hi) == (0.0, Inf)   
+            quote
+                $v = softplus($R)
+                ℓ += abs($v - $R)
+            end
+        elseif (lo, hi) == (0.0, 1.0)
+            quote 
+                $v = logistic($R)
+                ℓ += log($v * (1 - $v))
+            end 
+        else 
+            throw(error("Transform not implemented"))                            
         end
-    elseif (lo,hi) == (0.0, Inf)   
-        quote
-            $v = softplus($R)
-            ℓ += abs($v - $R)
-        end
-    elseif (lo, hi) == (0.0, 1.0)
-        quote 
-            $v = logistic($R)
-            ℓ += log($v * (1 - $v))
-        end  
-    else 
-        throw(error("Transform not implemented"))                            
-    end
     end
     return body
 end
@@ -90,16 +78,16 @@ function logdensity(model)
         if @capture(x, v_ ~ dist_)
             if v in parameters(model)
 
-            j += 1
-            supp = support(eval(dist)) 
-            @assert (typeof(supp) == RealInterval) "Sampled values must have RealInterval support (for now)"
-            quote
-                $(xform(:(θ[$j]), v, supp ))
-                ℓ += logpdf($dist, $v)
+                j += 1
+                supp = support(eval(dist)) 
+                @assert (typeof(supp) == RealInterval) "Sampled values must have RealInterval support (for now)"
+                quote
+                    $(xform(:(θ[$j]), v, supp ))
+                    ℓ += logpdf($dist, $v)
                 end |> unblock
             elseif v in observed(model)
-            quote
-                ℓ += logpdf($dist, $v)
+                quote
+                    ℓ += logpdf($dist, $v)
                 end |> unblock
             else
                 print("bad")
@@ -109,12 +97,12 @@ function logdensity(model)
     end
     fQuoted = quote
         function($(model.args)...)
-            function(θ::Vector{Float64})
-            ℓ = 0.0
-            $body
-            return ℓ
+            function(θ)
+                ℓ = 0.0
+                $body
+                return ℓ
+            end
         end
-    end
 
     end 
 
@@ -127,30 +115,16 @@ function mapbody(f,functionExpr)
     ans
 end
 
-function samp(m)
-    func = postwalk(m) do x
-        if @capture(x, v_ ~ dist_) 
-            @q begin
-                $v = rand($dist)
-                val = merge(val, ($v=$v,))
-            end
-        else x
-        end
-    end
-
-    mapbody(func) do body
-        @q begin
-            val = NamedTuple()
-            $body
-            val
-        end
-    end
-end;
 
 sampleFrom(m) = eval(samp(m))
 
 
 HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
+
+import Distributions.support
+export support
+support(::typeof(HalfCauchy)) = RealInterval(-Inf, Inf)
+
 
 # Binomial distribution, parameterized by logit(p)
 LogisticBinomial(n,x)=Binomial(n,logistic(x))
@@ -182,12 +156,91 @@ end
 
 
 
-function rand(m :: Model)
-    if (observed(m) == []) && (args(m) == [])
-        println("rand(::Model) not yet implemented")
-    elseif args(m) != []
-        throw(ArgumentError("rand called with nonempty args(m) == $(args(m))"))
-    elseif observed(m) != []
-        throw(ArgumentError("rand called with nonempty observed(m) == $(observed(m))"))
+function rand(N::Int64)
+    function(m :: Model)
+        if isempty(observed(m)) && isempty(m.args)
+            body = postwalk(m.body) do x 
+                if @capture(x, v_ ~ dist_)
+                    @q begin
+                        $v = rand($dist)
+                        val = merge(val, ($v=$v,))
+                    end
+                else x
+                end
+            end
+
+            getOne = @q begin
+                () -> begin
+                    val = NamedTuple()
+                    $body
+                    push!(ans,val)
+                    val
+                end
+            end
+
+            print(getOne)
+
+            result = quote
+                begin
+                    ans = []
+                    for n in 1:$N
+                        val = NamedTuple()
+                        $body
+                        push!(ans,val)
+                    end 
+                    ans
+                end
+            end        
+
+            eval(getOne)
+
+        elseif m.args != []
+            throw(ArgumentError("rand called with nonempty args(m) == $(args(m))"))
+        elseif observed(m) != []
+            throw(ArgumentError("rand called with nonempty observed(m) == $(observed(m))"))
+        end
     end
+end
+
+export prior
+function prior(m :: Model)
+    body = postwalk(m.body) do x 
+        if @capture(x, v_ ⩪ dist_)
+            :()
+        else x
+        end
+    end
+    Model(m.args, body) 
+end
+
+export priorPredictive
+function priorPredictive(m :: Model)
+    args = copy(m.args)
+    body = postwalk(m.body) do x 
+        if @capture(x, v_ ~ dist_)
+            setdiff!(args, [v])
+            x
+        elseif @capture(x, v_ ⩪ dist_)
+            setdiff!(args, [v])
+            @q ($v ~ $dist)
+        else x
+        end
+    end
+    Model(args, body) 
+end
+
+export posteriorPredictive
+function posteriorPredictive(m :: Model)
+    args = copy(m.args)
+    body = postwalk(m.body) do x 
+        if @capture(x, v_ ~ dist_)
+            union!(args, [v])
+            :()
+        elseif @capture(x, v_ ⩪ dist_)
+            setdiff!(args, [v])
+            @q ($v ~ $dist)
+        else x
+        end
+    end
+    Model(args, body) 
 end
