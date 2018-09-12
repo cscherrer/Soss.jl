@@ -2,6 +2,11 @@ export rats, pumps, normalModel, seeds
 
 using Iterators
 
+coin = @model flips begin
+    pHeads ~ Beta(1,1)
+    flips ⩪ Bernoulli(pHeads) |> iid(20) 
+end
+
 lda = @model (α, η, K, V, N) begin
     M = length(N)
 
@@ -13,28 +18,29 @@ lda = @model (α, η, K, V, N) begin
             Categorical(θ[m]) |> iid(N[m]) 
         end
 
-    w ~ For(1:M) do m
+    w ⩪ For(1:M) do m
             For(1:N[m]) do n
                 Categorical(β[z[m][n]])
             end
         end
 end
 
-normalModel = @model N begin
+normalModel = @model x begin
     μ ~ Normal(0,5)
     σ ~ HalfCauchy(3)
-    x ~ Normal(μ,σ) |> iid(N)
+    N = length(x)
+    x ⩪ Normal(μ,σ) |> iid(N)
 end
 
-mix = @model N begin
-    p ~ Uniform()
-    μ1 ~ Normal(0,1)
-    μ2 ~ Normal(0,1)
-    σ1 ~ Cauchy(0,3)
-    σ2 ~ HalfCauchy(3)
-    x ~ MixtureModel([Normal(μ1, σ1), Normal(μ2, σ2)], [p, 1-p]) |> iid(N)
+export mix
+mix = @model (K,α) begin
+    p ~ Dirichlet(repeat([α],K))
+    μ ~ Cauchy(0,5) |> iid(K)
+    σ ~ HalfCauchy(3) |> iid(K)
+    components = Normal.(μ,σ)
+    N ~ Poisson(100)
+    x ~ MixtureModel(components, p) |> iid(N)
 end
-
 
 
 linReg1D = @model (x,y) begin
@@ -45,7 +51,7 @@ linReg1D = @model (x,y) begin
     
     ŷ = α .+ β .* x
     N = length(x) 
-    y ~ For(1:N) do n
+    y ⩪ For(1:N) do n
         Normal(ŷ[n], σ)
     end
 end
@@ -62,15 +68,11 @@ rats = @model x begin
     σ2β ~ σ2dist
     σ2c ~ σ2dist
 
-    α ~ For(1:30) do _ 
-            Normal(μα, sqrt(σ2α))
-        end 
-    β ~ For(1:30) do _
-            Normal(μβ, sqrt(σ2β))
-        end
+    α ~ Normal(μα, sqrt(σ2α)) |> iid(30)
+    β ~ Normal(μβ, sqrt(σ2β)) |> iid(30)
 
     x̄ = mean(x)
-    y ~ For([(i,j) for i in 1:30, j in 1:5]) do (i,j)
+    y ⩪ For([(i,j) for i in 1:30, j in 1:5]) do (i,j)
             Normal(α[i] + β[i]*(x[j]-x̄), sqrt(σ2c))
         end
 end
@@ -82,7 +84,7 @@ pumps = @model t begin
     θ ~ For(1:n) do i
             Gamma(α, 1/β)
         end
-    y ~ For(1:n) do i 
+    y ⩪ For(1:n) do i 
             Poisson(θ[i] * t[i])
         end
 end
@@ -105,11 +107,9 @@ seeds = @model (n,x) begin
     α1 ~ αDist
     α2 ~ αDist
     α12 ~ αDist
-    b ~ For(1:21) do _
-            Normal(0,σ)
-        end
+    b ~ Normal(0,σ) |> iid(21)
     y = α0 .+ α1 .* x[1,:] .+ α2 .* x[2,:] .+ α12 .* x[1,:] .* x[2,:] .+ b
-    r ~ For(1:21) do i 
+    r ⩪ For(1:21) do i 
             LogisticBinomial(n[i],y[i])
         end
 end
