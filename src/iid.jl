@@ -3,8 +3,8 @@ import Base.rand
 export iid
 
 struct iid
-    n
-    dist
+    n :: Int
+    dist 
 end
 
 iid(n) = dist -> iid(n,dist)
