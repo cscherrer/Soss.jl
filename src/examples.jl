@@ -7,6 +7,7 @@ coin = @model flips begin
     flips ⩪ Bernoulli(pHeads) |> iid(20) 
 end
 
+export lda
 lda = @model (α, η, K, V, N) begin
     M = length(N)
 
@@ -42,7 +43,7 @@ mix = @model (K,α) begin
     x ~ MixtureModel(components, p) |> iid(N)
 end
 
-
+export linReg1D
 linReg1D = @model (x,y) begin
     # Priors chosen following Gelman(2008)
     α ~ Cauchy(0,10)

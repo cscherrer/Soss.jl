@@ -1,4 +1,4 @@
-export arguments, LogisticBinomial, HalfCauchy, args, stochastic, observed, parameters, rand, supports
+export arguments, args, stochastic, observed, parameters, rand, supports
 export paramSupport
 
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
@@ -20,6 +20,8 @@ function stochastic(model)
     end
     nodes
 end
+
+
 
 function parameters(model)
     pars = Set{Symbol}()
@@ -119,18 +121,10 @@ end
 sampleFrom(m) = eval(samp(m))
 
 
-HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
-
-import Distributions.support
-export support
-support(::typeof(HalfCauchy)) = RealInterval(-Inf, Inf)
-
-
-# Binomial distribution, parameterized by logit(p)
-LogisticBinomial(n,x)=Binomial(n,logistic(x))
 
 import Base.rand
 
+export findsubexprs
 
 function findsubexprs(ex, vs)
     result = Set()
@@ -142,21 +136,8 @@ end
 
 
 
-function updategraph!(g, v, rhs)
 
-end
-
-function graph(m)
-    g = DefaultDict{Symbol, Set{Symbol}}(Set{Symbol}())
-    for v in args(m)
-        add_vertex!(g,v) 
-    end
-
-end
-
-
-
-function rand(N::Int64)
+function rand(N::Int)
     function(m :: Model)
         if isempty(observed(m)) && isempty(m.args)
             body = postwalk(m.body) do x 
@@ -243,4 +224,20 @@ function posteriorPredictive(m :: Model)
         end
     end
     Model(args, body) 
+end
+
+export variables
+function variables(m::Model)
+    vars = copy(m.args)
+    postwalk(m.body) do x 
+        if @capture(x, v_ ~ dist_)
+            push!(vars, Symbol(v))
+        elseif @capture(x, v_ ⩪ dist_)
+            push!(vars, Symbol(v))
+        elseif @capture(x, v_ = dist_)
+            push!(vars, Symbol(v))
+        else x
+        end
+    end
+    vars
 end

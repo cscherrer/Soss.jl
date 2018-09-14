@@ -1,7 +1,5 @@
 module Soss
 
-export arguments, @model, For, Eval, logdensity, observe, parameters, supports, lda, sampleFrom, linReg1D
-
 using Reexport: @reexport
 
 @reexport using Distributions
@@ -12,10 +10,11 @@ using MacroTools: postwalk, @q, striplines, replace
 
 
 include("model.jl")
+include("dist.jl")
 include("utils.jl")
 include("iid.jl")
 include("for.jl")
 include("examples.jl")
-# include("nuts.jl")
+include("graph.jl")
 
 end # module
