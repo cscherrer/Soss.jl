@@ -5,6 +5,47 @@ Soss is a library for manipulating source-code representation of probabilistic m
 **Soss IS "PRE-ALPHA" SOFTWARE -- BREAKING CHANGES ARE IMMINENT**
 
 
+## Dependency Graphs
+
+```julia
+julia> lda
+@model (α, N, K, V, η) begin
+    M = length(N)
+    β ~ Dirichlet(repeat([η], V)) |> iid(K)
+    θ ~ Dirichlet(repeat([α], K)) |> iid(M)
+    z ~ For(1:M) do m
+            Categorical(θ[m]) |> iid(N[m])
+        end
+    w ⩪ For(1:M) do m
+            For(1:N[m]) do n
+                Categorical(β[(z[m])[n]])
+            end
+        end
+end
+
+julia> g = graph(lda); [(g[e.src,:name] => g[e.dst,:name]) for e in edges(g)]
+14-element Array{Pair{Symbol,Symbol},1}:
+ :α => :θ
+ :N => :w
+ :N => :M
+ :N => :z
+ :M => :w
+ :M => :z
+ :M => :θ
+ :K => :β
+ :K => :θ
+ :V => :β
+ :z => :w
+ :β => :w
+ :η => :β
+ :θ => :z
+```
+
+---
+Stuff below this point is outdated, updated coming soon
+
+## Old Docs
+
 Here's a simple linear regression model in Soss:
 
 ```julia
