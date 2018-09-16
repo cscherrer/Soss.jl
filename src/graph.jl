@@ -2,8 +2,8 @@ export graph
 
 
 
-using LightGraphs
-using MetaGraphs
+@reexport using LightGraphs
+@reexport using MetaGraphs
 function graph(m::Model)
     vars = variables(m)
     g = MetaDiGraph(length(vars))

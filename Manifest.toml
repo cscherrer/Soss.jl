@@ -1,8 +1,8 @@
 [[ArnoldiMethod]]
 deps = ["DelimitedFiles", "LinearAlgebra", "Pkg", "Random", "SparseArrays", "StaticArrays", "Test"]
-git-tree-sha1 = "30f9b16af87c85a4c7a1c2f48668313af881611f"
+git-tree-sha1 = "2b6845cea546604fb4dca4e31414a6a59d39ddcd"
 uuid = "ec485272-7323-5ecc-a04f-4719b315124d"
-version = "0.0.3"
+version = "0.0.4"
 
 [[Arpack]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "Random", "SparseArrays", "Test"]
