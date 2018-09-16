@@ -40,6 +40,9 @@ julia> g = graph(lda); [(g[e.src,:name] => g[e.dst,:name]) for e in edges(g)]
  :η => :β
  :θ => :z
 ```
+## Coming Soon
+
+- Macro optimization of densities, as in [Passage](https://www.dropbox.com/s/zg2g0cfiin0jdmr/Scherrer%20et%20al.%20-%202014%20-%20Passage%20A%20Parallel%20Sampler%20Generator%20for%20Hierarchical%20Bayesian%20Modeling.pdf)
 
 ---
 Stuff below this point is outdated, updated coming soon
