@@ -43,6 +43,7 @@ julia> g = graph(lda); [(g[e.src,:name] => g[e.dst,:name]) for e in edges(g)]
 ## Coming Soon
 
 - Macro optimization of densities, as in [Passage](https://www.dropbox.com/s/zg2g0cfiin0jdmr/Scherrer%20et%20al.%20-%202014%20-%20Passage%20A%20Parallel%20Sampler%20Generator%20for%20Hierarchical%20Bayesian%20Modeling.pdf)
+- Optimization based on exponential families, see [here](https://www.dropbox.com/s/26omxn6zo8gia3u/Scherrer%20-%20Unknown%20-%20An%20Exponential%20Family%20Basis%20for%20Probabilistic%20Programming.pdf?dl=0)
 
 ---
 Stuff below this point is outdated, updated coming soon
