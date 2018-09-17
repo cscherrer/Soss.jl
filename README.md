@@ -52,6 +52,8 @@ Now, for a multivariate normal, the inverse of the covariance has an interesting
 
 Because we're working in terms of expressions, we can get our hands on this relation and use it to specify the form of the inverse covariance. This will allow representation equivalent to the unconstrained version, at greatly reduced computational cost.
 
+This isn't the whole story - to "do it right" would reduce the cost even more but require a different representation. Details of that approach are [here](https://ac.els-cdn.com/S0047259X98917456/1-s2.0-S0047259X98917456-main.pdf?_tid=01eafbd5-e4ce-4b29-bc98-47dfacf99cf2&acdnat=1537155460_c2081b7161fb58932c1551173b5140d5).
+
 - Macro optimization of densities, as in [Passage](https://www.dropbox.com/s/zg2g0cfiin0jdmr/Scherrer%20et%20al.%20-%202014%20-%20Passage%20A%20Parallel%20Sampler%20Generator%20for%20Hierarchical%20Bayesian%20Modeling.pdf)
 - Optimization based on exponential families, see [here](https://www.dropbox.com/s/26omxn6zo8gia3u/Scherrer%20-%20Unknown%20-%20An%20Exponential%20Family%20Basis%20for%20Probabilistic%20Programming.pdf?dl=0)
 
