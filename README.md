@@ -42,6 +42,16 @@ julia> g = graph(lda); [(g[e.src,:name] => g[e.dst,:name]) for e in edges(g)]
 ```
 ## Coming Soon
 
+Since its initial Stan implementation, "Automatic Differentiation Variational Inference (ADVI)" has become a popular approach to approximate inference. This involves transforming parameters to be over R^n and approximating the posterior with a mutlivariate normal distribution. There are typically two options for this:
+- The covariance can be a diagonal matrix, so the components of the distribution are independent. This is computationally efficient, but is very constrained, and often leads to dramatic underestimation of the variance.
+- The covariance can be unconstrained - the only requirement in this case is that it be positive definite. This can result in much tighter bound and a better approximation, but with a great computational expense (quadratic in the dimension of the parameter space).
+
+There's a middle ground that (to my knowledge) has not been explored. The log-likelihood is a funciton of the parameters that takes the form of a sum of expressions, each involving a subset of the parameters. 
+
+Now, for a multivariate normal, the inverse of the covariance has an interesting property. An element Sigma_ij of this is zero if and only x_i and x_j are independent, given x_{k | k not  in {i,j}}. And this conditional independence property is equivalent to "x_i and x_j do not occur together in any term of the log-likelihood".
+
+Because we're working in terms of expressions, we can get our hands on this relation and use it to specify the form of the inverse covariance. This will allow representation equivalent to the unconstrained version, at greatly reduced computational cost.
+
 - Macro optimization of densities, as in [Passage](https://www.dropbox.com/s/zg2g0cfiin0jdmr/Scherrer%20et%20al.%20-%202014%20-%20Passage%20A%20Parallel%20Sampler%20Generator%20for%20Hierarchical%20Bayesian%20Modeling.pdf)
 - Optimization based on exponential families, see [here](https://www.dropbox.com/s/26omxn6zo8gia3u/Scherrer%20-%20Unknown%20-%20An%20Exponential%20Family%20Basis%20for%20Probabilistic%20Programming.pdf?dl=0)
 
