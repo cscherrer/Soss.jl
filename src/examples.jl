@@ -29,8 +29,7 @@ end
 normalModel = @model x begin
     μ ~ Normal(0,5)
     σ ~ HalfCauchy(3)
-    N = length(x)
-    x ⩪ Normal(μ,σ) |> iid(N)
+    x ⩪ Normal(μ,σ) |> iid
 end
 
 export mix
