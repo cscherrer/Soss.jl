@@ -75,37 +75,31 @@ function xform(R, v, supp)
 end
 
 function logdensity(model)
-    j = 0
     body = postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
-            if v in parameters(model)
+                quote
+                $v = par.$v
+                    ℓ += logpdf($dist, $v)
+                end |> unblock
 
-                j += 1
-                supp = support(eval(dist)) 
-                @assert (typeof(supp) == RealInterval) "Sampled values must have RealInterval support (for now)"
+        elseif @capture(x, v_ ⩪ dist_)
                 quote
-                    $(xform(:(θ[$j]), v, supp ))
+                $v = data.$v
                     ℓ += logpdf($dist, $v)
                 end |> unblock
-            elseif v in observed(model)
-                quote
-                    ℓ += logpdf($dist, $v)
-                end |> unblock
-            else
-                print("bad")
-            end
         else x
         end
     end
+
     fQuoted = quote
-        function($(model.args)...)
-            function(θ)
+        function(par,data)
                 ℓ = 0.0
                 $body
                 return ℓ
             end
-        end
+    end |> unblock
 
+    return pretty(fQuoted)
     end 
 
 export getTransform
