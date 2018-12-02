@@ -1,6 +1,4 @@
-export rats, pumps, normalModel, seeds
-
-using Iterators
+export rats, pumps, normalModel, seeds, coin
 
 coin = @model flips begin
     pHeads ~ Beta(1,1)
