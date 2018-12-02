@@ -1,4 +1,6 @@
-export arguments, args, stochastic, observed, parameters, rand, supports
+import LogDensityProblems: logdensity
+
+export arguments, args, stochastic, observed, parameters, rand, supports, logdensity
 export paramSupport
 
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
