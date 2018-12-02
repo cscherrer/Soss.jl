@@ -108,7 +108,18 @@ function logdensity(model)
 
     end 
 
-    return pretty(fQuoted)
+export getTransform
+function getTransform(model)
+    expr = Expr(:tuple)
+    postwalk(model.body) do x
+        if @capture(x, v_ ~ dist_)
+            # println(dist)
+            eval(:(t = fromℝ($dist)))
+            push!(expr.args,:($v=$t))
+        else x
+        end
+    end
+    return as(eval(expr))
 end
 
 function mapbody(f,functionExpr)
