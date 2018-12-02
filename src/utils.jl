@@ -3,6 +3,7 @@ import LogDensityProblems: logdensity
 export arguments, args, stochastic, observed, parameters, rand, supports, logdensity
 export paramSupport
 
+
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
 using MacroTools
 using StatsFuns
@@ -17,7 +18,7 @@ function stochastic(model)
     postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
             union!(nodes, [v])
-        else x 
+        else x
         end
     end
     nodes
@@ -59,50 +60,44 @@ function xform(R, v, supp)
             quote
                 $v = $R
             end
-        elseif (lo,hi) == (0.0, Inf)   
+        elseif (lo,hi) == (0.0, Inf)
             quote
                 $v = softplus($R)
                 ℓ += abs($v - $R)
             end
         elseif (lo, hi) == (0.0, 1.0)
-            quote 
+            quote
                 $v = logistic($R)
                 ℓ += log($v * (1 - $v))
-            end 
-        else 
-            throw(error("Transform not implemented"))                            
+            end
+        else
+            throw(error("Transform not implemented"))
         end
     end
     return body
 end
 
 function logdensity(model)
-    body = postwalk(model.body) do x
-        if @capture(x, v_ ~ dist_)
-                quote
-                $v = par.$v
-                    ℓ += logpdf($dist, $v)
-                end |> unblock
+    result = @q function(par, data)
+        ℓ = 0.0
+    end
 
+    body = result.args[2].args
+    postwalk(model.body) do x
+        if @capture(x, v_ ~ dist_)
+            push!(body, :($v = par.$v))
+            push!(body, :(ℓ += logpdf($dist, $v)))
         elseif @capture(x, v_ ⩪ dist_)
-                quote
-                $v = data.$v
-                    ℓ += logpdf($dist, $v)
-                end |> unblock
+            push!(body, :($v = data.$v))
+            push!(body, :(ℓ += logpdf($dist, $v)))
         else x
         end
     end
 
-    fQuoted = quote
-        function(par,data)
-                ℓ = 0.0
-                $body
-                return ℓ
-            end
-    end |> unblock
+    push!(body, :(return ℓ))
+    result
+end
 
-    return pretty(fQuoted)
-    end 
 
 export getTransform
 function getTransform(model)
@@ -117,6 +112,8 @@ function getTransform(model)
     end
     return as(eval(expr))
 end
+
+t = as((μ = asℝ, σ = asℝ₊, τ = asℝ₊, θs = as(Array, 8)))
 
 function mapbody(f,functionExpr)
     ans = deepcopy(functionExpr)
@@ -144,67 +141,22 @@ end
 
 
 
-function rand(N::Int)
-    function(m :: Model)
-        if isempty(observed(m)) && isempty(m.args)
-            body = postwalk(m.body) do x 
-                if @capture(x, v_ ~ dist_)
-                    @q begin
-                        $v = rand($dist)
-                        val = merge(val, ($v=$v,))
-                    end
-                else x
-                end
-            end
-
-            getOne = @q begin
-                () -> begin
-                    val = NamedTuple()
-                    $body
-                    push!(ans,val)
-                    val
-                end
-            end
-
-            print(getOne)
-
-            result = quote
-                begin
-                    ans = []
-                    for n in 1:$N
-                        val = NamedTuple()
-                        $body
-                        push!(ans,val)
-                    end 
-                    ans
-                end
-            end        
-
-            eval(getOne)
-
-        elseif m.args != []
-            throw(ArgumentError("rand called with nonempty args(m) == $(args(m))"))
-        elseif observed(m) != []
-            throw(ArgumentError("rand called with nonempty observed(m) == $(observed(m))"))
-        end
-    end
-end
 
 export prior
 function prior(m :: Model)
-    body = postwalk(m.body) do x 
+    body = postwalk(m.body) do x
         if @capture(x, v_ ⩪ dist_)
             :()
         else x
         end
     end
-    Model(m.args, body) 
+    Model(m.args, body)
 end
 
 export priorPredictive
 function priorPredictive(m :: Model)
     args = copy(m.args)
-    body = postwalk(m.body) do x 
+    body = postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
             setdiff!(args, [v])
             x
@@ -214,13 +166,13 @@ function priorPredictive(m :: Model)
         else x
         end
     end
-    Model(args, body) 
+    Model(args, body)
 end
 
 export posteriorPredictive
 function posteriorPredictive(m :: Model)
     args = copy(m.args)
-    body = postwalk(m.body) do x 
+    body = postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
             union!(args, [v])
             :()
@@ -230,13 +182,13 @@ function posteriorPredictive(m :: Model)
         else x
         end
     end
-    Model(args, body) 
+    Model(args, body)
 end
 
 export variables
 function variables(m::Model)
     vars = copy(m.args)
-    postwalk(m.body) do x 
+    postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
             push!(vars, Symbol(v))
         elseif @capture(x, v_ ⩪ dist_)
