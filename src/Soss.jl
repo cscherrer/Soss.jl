@@ -11,6 +11,7 @@ using MacroTools: postwalk, @q, striplines, replace
 
 include("model.jl")
 include("dist.jl")
+include("bijections.jl")
 include("utils.jl")
 include("iid.jl")
 include("for.jl")
