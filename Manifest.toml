@@ -37,6 +37,12 @@ git-tree-sha1 = "055eb2690182ebc31087859c3dd8598371d3ef9e"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
 version = "0.5.3"
 
+[[Cassette]]
+deps = ["InteractiveUtils", "LinearAlgebra", "Test"]
+git-tree-sha1 = "dac71009ded2090e014098c566cfae447cfd686b"
+uuid = "7057c7e9-c182-5462-911a-8362d720325c"
+version = "0.1.4"
+
 [[CodecZlib]]
 deps = ["BinaryProvider", "Libdl", "Test", "TranscodingStreams"]
 git-tree-sha1 = "e3df104c84dfc108f0ca203fd7f5bbdc98641ae9"
@@ -345,6 +351,12 @@ deps = ["LaTeXStrings", "Test"]
 git-tree-sha1 = "959407c786a55ed0822dea108e6b97422849a44f"
 uuid = "37f6aa50-8035-52d0-81c2-5a1d08754b2d"
 version = "3.0.3"
+
+[[Traceur]]
+deps = ["Cassette", "InteractiveUtils", "Logging", "MacroTools", "Test"]
+git-tree-sha1 = "d46ea4a2575f896e90c8a4b52ce2841e6db7d059"
+uuid = "37b6cedf-1f77-55f8-9503-c64b63398394"
+version = "0.2.0"
 
 [[TranscodingStreams]]
 deps = ["Pkg", "Random", "Test"]
