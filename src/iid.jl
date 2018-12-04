@@ -1,6 +1,5 @@
 using Distributions
 import Distributions.logpdf
-import Base.rand
 export iid
 
 struct iid

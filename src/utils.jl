@@ -127,9 +127,6 @@ end
 sampleFrom(m) = eval(samp(m))
 
 
-
-import Base.rand
-
 export findsubexprs
 
 function findsubexprs(ex, vs)

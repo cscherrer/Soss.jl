@@ -1,11 +1,13 @@
 using Distributions
 import Distributions.logpdf
-import Base.rand
 
+export For
 struct For
     f
     xs
 end
+
+export rand
 
 rand(dist::For) = map(rand, map(dist.f,dist.xs))
 
