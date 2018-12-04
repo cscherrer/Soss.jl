@@ -18,6 +18,8 @@ function stochastic(model)
     postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
             union!(nodes, [v])
+        elseif @capture(x, v_ ⩪ dist_)
+            union!(nodes, [v])
         else x
         end
     end
