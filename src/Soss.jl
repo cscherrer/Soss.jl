@@ -1,5 +1,6 @@
 module Soss
 
+import Base.rand
 using Reexport: @reexport
 
 @reexport using Distributions
