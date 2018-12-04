@@ -2,7 +2,7 @@ export rats, pumps, normalModel, seeds, coin
 
 coin = @model flips begin
     pHeads ~ Beta(1,1)
-    flips ⩪ Bernoulli(pHeads) |> iid(20) 
+    flips ⩪ Bernoulli(pHeads) |> iid(20)
 end
 
 export lda
@@ -10,11 +10,11 @@ lda = @model (α, η, K, V, N) begin
     M = length(N)
 
     β ~ Dirichlet(repeat([η],V)) |> iid(K)
- 
+
     θ ~ Dirichlet(repeat([α],K)) |> iid(M)
 
     z ~ For(1:M) do m
-            Categorical(θ[m]) |> iid(N[m]) 
+            Categorical(θ[m]) |> iid(N[m])
         end
 
     w ⩪ For(1:M) do m
@@ -29,6 +29,19 @@ normalModel = @model x begin
     σ ~ HalfCauchy(3)
     x ⩪ Normal(μ,σ) |> iid
 end
+
+export nested
+nested = @model x begin
+    μ ~ simpleModel(2.0)
+    σ ~ HalfCauchy(3)
+    x ⩪ Normal(μ.z,σ) |> iid
+end
+
+export simpleModel
+simpleModel = @model s begin
+    z ~ Normal(0,s)
+end
+
 
 export mix
 mix = @model (K,α) begin
@@ -46,16 +59,16 @@ linReg1D = @model (x,y) begin
     α ~ Cauchy(0,10)
     β ~ Cauchy(0,2.5)
     σ ~ HalfCauchy(3)
-    
+
     ŷ = α .+ β .* x
-    N = length(x) 
+    N = length(x)
     y ⩪ For(1:N) do n
         Normal(ŷ[n], σ)
     end
 end
 
 
-# From OpenBUGS and section 6 of Gelfand et al. 
+# From OpenBUGS and section 6 of Gelfand et al.
 rats = @model x begin
     μdist = Normal(0,1000)
     μα ~ μdist
@@ -82,7 +95,7 @@ pumps = @model t begin
     θ ~ For(1:n) do i
             Gamma(α, 1/β)
         end
-    y ⩪ For(1:n) do i 
+    y ⩪ For(1:n) do i
             Poisson(θ[i] * t[i])
         end
 end
@@ -93,7 +106,7 @@ end
 #     α ~ negReals
 #     β ~ negReals
 #     y ~ For()
-#     Bernoulli 
+#     Bernoulli
 #     α
 # end
 
@@ -107,7 +120,7 @@ seeds = @model (n,x) begin
     α12 ~ αDist
     b ~ Normal(0,σ) |> iid(21)
     y = α0 .+ α1 .* x[1,:] .+ α2 .* x[2,:] .+ α12 .* x[1,:] .* x[2,:] .+ b
-    r ⩪ For(1:21) do i 
+    r ⩪ For(1:21) do i
             LogisticBinomial(n[i],y[i])
         end
 end
@@ -118,9 +131,9 @@ end
 #     β0 ~ βDist
 #     β1 ~ βDist
 #     β2 ~ βDist
-#     β3 ~ βDist 
-#     μ = β0 + β1*z[1,:] + β2*z[2,:] + β3*z[3,:] 
+#     β3 ~ βDist
+#     μ = β0 + β1*z[1,:] + β2*z[2,:] + β3*z[3,:]
 #     y ~ For(1:21) do i
 #             Laplace(μ[i],σ2)
-#         end   
+#         end
 # end
