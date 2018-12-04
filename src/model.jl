@@ -20,7 +20,7 @@ end
 (m::Model)(vs...) = begin
     result = deepcopy(m)
     union!(result.args, vs)
-    newbody = postwalk(result.body) do x
+    newbody = postwalk(resulnormalmodelt.body) do x
         if @capture(x, v_ ~ dist_) && (v ∈ vs)
             :($v ⩪ $dist)
         else x
@@ -71,35 +71,34 @@ Base.show(io::IO, m::Model) = begin
     println(io, m.body)
 end
 
+
+export rand
 function rand(m :: Model, N :: Int)
-    if isempty(observed(m)) && isempty(m.args)
-        body = postwalk(m.body) do x
-            if @capture(x, v_ ~ dist_)
-                @q begin
-                    $v = rand($dist)
-                    val = merge(val, ($v=$v,))
-                end
-            else x
-            end
-        end
-
-        #Return a quoted function to avoid global variables
-        result = quote
-            () -> begin
-                ans = []
-                for n in 1:$N
-                    val = NamedTuple()
-                    $body
-                    push!(ans,val)
-                end
-                ans
-            end
-        end
-
-    elseif m.args != []
-        throw(ArgumentError("rand called with nonempty args(m) == $(args(m))"))
-    elseif observed(m) != []
-        throw(ArgumentError("rand called with nonempty observed(m) == $(observed(m))"))
+    if ~isempty(observed(m))
+        throw(ArgumentError)
     end
-    pretty(result)
+       
+    body = postwalk(m.body) do x
+        if @capture(x, v_ ~ dist_)
+            @q begin
+                $v = rand($dist)
+                val = merge(val, ($v=$v,))
+            end
+        else x
+        end
+    end
+
+    #Wrap in a function to avoid global variables
+    result = @q () -> begin
+        ans = []
+        for n in 1:$N
+            val = NamedTuple()
+            $body
+            push!(ans,val)
+        end
+        ans
+    end
+
+    return Base.invokelatest(eval(result))
+
 end
