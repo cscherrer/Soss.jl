@@ -4,8 +4,63 @@ Soss is a library for manipulating source-code representation of probabilistic m
 
 **Soss IS "PRE-ALPHA" SOFTWARE -- BREAKING CHANGES ARE IMMINENT**
 
+## Probabilistic programming
+
+```julia
+julia> normalModel
+@model (x,) begin
+    μ ~ Normal(0, 5)
+    σ ~ HalfCauchy(3)
+    x ⩪ Normal(μ, σ) |> iid
+end
+```
+
+## NUTS sampler
+
+```julia
+julia> data = (x=randn(10000),);
+
+julia> nuts(normalModel, data=data)
+MCMC, adapting ϵ (75 steps)
+0.0019 s/step ...done
+MCMC, adapting ϵ (25 steps)
+0.0012 s/step ...done
+MCMC, adapting ϵ (50 steps)
+0.0051 s/step ...done
+MCMC, adapting ϵ (100 steps)
+0.00095 s/step ...done
+MCMC, adapting ϵ (200 steps)
+0.00082 s/step ...done
+MCMC, adapting ϵ (400 steps)
+0.0008 s/step ...done
+MCMC, adapting ϵ (50 steps)
+0.0011 s/step ...done
+MCMC (1000 steps)
+step 724 (of 1000), 0.0014 s/step
+0.0014 s/step ...done
+NUTS_result with samples:
+NamedTuple{(:μ, :σ),Tuple{Float64,Float64}}[(μ = 0.00802024, σ = 0.970564), (μ = 0.0161026, σ = 1.00139), (μ = 0.0175141, σ = 0.990568), (μ = 0.0207275, σ = 0.987244), (μ = 0.0197949, σ = 0.995026), (μ = 0.040233, σ = 0.989478), (μ = 0.0310844, σ = 0.997195), (μ = 0.00844086, σ = 0.97504), (μ = 0.0101762, σ = 0.978574), (μ = 0.00557231, σ = 0.999823)  …  (μ = 0.021533, σ = 0.992712), (μ = 0.0212946, σ = 0.988297), (μ = 0.0330258, σ = 0.983934), (μ = 0.00697519, σ = 0.97588), (μ = -0.00422378, σ = 0.986204), (μ = 0.00335039, σ = 0.994075), (μ = 0.00971817, σ = 0.994991), (μ = 0.0104573, σ = 0.9988), (μ = 0.00752986, σ = 0.983179), (μ = 0.00999065, σ = 0.992955)]
+```
+
+```julia
+julia> mean(getfield.(n.samples,:σ))
+0.986755730047984
+
+julia> quantile(getfield.(n.samples,:σ),[0.05,0.5,0.95])
+3-element Array{Float64,1}:
+ 0.9752928158352223
+ 0.9868497873828663
+ 0.9983927698927793
+```
 
 ## Dependency Graphs
+
+```julia
+julia> graphEdges(normalModel)
+2-element Array{Pair{Symbol,Symbol},1}:
+ :μ => :x
+ :σ => :x
+
 
 ```julia
 julia> lda
