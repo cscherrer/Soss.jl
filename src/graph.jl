@@ -22,6 +22,11 @@ function graph(m::Model)
     g
 end
 
+export graphEdges
+function graphEdges(m::Model)
+    g = graph(m)
+    [(g[e.src,:name] => g[e.dst,:name]) for e in edges(g)]
+end
 
 # EXAMPLE
 
