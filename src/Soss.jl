@@ -18,5 +18,6 @@ include("iid.jl")
 include("for.jl")
 include("examples.jl")
 include("graph.jl")
+include("nuts.jl")
 
 end # module
