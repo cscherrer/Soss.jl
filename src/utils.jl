@@ -115,17 +115,11 @@ function getTransform(model)
     return as(eval(expr))
 end
 
-t = as((μ = asℝ, σ = asℝ₊, τ = asℝ₊, θs = as(Array, 8)))
-
 function mapbody(f,functionExpr)
     ans = deepcopy(functionExpr)
     ans.args[2] = f(ans.args[2])
     ans
 end
-
-
-sampleFrom(m) = eval(samp(m))
-
 
 export findsubexprs
 
@@ -136,10 +130,6 @@ function findsubexprs(ex, vs)
     end
     return result
 end
-
-
-
-
 
 export prior
 function prior(m :: Model)
