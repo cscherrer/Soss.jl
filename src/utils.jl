@@ -53,31 +53,31 @@ function paramSupport(model)
     return supps
 end
 
-function xform(R, v, supp)
-    @assert typeof(supp) == RealInterval
-    lo = supp.lb
-    hi = supp.ub
-    body = begin
-        if (lo,hi) == (-Inf, Inf)  # no transform needed in this case
-            quote
-                $v = $R
-            end
-        elseif (lo,hi) == (0.0, Inf)
-            quote
-                $v = softplus($R)
-                ℓ += abs($v - $R)
-            end
-        elseif (lo, hi) == (0.0, 1.0)
-            quote
-                $v = logistic($R)
-                ℓ += log($v * (1 - $v))
-            end
-        else
-            throw(error("Transform not implemented"))
-        end
-    end
-    return body
-end
+# function xform(R, v, supp)
+#     @assert typeof(supp) == RealInterval
+#     lo = supp.lb
+#     hi = supp.ub
+#     body = begin
+#         if (lo,hi) == (-Inf, Inf)  # no transform needed in this case
+#             quote
+#                 $v = $R
+#             end
+#         elseif (lo,hi) == (0.0, Inf)
+#             quote
+#                 $v = softplus($R)
+#                 ℓ += abs($v - $R)
+#             end
+#         elseif (lo, hi) == (0.0, 1.0)
+#             quote
+#                 $v = logistic($R)
+#                 ℓ += log($v * (1 - $v))
+#             end
+#         else
+#             throw(error("Transform not implemented"))
+#         end
+#     end
+#     return body
+# end
 
 function logdensity(model)
     result = @q function(par, data)
