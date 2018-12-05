@@ -60,7 +60,9 @@ julia> graphEdges(normalModel)
 2-element Array{Pair{Symbol,Symbol},1}:
  :μ => :x
  :σ => :x
+```
 
+Great for more complex models:
 
 ```julia
 julia> lda
@@ -78,7 +80,7 @@ julia> lda
         end
 end
 
-julia> g = graph(lda); [(g[e.src,:name] => g[e.dst,:name]) for e in edges(g)]
+julia> graphEdges(lda)
 14-element Array{Pair{Symbol,Symbol},1}:
  :α => :θ
  :N => :w
