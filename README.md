@@ -1,62 +1,143 @@
 # Soss
 
-Soss is a library for manipulating source-code representation of probabilistic models.
-
-**Soss IS "PRE-ALPHA" SOFTWARE -- BREAKING CHANGES ARE IMMINENT**
-
-## Probabilistic programming
+Soss is a Julia library for _probabilistic metaprogramming_. Before we get into that, let’s have a look at a simple example:
 
 ```julia
-julia> normalModel
+hello = @model μ,x begin
+    σ ~ HalfCauchy()
+    x ⩪ Normal(μ,σ) |> iid
+end
+```
+
+Soss considers three kinds of variables:
+
+- _Free variables_ are given as inputs at the beginning of the model, and are not constrained by any distribution. In `hello`, `μ` is a free variable.
+- _Parameters_ are considered as being drawn from some distribution. In the above example, `σ` is drawn from a `HalfCauchy` distribution. Generally parameters will have a prior distribution specified, but won’t have any associated observed data available.
+- _Observed variables_ are associate data with some distribution, which is usually expressed as a function of some parameters. In modeling terms, observed variables give a way of specifying the likelihood. In the example above, `x` is a vector, and `iid` indicates that the values in `x` are _independent, and identically distributed_.
+
+Soss makes it easy to query these different variable subsets for a given model:
+
+```julia
+julia> freeVariables(hello)
+1-element Array{Symbol,1}:
+ :μ
+
+julia> parameters(hello)
+1-element Array{Symbol,1}:
+ :σ
+
+julia> observed(hello)
+1-element Array{Symbol,1}:
+ :x
+```
+
+There are also unions of these
+
+```julia
+julia> variables(hello)
+3-element Array{Symbol,1}:
+ :μ
+ :σ
+ :x
+
+julia> arguments(hello)
+2-element Array{Symbol,1}:
+ :μ
+ :x
+
+julia> stochastic(hello)
+2-element Array{Any,1}:
+ :σ
+ :x
+```
+
+## Model Manipulations
+
+In some cases, we may want to specify a value once and for all:
+
+```julia
+julia> hello
+@model (μ, x) begin
+    σ ~ HalfCauchy()
+    x ⩪ Normal(μ, σ) |> iid
+end
+
+
+julia> hello(μ=3.0)
 @model (x,) begin
-    μ ~ Normal(0, 5)
-    σ ~ HalfCauchy(3)
+    μ = 3.0
+    σ ~ HalfCauchy()
     x ⩪ Normal(μ, σ) |> iid
 end
 ```
 
-## NUTS sampler
+In Bayesian modeling, we usually work in terms of a _prior_ distribution on the parameters, and a _likelihood_ that gives the probability of the data for a given assignment of those parameters. It’s sometimes of value to separate these two; Soss makes this easy too:
 
 ```julia
-julia> data = (x=randn(10000),);
+julia> prior(hello)
+@model (μ,) begin
+    σ ~ HalfCauchy()
+end
 
-julia> nuts(normalModel, data=data)
-MCMC, adapting ϵ (75 steps)
-0.0019 s/step ...done
-MCMC, adapting ϵ (25 steps)
-0.0012 s/step ...done
-MCMC, adapting ϵ (50 steps)
-0.0051 s/step ...done
-MCMC, adapting ϵ (100 steps)
-0.00095 s/step ...done
-MCMC, adapting ϵ (200 steps)
-0.00082 s/step ...done
-MCMC, adapting ϵ (400 steps)
-0.0008 s/step ...done
-MCMC, adapting ϵ (50 steps)
-0.0011 s/step ...done
-MCMC (1000 steps)
-step 724 (of 1000), 0.0014 s/step
-0.0014 s/step ...done
-NUTS_result with samples:
-NamedTuple{(:μ, :σ),Tuple{Float64,Float64}}[(μ = 0.00802024, σ = 0.970564), (μ = 0.0161026, σ = 1.00139), (μ = 0.0175141, σ = 0.990568), (μ = 0.0207275, σ = 0.987244), (μ = 0.0197949, σ = 0.995026), (μ = 0.040233, σ = 0.989478), (μ = 0.0310844, σ = 0.997195), (μ = 0.00844086, σ = 0.97504), (μ = 0.0101762, σ = 0.978574), (μ = 0.00557231, σ = 0.999823)  …  (μ = 0.021533, σ = 0.992712), (μ = 0.0212946, σ = 0.988297), (μ = 0.0330258, σ = 0.983934), (μ = 0.00697519, σ = 0.97588), (μ = -0.00422378, σ = 0.986204), (μ = 0.00335039, σ = 0.994075), (μ = 0.00971817, σ = 0.994991), (μ = 0.0104573, σ = 0.9988), (μ = 0.00752986, σ = 0.983179), (μ = 0.00999065, σ = 0.992955)]
+julia> likelihood(hello)
+@model (μ, σ) begin
+    x ~ Normal(μ, σ) |> iid
+end
 ```
 
-```julia
-julia> mean(getfield.(n.samples,:σ))
-0.986755730047984
+Note that the arguments are added or removed, as needed. 
 
-julia> quantile(getfield.(n.samples,:σ),[0.05,0.5,0.95])
+## Sampling from the posterior
+
+Any inference algorithm is possible in Soss. So far, the _No U-Turn Sampler_ (NUTS) is implemented (thanks to Tamas Papp’s [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl))
+
+```julia
+julia> posterior = nuts(hello, data=(x=randn(10000),)).samples
+1000-element Array{NamedTuple{(:μ, :σ),Tuple{Float64,Float64}},1}:
+ (μ = -0.016750250341334094, σ = 1.0269802073542134) 
+ (μ = -0.008405510241302977, σ = 1.0167021756621375) 
+ (μ = -0.015574923802842802, σ = 1.0171769791897423) 
+ (μ = -0.013021593156077087, σ = 1.0184344558003013) 
+ (μ = -0.01780477236109085, σ = 1.0131727185064554)  
+ (μ = -0.032662131300842695, σ = 1.0153176322142905) 
+ (μ = -0.019576842879711565, σ = 1.0046042202153795) 
+ (μ = -0.010861251137647089, σ = 1.0132758259829258) 
+ (μ = -0.010390367753548568, σ = 1.0197606285893195) 
+ (μ = -0.006956586470160837, σ = 1.020321342370646)  
+ (μ = -0.026570215043822204, σ = 1.0179981689741073) 
+ (μ = 0.0038200696879123327, σ = 1.0101621107293388) 
+ (μ = 0.002818646907138813, σ = 1.0267531341033773)  
+ (μ = -0.00929115068028712, σ = 1.0023324944611351)  
+ ⋮                                                   
+ (μ = -0.013539165964585525, σ = 1.0251881958130318) 
+ (μ = -0.006739442336510352, σ = 1.0104953775322774) 
+ (μ = -0.016820178082252172, σ = 1.0143872288565643) 
+ (μ = -0.0015472822264999296, σ = 1.0106951232174335)
+ (μ = -0.02395361215610855, σ = 0.9986872414407054)  
+ (μ = -0.022213309614302235, σ = 0.9990999963876895) 
+ (μ = -0.01986363495451096, σ = 1.0025106436071947)  
+ (μ = -0.017228865956048067, σ = 1.0039663584854361) 
+ (μ = -0.019226211417814627, σ = 1.002473160705432)  
+ (μ = -0.0027371172635497665, σ = 1.0274537663874084)
+ (μ = -0.007280591268333988, σ = 1.0164054485543828) 
+ (μ = -0.0183919608566083, σ = 1.0173829850337315)   
+ (μ = -0.010839639031948869, σ = 1.0142045654219038) 
+ (μ = -0.010839639031948869, σ = 1.0142045654219038) 
+
+julia> quantile(getfield.(posterior, :μ),[0.05,0.5,0.95])
 3-element Array{Float64,1}:
- 0.9752928158352223
- 0.9868497873828663
- 0.9983927698927793
+ -0.028852616723869018
+ -0.011706194283494295
+  0.004090681140149757
+
 ```
+
+
 
 ## Dependency Graphs
 
 ```julia
-julia> graphEdges(normalModel)
+julia> graphEdges(hello)
 2-element Array{Pair{Symbol,Symbol},1}:
  :μ => :x
  :σ => :x
@@ -97,9 +178,11 @@ julia> graphEdges(lda)
  :η => :β
  :θ => :z
 ```
+
 ## Coming Soon
 
 Since its initial Stan implementation, "Automatic Differentiation Variational Inference (ADVI)" has become a popular approach to approximate inference. This involves transforming parameters to be over R^n and approximating the posterior with a multivariate normal distribution. There are typically two options for this:
+
 - The covariance can be a diagonal matrix, so the components of the distribution are independent. This is computationally efficient, but is very constrained, and often leads to dramatic underestimation of the variance.
 - The covariance can be unconstrained - the only requirement in this case is that it be positive definite. This can result in much tighter bound and a better approximation, but with a great computational expense (quadratic in the dimension of the parameter space).
 
@@ -114,7 +197,8 @@ This isn't the whole story - to "do it right" would reduce the cost even more bu
 - Macro optimization of densities, as in [Passage](https://www.dropbox.com/s/zg2g0cfiin0jdmr/Scherrer%20et%20al.%20-%202014%20-%20Passage%20A%20Parallel%20Sampler%20Generator%20for%20Hierarchical%20Bayesian%20Modeling.pdf)
 - Optimization based on exponential families, see [here](https://www.dropbox.com/s/26omxn6zo8gia3u/Scherrer%20-%20Unknown%20-%20An%20Exponential%20Family%20Basis%20for%20Probabilistic%20Programming.pdf?dl=0)
 
----
+------
+
 Stuff below this point is outdated, updates coming soon
 
 ## Old Docs
@@ -138,6 +222,7 @@ end
 ```
 
 This produces a Julia expression representing a function:
+
 ```julia
 :(function (N,)
         α ~ Cauchy(0, 10)
@@ -195,10 +280,10 @@ Dict{Symbol,Any} with 3 entries:
   :β => Distributions.RealInterval(-Inf, Inf)
 ```
 
-
 Or you can transform it to a form suitable for specialized inference algorithms. For example, a Stan-like approach:
 
 (works for older implementation, but for now this is just a mockup) 
+
 ```julia
 > logdensity(lr3)
 :(function ((N,x,y), θ)
@@ -218,7 +303,6 @@ Or you can transform it to a form suitable for specialized inference algorithms.
 
 ## The name
 
-* "Source" (the stuff transformed by Soss), said with a thick Northeastern accent
-* Cockney rhyming slang ("sauce pan" rhymes with "[Stan](http://mc-stan.org/)")
-* **S**oss is **O**pen **S**ource **S**oftware
-
+- "Source" (the stuff transformed by Soss), said with a thick Northeastern accent
+- Cockney rhyming slang ("sauce pan" rhymes with "[Stan](http://mc-stan.org/)")
+- **S**oss is **O**pen **S**ource **S**oftware
