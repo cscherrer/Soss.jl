@@ -225,9 +225,9 @@ version = "1.0.2"
 
 [[PDMats]]
 deps = ["Arpack", "LinearAlgebra", "SparseArrays", "SuiteSparse", "Test"]
-git-tree-sha1 = "9e3e7a5c9b8cfdba8c01a1bcae38fe0144936fda"
+git-tree-sha1 = "b6c91fc0ab970c0563cbbe69af18d741a49ce551"
 uuid = "90014a1f-27ba-587c-ab20-58faa44d9150"
-version = "0.9.5"
+version = "0.9.6"
 
 [[Parameters]]
 deps = ["Markdown", "OrderedCollections", "REPL", "Test"]
@@ -268,6 +268,12 @@ deps = ["Test"]
 git-tree-sha1 = "f6fbf4ba64d295e146e49e021207993b6b48c7d1"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "0.5.2"
+
+[[ResumableFunctions]]
+deps = ["MacroTools", "Test"]
+git-tree-sha1 = "0227fbf9bc596e6016d67d55a482ee2d01e19ed0"
+uuid = "c5292f4c-5179-55e1-98c5-05642aab7184"
+version = "0.4.1"
 
 [[Rmath]]
 deps = ["BinaryProvider", "Libdl", "Random", "Statistics", "Test"]
