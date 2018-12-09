@@ -7,10 +7,12 @@ using Reexport: @reexport
 @reexport using StatsFuns
 
 using MacroTools
-using MacroTools: postwalk, @q, striplines, replace
+using MacroTools: prewalk, postwalk, @q, striplines, replace, flatten
 
 
 include("model.jl")
+include("weighted.jl")
+include("rand.jl")
 include("dist.jl")
 include("bijections.jl")
 include("utils.jl")

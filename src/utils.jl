@@ -1,4 +1,5 @@
 import LogDensityProblems: logdensity
+using ResumableFunctions
 
 export arguments, args, stochastic, observed, parameters, rand, supports, logdensity
 export paramSupport
@@ -9,12 +10,15 @@ using MacroTools
 using StatsFuns
 
 
-pretty = striplines
+pretty = stripNothing ∘ striplines ∘ flatten
 
+function arguments(model::Model)
+    model.args
+end
 
 "A stochastic node is any `v` in a model with `v ~ ...`"
-function stochastic(model)
-    nodes = Set{Symbol}()
+function stochastic(model::Model)
+    nodes = []
     postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
             union!(nodes, [v])
@@ -28,8 +32,8 @@ end
 
 
 
-function parameters(model)
-    pars = Set{Symbol}()
+function parameters(model::Model)
+    pars = []
     for line in model.body.args
         if @capture(line, v_ ~ dist_)
             union!(pars, [v])
@@ -38,7 +42,7 @@ function parameters(model)
     pars
 end
 
-observed(model) = setdiff(stochastic(model), parameters(model))
+observed(model::Model) = setdiff(stochastic(model), parameters(model))
 
 function paramSupport(model)
     supps = Dict{Symbol, Any}()
@@ -79,6 +83,7 @@ end
 #     return body
 # end
 
+
 function logdensity(model)
     result = @q function(par, data)
         ℓ = 0.0
@@ -115,11 +120,18 @@ function getTransform(model)
     return as(eval(expr))
 end
 
-function mapbody(f,functionExpr)
-    ans = deepcopy(functionExpr)
-    ans.args[2] = f(ans.args[2])
-    ans
-end
+const locationScaleDists = [:Normal]
+
+# export uncenter
+# function uncenter(model)
+#     body = postwalk(model.body) do x
+#         if @capture(x, dist_(μ_,σ_)) && dist ∈ locationScaleDists
+#             @q ($dist() >>= (x -> (Delta($σ*x + $μ))))
+#         else x
+#         end
+#     end
+#     Model(model.args, body)
+# end
 
 export findsubexprs
 
@@ -135,11 +147,16 @@ export prior
 function prior(m :: Model)
     body = postwalk(m.body) do x
         if @capture(x, v_ ⩪ dist_)
-            :()
+            Nothing
         else x
         end
     end
-    Model(m.args, body)
+    Model(setdiff(arguments(m),observed(m)), body) |> pretty
+end
+
+export freeVariables
+function freeVariables(m::Model)
+    setdiff(arguments(m), stochastic(m))
 end
 
 export priorPredictive
@@ -158,34 +175,53 @@ function priorPredictive(m :: Model)
     Model(args, body)
 end
 
-export posteriorPredictive
-function posteriorPredictive(m :: Model)
+export likelihood
+function likelihood(m :: Model)
     args = copy(m.args)
     body = postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
             union!(args, [v])
-            :()
+            Nothing
         elseif @capture(x, v_ ⩪ dist_)
             setdiff!(args, [v])
             @q ($v ~ $dist)
         else x
         end
     end
-    Model(args, body)
+    Model(args, body) |> pretty
 end
 
 export variables
 function variables(m::Model)
-    vars = copy(m.args)
-    postwalk(m.body) do x
-        if @capture(x, v_ ~ dist_)
-            push!(vars, Symbol(v))
-        elseif @capture(x, v_ ⩪ dist_)
-            push!(vars, Symbol(v))
-        elseif @capture(x, v_ = dist_)
-            push!(vars, Symbol(v))
-        else x
-        end
-    end
-    vars
+    [freeVariables(m); parameters(m); observed(m)]
+    # vars = copy(m.args)
+    # postwalk(m.body) do x
+    #     if @capture(x, v_ ~ dist_)
+    #         push!(vars, Symbol(v))
+    #     elseif @capture(x, v_ ⩪ dist_)
+    #         push!(vars, Symbol(v))
+    #     elseif @capture(x, v_ = dist_)
+    #         push!(vars, Symbol(v))
+    #     else x
+    #     end
+    # end
+    # vars
 end
+
+isNothing(x) = (x == Nothing)
+
+rmNothing(x) = x
+
+function rmNothing(x::Expr)
+  # Do not strip the first argument to a macrocall, which is
+  # required.
+  if x.head == :macrocall && length(x.args) >= 2
+    Expr(x.head, x.args[1:2]..., filter(x->!isNothing(x), x.args[3:end])...)
+  else
+    Expr(x.head, filter(x->!isNothing(x), x.args)...)
+  end
+end
+
+export stripNothing
+stripNothing(ex::Expr) = prewalk(rmNothing, ex)
+stripNothing(m::Model) = Model(m.args, stripNothing(m.body))

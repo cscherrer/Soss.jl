@@ -1,4 +1,4 @@
-export rats, pumps, normalModel, seeds, coin
+export rats, pumps, seeds, coin
 
 coin = @model flips begin
     pHeads ~ Beta(1,1)
@@ -8,15 +8,11 @@ end
 export lda
 lda = @model (α, η, K, V, N) begin
     M = length(N)
-
     β ~ Dirichlet(repeat([η],V)) |> iid(K)
-
     θ ~ Dirichlet(repeat([α],K)) |> iid(M)
-
     z ~ For(1:M) do m
             Categorical(θ[m]) |> iid(N[m])
         end
-
     w ⩪ For(1:M) do m
             For(1:N[m]) do n
                 Categorical(β[z[m][n]])
@@ -24,6 +20,13 @@ lda = @model (α, η, K, V, N) begin
         end
 end
 
+export hello
+hello = @model μ,x begin
+    σ ~ HalfCauchy()
+    x ⩪ Normal(μ,σ) |> iid
+end
+
+export normalModel
 normalModel = @model x begin
     μ ~ Normal(0,5)
     σ ~ HalfCauchy(3)
@@ -32,9 +35,9 @@ end
 
 export nested
 nested = @model x begin
-    μ ~ simpleModel(2.0)
+    μ ~ simpleModel(s = 2.0)
     σ ~ HalfCauchy(3)
-    x ⩪ Normal(μ.z,σ) |> iid
+    # x ⩪ Normal(μ.z,σ) |> iid
 end
 
 export simpleModel
