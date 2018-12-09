@@ -89,6 +89,20 @@ Note that the arguments are added or removed, as needed.
 
 ## Sampling from the posterior
 
+Many sampling algorithms work in terms of the log-density. Soss makes thiss easy to compute:`
+
+```julia
+julia> logdensity(hello)
+:(function (par, data)
+      ℓ = 0.0
+      σ = par.σ
+      ℓ += logpdf(HalfCauchy(), σ)
+      x = data.x
+      ℓ += logpdf(Normal(μ, σ) |> iid, x)
+      return ℓ
+  end)
+```
+
 Any inference algorithm is possible in Soss. So far, the _No U-Turn Sampler_ (NUTS) is implemented (thanks to Tamas Papp’s [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl))
 
 ```julia
