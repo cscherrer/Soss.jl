@@ -11,18 +11,25 @@ using TransformVariables
 
 export fromℝ, toℝ
 
-realDists = [Normal,Cauchy]
+
+
+
+function fromℝ(d::iid) 
+    as(Array, fromℝ(d.dist), d.shape)
+end
+
+realDists = [Normal,Cauchy, Flat]
 
 for dist in realDists
     expr = quote
-        fromℝ(d::typeof($dist())) = asℝ
+        fromℝ(::typeof($dist())) = asℝ
         # toℝ(d::typeof($dist())) = inverse(asℝ₊)
     end
     eval(expr)
 end
 
 
-positiveDists = [HalfCauchy,Exponential,Gamma]
+positiveDists = [HalfCauchy,Exponential,Gamma,HalfFlat]
 
 for dist in positiveDists
     expr = quote

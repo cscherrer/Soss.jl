@@ -10,7 +10,6 @@ using MacroTools
 using StatsFuns
 
 
-pretty = stripNothing ∘ striplines ∘ flatten
 
 function arguments(model::Model)
     model.args
@@ -82,7 +81,6 @@ end
 #     end
 #     return body
 # end
-
 
 function logdensity(model)
     body = postwalk(model.body) do x
@@ -229,3 +227,5 @@ end
 export stripNothing
 stripNothing(ex::Expr) = prewalk(rmNothing, ex)
 stripNothing(m::Model) = Model(m.args, stripNothing(m.body))
+
+pretty = stripNothing ∘ striplines ∘ flatten

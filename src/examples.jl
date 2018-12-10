@@ -140,3 +140,15 @@ end
 #             Laplace(μ[i],σ2)
 #         end
 # end
+y = [28.,  8., -3.,  7., -1.,  1., 18., 12.]
+σ = [15., 10., 16., 11.,  9., 11., 10., 18.]
+
+export school8
+school8 = @model (y, σ) begin
+  μ ~ Flat()
+  τ ~ HalfFlat()
+  η ~ Normal() |> iid(8)
+  y ⩪ For(1:8) do j
+      Normal(μ + τ * η[j], σ[j])
+  end
+end

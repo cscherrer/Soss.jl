@@ -5,16 +5,17 @@ import Distributions.logpdf
 
 export iid
 struct iid
-    #n :: Int
+    shape
     dist
 end
 
 # iid(n::Int) = dist -> iid(n,dist)
 
 # TODO: Clean up this hack
-iid(n::Int) = f -> For(1:n) do x f(x) end
+iid(n::Int) = dist -> iid(n,dist)
 
+iid(dist) = iid(Nothing, dist)
 
-rand(ndist::iid) = rand(ndist.dist, ndist.n)
+# rand(ndist::iid) = rand(ndist.dist, ndist.n)
 
 logpdf(d::iid,x) = sum(logpdf.(d.dist,x))

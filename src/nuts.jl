@@ -17,9 +17,9 @@ export nuts
 
 function nuts(model; data=NamedTuple{}(), numSamples = 1000)
     result = NUTS_result{}
-    t = getTransform(normalModel)
+    t = getTransform(model)
 
-    fpre = eval(logdensity(normalModel))
+    fpre = eval(logdensity(model))
     f(par) = Base.invokelatest(fpre,par,data)
 
     P = TransformedLogDensity(t,f)
