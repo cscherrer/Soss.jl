@@ -85,24 +85,28 @@ end
 
 
 function logdensity(model)
-    result = @q function(par, data)
-        ℓ = 0.0
-    end
-
-    body = result.args[2].args
-    postwalk(model.body) do x
+    body = postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
-            push!(body, :($v = par.$v))
-            push!(body, :(ℓ += logpdf($dist, $v)))
+            @q begin
+                $v = par.$v
+                ℓ += logpdf($dist, $v)
+            end
         elseif @capture(x, v_ ⩪ dist_)
-            push!(body, :($v = data.$v))
-            push!(body, :(ℓ += logpdf($dist, $v)))
+            @q begin
+                $v = data.$v
+                ℓ += logpdf($dist, $v)
+            end
         else x
         end
     end
 
-    push!(body, :(return ℓ))
-    result
+    result = @q function(par, data)
+        ℓ = 0.0
+        $body
+        ℓ
+    end
+
+    flatten(result)
 end
 
 
