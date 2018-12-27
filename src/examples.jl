@@ -21,9 +21,9 @@ lda = @model (α, η, K, V, N) begin
 end
 
 export hello
-hello = @model μ,x begin
+hello = @model μ begin
     σ ~ HalfCauchy()
-    x ⩪ Normal(μ,σ) |> iid
+    x ~ Normal(μ,σ)
 end
 
 export normalModel
