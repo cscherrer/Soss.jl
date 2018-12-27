@@ -56,6 +56,14 @@ macro model(ex :: Expr)
     Model([],pretty(ex))
 end
 
+function getproperty(m::Model, key::Symbol)
+    if key ∈ [:args, :body, :meta]
+        m.key
+    else
+        get!(m.meta, key, eval(Expr(:call, key, m)))
+    end
+end
+
 import Base.convert
 convert(Expr, m::Model) = begin
     func = @q function($(m.args),) $(m.body) end
