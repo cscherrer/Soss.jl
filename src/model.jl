@@ -1,8 +1,9 @@
 export Model, convert, @model
 
-struct Model
-    args :: Vector{Symbol}
-    body :: Expr
+Base.@kwdef struct Model
+    args :: Vector{Symbol}     = []
+    body :: Expr               = @q begin end
+    meta :: Dict{Symbol, Any}  = Dict()
 end
 
 (m::Model)(s) = begin
