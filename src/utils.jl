@@ -1,7 +1,7 @@
 import LogDensityProblems: logdensity
 using ResumableFunctions
 
-export arguments, args, stochastic, observed, parameters, rand, supports, logdensity
+export arguments, args, stochastic, observed, parameters, rand, supports
 export paramSupport
 
 
@@ -9,16 +9,14 @@ using MacroTools: striplines, flatten, unresolve, resyntax, @q
 using MacroTools
 using StatsFuns
 
-
-
 function arguments(model::Model)
     model.args
 end
 
 "A stochastic node is any `v` in a model with `v ~ ...`"
-function stochastic(model::Model)
+function stochastic(m::Model)
     nodes = []
-    postwalk(model.body) do x
+    postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
             union!(nodes, [v])
         elseif @capture(x, v_ ⩪ dist_)
@@ -30,31 +28,54 @@ function stochastic(model::Model)
 end
 
 
+"""
+    parameters(m::Model)
 
-function parameters(model::Model)
-    pars = []
-    for line in model.body.args
-        if @capture(line, v_ ~ dist_)
-            union!(pars, [v])
-        end
+A _parameter_ is a stochastic node that is only assigned once
+"""
+function parameters(m::Model)
+    assignmentCount = counter([dep.second for dep in dependencies(m)])
+    filter(stochastic(m)) do v
+        assignmentCount[v] == 1
     end
-    pars
 end
 
-observed(model::Model) = setdiff(stochastic(model), parameters(model))
-
-function paramSupport(model)
-    supps = Dict{Symbol, Any}()
-    postwalk(model.body) do x
-        if @capture(x, v_ ~ dist_(args__))
-            if v in parameters(model)
-                supps[v] = support(eval(dist))
+export dependencies
+function dependencies(m::Model)
+    result = []
+    for v in m.args
+        push!(result, Nothing => v)
+    end
+    vars = variables(m)
+    postwalk(m.body) do x
+        if @capture(x,v_~d_) || @capture(x,v_⩪d_) || @capture(x,v_=d_)
+            parents = findsubexprs(d,vars)
+            if isempty(parents) 
+                push!(result, Nothing => v)
+            else 
+                push!(result, (parents => v)) 
             end
         else x
         end
     end
-    return supps
-end
+    result
+end    
+
+observed(m::Model) = setdiff(stochastic(m), parameters(m))
+
+# export paramSupport
+# function paramSupport(model)
+#     supps = Dict{Symbol, Any}()
+#     postwalk(model.body) do x
+#         if @capture(x, v_ ~ dist_(args__))
+#             if v in parameters(model)
+#                 supps[v] = support(eval(dist))
+#             end
+#         else x
+#         end
+#     end
+#     return supps
+# end
 
 # function xform(R, v, supp)
 #     @assert typeof(supp) == RealInterval
@@ -82,26 +103,33 @@ end
 #     return body
 # end
 
-function logdensity(model)
+export @logdensity
+macro logdensity(model)
+    @gensym ℓ par data
+    logdensity(eval(model), ℓ=ℓ, par=par, data=data)
+end
+
+export logdensity
+function logdensity(model;ℓ=:ℓ,par=:par,data=:data)
     body = postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
             @q begin
-                $v = par.$v
-                ℓ += logpdf($dist, $v)
+                $v = $par.$v
+                $ℓ += logpdf($dist, $v)
             end
         elseif @capture(x, v_ ⩪ dist_)
             @q begin
-                $v = data.$v
-                ℓ += logpdf($dist, $v)
+                $v = $data.$v
+                $ℓ += logpdf($dist, $v)
             end
         else x
         end
     end
 
-    result = @q function(par, data)
-        ℓ = 0.0
+    result = @q function($par, $data)
+        $ℓ = 0.0
         $body
-        ℓ
+        $ℓ
     end
 
     flatten(result)
@@ -122,7 +150,7 @@ function getTransform(model)
     return as(eval(expr))
 end
 
-const locationScaleDists = [:Normal]
+# const locationScaleDists = [:Normal]
 
 # export uncenter
 # function uncenter(model)
@@ -135,14 +163,19 @@ const locationScaleDists = [:Normal]
 #     Model(model.args, body)
 # end
 
-export findsubexprs
-
-function findsubexprs(ex, vs)
-    result = Set()
-    MacroTools.postwalk(ex) do y
-      y in vs && push!(result, y)
+function symbols(expr)
+    result = []
+    postwalk(expr) do x
+        if @capture(x, s_symbol_Symbol)
+            union!(result, [s])
+        end
     end
-    return result
+    result
+end
+
+export findsubexprs
+function findsubexprs(expr, vs)
+    intersect(symbols(expr), vs)
 end
 
 export prior
@@ -193,21 +226,36 @@ function likelihood(m :: Model)
     Model(args, body) |> pretty
 end
 
+export annotate
+function annotate(m::Model)
+    newbody = postwalk(m.body) do x
+        if @capture(x, v_ ~ dist_)
+            if v ∈ observed(m)
+                @q $v ⩪ $dist
+            else
+                x
+            end
+        else x
+        end
+    end
+    Model(args = m.args, body=newbody, meta = m.meta)
+end
+
 export variables
 function variables(m::Model)
-    [freeVariables(m); parameters(m); observed(m)]
-    # vars = copy(m.args)
-    # postwalk(m.body) do x
-    #     if @capture(x, v_ ~ dist_)
-    #         push!(vars, Symbol(v))
-    #     elseif @capture(x, v_ ⩪ dist_)
-    #         push!(vars, Symbol(v))
-    #     elseif @capture(x, v_ = dist_)
-    #         push!(vars, Symbol(v))
-    #     else x
-    #     end
-    # end
-    # vars
+    vars = copy(m.args)
+    postwalk(m.body) do x
+        if @capture(x, v_ ~ dist_)
+            println(v)
+            union!(vars, [Symbol(v)])
+        elseif @capture(x, v_ ⩪ dist_)
+            union!(vars, [Symbol(v)])
+        elseif @capture(x, v_ = dist_)
+            union!(vars, [Symbol(v)])
+        else x
+        end
+    end
+    vars
 end
 
 isNothing(x) = (x == Nothing)
@@ -228,4 +276,33 @@ export stripNothing
 stripNothing(ex::Expr) = prewalk(rmNothing, ex)
 stripNothing(m::Model) = Model(m.args, stripNothing(m.body))
 
+export pretty
 pretty = stripNothing ∘ striplines ∘ flatten
+
+export expandinline
+function expandinline(m::Model)
+    body = postwalk(m.body) do x 
+        if @capture(x, v_ ~ dist_) 
+            if typeof(eval(dist)) == Model
+                Let
+            end
+
+            println(v)
+            println(dist)
+            println(typeof(eval(dist)))
+        else x
+        end
+    end
+    body
+end
+
+export expandSubmodels
+function expandSubmodels(m :: Model) 
+    newbody = postwalk(m.body) do x 
+        if @capture(x, @model expr__)
+            eval(x)
+        else x 
+        end
+    end
+    Model(args=m.args, body=newbody, meta=m.meta)
+end
