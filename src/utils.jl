@@ -247,7 +247,6 @@ function variables(m::Model)
     vars = copy(m.args)
     postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
-            println(v)
             union!(vars, [Symbol(v)])
         elseif @capture(x, v_ ⩪ dist_)
             union!(vars, [Symbol(v)])
