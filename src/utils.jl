@@ -8,6 +8,7 @@ export paramSupport
 using MacroTools: striplines, flatten, unresolve, resyntax, @q
 using MacroTools
 using StatsFuns
+using DataStructures: counter
 
 function arguments(model::Model)
     model.args
