@@ -2,7 +2,7 @@ export rats, pumps, seeds, coin
 
 coin = @model flips begin
     pHeads ~ Beta(1,1)
-    flips ⩪ Bernoulli(pHeads) |> iid(20)
+    flips ~ Bernoulli(pHeads) |> iid(20)
 end
 
 export lda
@@ -13,7 +13,7 @@ lda = @model (α, η, K, V, N) begin
     z ~ For(1:M) do m
             Categorical(θ[m]) |> iid(N[m])
         end
-    w ⩪ For(1:M) do m
+    w ~ For(1:M) do m
             For(1:N[m]) do n
                 Categorical(β[z[m][n]])
             end
@@ -30,14 +30,14 @@ export normalModel
 normalModel = @model x begin
     μ ~ Normal(0,5)
     σ ~ HalfCauchy(3)
-    x ⩪ Normal(μ,σ) |> iid
+    x ~ Normal(μ,σ) |> iid
 end
 
 export nested
 nested = @model x begin
     μ ~ simpleModel(s = 2.0)
     σ ~ HalfCauchy(3)
-    # x ⩪ Normal(μ.z,σ) |> iid
+    # x ~ Normal(μ.z,σ) |> iid
 end
 
 export nested2
@@ -74,7 +74,7 @@ linReg1D = @model (x,y) begin
 
     ŷ = α .+ β .* x
     N = length(x)
-    y ⩪ For(1:N) do n
+    y ~ For(1:N) do n
         Normal(ŷ[n], σ)
     end
 end
@@ -95,7 +95,7 @@ rats = @model x begin
     β ~ Normal(μβ, sqrt(σ2β)) |> iid(30)
 
     x̄ = mean(x)
-    y ⩪ For([(i,j) for i in 1:30, j in 1:5]) do (i,j)
+    y ~ For([(i,j) for i in 1:30, j in 1:5]) do (i,j)
             Normal(α[i] + β[i]*(x[j]-x̄), sqrt(σ2c))
         end
 end
@@ -107,7 +107,7 @@ pumps = @model t begin
     θ ~ For(1:n) do i
             Gamma(α, 1/β)
         end
-    y ⩪ For(1:n) do i
+    y ~ For(1:n) do i
             Poisson(θ[i] * t[i])
         end
 end
@@ -132,7 +132,7 @@ seeds = @model (n,x) begin
     α12 ~ αDist
     b ~ Normal(0,σ) |> iid(21)
     y = α0 .+ α1 .* x[1,:] .+ α2 .* x[2,:] .+ α12 .* x[1,:] .* x[2,:] .+ b
-    r ⩪ For(1:21) do i
+    r ~ For(1:21) do i
             LogisticBinomial(n[i],y[i])
         end
 end
@@ -157,7 +157,7 @@ school8 = @model (y, σ) begin
   μ ~ Flat()
   τ ~ HalfFlat()
   η ~ Normal() |> iid(8)
-  y ⩪ For(1:8) do j
+  y ~ For(1:8) do j
       Normal(μ + τ * η[j], σ[j])
   end
 end
