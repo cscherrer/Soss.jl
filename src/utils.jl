@@ -142,9 +142,11 @@ function getTransform(model)
     expr = Expr(:tuple)
     postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
-            # println(dist)
+            if v ∈ parameters(model)
             eval(:(t = fromℝ($dist)))
             push!(expr.args,:($v=$t))
+        else x
+        end
         else x
         end
     end
