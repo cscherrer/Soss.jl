@@ -3,11 +3,61 @@
 Soss is a Julia library for _probabilistic metaprogramming_. Before we get into that, let’s have a look at a simple example:
 
 ```julia
-hello = @model μ,x begin
+hello = @model begin
     σ ~ HalfCauchy()
-    x ⩪ Normal(μ,σ) |> iid
+    x ⩪ Normal(μ,1) |> iid
 end
 ```
+
+Now given some input data...
+```julia
+julia> data = (x=[2,4,5],)
+(x = [2, 4, 5],)
+```
+
+we can condition on `:x` and run the No U-Turn Sampler ("NUTS"):
+
+```julia
+julia> nuts(hello(:x), data=data).samples
+MCMC, adapting ϵ (75 steps)
+0.00092 s/step ...done
+MCMC, adapting ϵ (25 steps)
+1.2e-5 s/step ...done
+MCMC, adapting ϵ (50 steps)
+0.0022 s/step ...done
+MCMC, adapting ϵ (100 steps)
+1.2e-5 s/step ...done
+MCMC, adapting ϵ (200 steps)
+8.6e-6 s/step ...done
+MCMC, adapting ϵ (400 steps)
+8.7e-6 s/step ...done
+MCMC, adapting ϵ (50 steps)
+1.3e-5 s/step ...done
+MCMC (1000 steps)
+9.4e-6 s/step ...done
+1000-element Array{NamedTuple{(:σ,),Tuple{Float64}},1}:
+ (σ = 2.485685482854424,) 
+ (σ = 2.3497356620119545,)
+ (σ = 2.3924695548198334,)
+ (σ = 2.8767669399690403,)
+ (σ = 1.9721787398169222,)
+ (σ = 2.1272584319704144,)
+ (σ = 2.0006567797425254,)
+ (σ = 2.1553852571229144,)
+ (σ = 2.9666305851026618,)
+ (σ = 4.165947517059491,) 
+ ⋮                        
+ (σ = 1.8626865622366076,)
+ (σ = 3.2372203061733464,)
+ (σ = 3.1280394164680283,)
+ (σ = 2.671723364797085,) 
+ (σ = 2.4697433595543483,)
+ (σ = 2.814096736928234,) 
+ (σ = 2.5722138636841336,)
+ (σ = 2.7988902249808083,)
+ (σ = 2.7988902249808083,)
+```
+
 
 Soss considers three kinds of variables:
 
