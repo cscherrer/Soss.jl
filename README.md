@@ -14,7 +14,7 @@ Now given some input data...
 julia> data = (μ=1, x=[2,4,5])
 ```
 
-we can condition on `:x` and run the No U-Turn Sampler ("NUTS"):
+we can sample from the posterior, using the No U-Turn Sampler ("NUTS"):
 
 ```julia
 julia> nuts(hello, data=data).samples
