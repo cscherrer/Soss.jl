@@ -131,6 +131,16 @@ julia> stochastic(hello)
  :x
 ```
 
+Because it can sometimes help to see explicitly which variables are parsed as observed, Soss can hepl with this:
+
+```julia
+julia> annotate(hello)
+@model (μ, x) begin
+    σ ~ HalfCauchy()
+    x ⩪ Normal(μ, σ) |> iid
+end
+```
+
 ## Model Manipulations
 
 In some cases, we may want to specify a value once and for all:
@@ -139,7 +149,7 @@ In some cases, we may want to specify a value once and for all:
 julia> hello
 @model (μ, x) begin
     σ ~ HalfCauchy()
-    x ⩪ Normal(μ, σ) |> iid
+    x ~ Normal(μ, σ) |> iid
 end
 
 
@@ -147,7 +157,7 @@ julia> hello(μ=3.0)
 @model (x,) begin
     μ = 3.0
     σ ~ HalfCauchy()
-    x ⩪ Normal(μ, σ) |> iid
+    x ~ Normal(μ, σ) |> iid
 end
 ```
 
