@@ -85,7 +85,7 @@ julia> stochastic(hello)
  :x
 ```
 
-Because it can sometimes help to see explicitly which variables are parsed as observed, Soss can hepl with this:
+Because it can sometimes help to see explicitly which variables are parsed as observed, Soss can help with this:
 
 ```julia
 julia> annotate(hello)
