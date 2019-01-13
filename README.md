@@ -5,7 +5,7 @@ Soss is a Julia library for _probabilistic metaprogramming_. Before we get into 
 ```julia
 julia> hello = @model μ,x begin
        σ ~ HalfCauchy()
-       x ~ Normal(1,σ) |> iid
+       x ~ Normal(μ,σ) |> iid
        end
 ```
 
