@@ -40,14 +40,14 @@ nested = @model x begin
     # x ~ Normal(μ.z,σ) |> iid
 end
 
-export nested2
-nested2 = @model x begin
-    M ~ @model begin
-        z ~ Normal(0,2.0)
-    end
-    σ ~ HalfCauchy(3)
-    x ~ Normal(M.z, σ)
-end
+# export nested2
+# nested2 = @model x begin
+#     M ~ @model begin
+#         z ~ Normal(0,2.0)
+#     end
+#     σ ~ HalfCauchy(3)
+#     x ~ Normal(M.z, σ)
+# end
 
 export simpleModel
 simpleModel = @model s begin
