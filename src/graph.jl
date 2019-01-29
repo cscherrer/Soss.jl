@@ -12,7 +12,7 @@ function graph(m::Model)
     end
     set_indexing_prop!(g, :name)
     postwalk(m.body) do x
-        if @capture(x,v_~d_) || @capture(x,v_⩪d_) || @capture(x,v_=d_)
+        if @capture(x, v_ ~ d_) || @capture(x, v_ = d_)
             for rhs in findsubexprs(d,vars)
                 add_edge!(g,(g[rhs,:name],g[v,:name]))
             end
