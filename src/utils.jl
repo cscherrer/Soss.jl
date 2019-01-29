@@ -1,7 +1,7 @@
 import LogDensityProblems: logdensity
 using ResumableFunctions
 
-export arguments, args, stochastic, observed, parameters, rand, supports
+export arguments, args, stochastic, observed, parameters, supports
 export paramSupport
 
 
@@ -19,8 +19,6 @@ function stochastic(m::Model)
     nodes = []
     postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
-            union!(nodes, [v])
-        elseif @capture(x, v_ ⩪ dist_)
             union!(nodes, [v])
         else x
         end
@@ -43,16 +41,19 @@ end
 
 export dependencies
 function dependencies(m::Model)
-    result = []
+    Parents = Vector{Symbol}
+    Dep =  Pair{Parents, Symbol}
+
+    result = Dep[]
     for v in m.args
-        push!(result, Nothing => v)
+        push!(result, [] => v)
     end
     vars = variables(m)
     postwalk(m.body) do x
-        if @capture(x,v_~d_) || @capture(x,v_⩪d_) || @capture(x,v_=d_)
+        if @capture(x,v_~d_) || @capture(x,v_=d_)
             parents = findsubexprs(d,vars)
             if isempty(parents) 
-                push!(result, Nothing => v)
+                push!(result, [] => v)
             else 
                 push!(result, (parents => v)) 
             end
@@ -104,37 +105,40 @@ observed(m::Model) = setdiff(stochastic(m), parameters(m))
 #     return body
 # end
 
-export @logdensity
-macro logdensity(model)
-    @gensym ℓ par data
-    logdensity(eval(model), ℓ=ℓ, par=par, data=data)
-end
 
 export logdensity
 function logdensity(model;ℓ=:ℓ,par=:par,data=:data)
     body = postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
+            if v ∈ parameters(model)
             @q begin
                 $v = $par.$v
                 $ℓ += logpdf($dist, $v)
             end
-        elseif @capture(x, v_ ⩪ dist_)
+            else
             @q begin
-                $v = $data.$v
                 $ℓ += logpdf($dist, $v)
             end
+            end
+
         else x
         end
     end
-
+    # print(body |> dump)
+    for v in arguments(model)
+        pushfirst!(body.args, :($v = data.$v))
+    end
     result = @q function($par, $data)
         $ℓ = 0.0
+
         $body
-        $ℓ
+        return $ℓ
     end
 
     flatten(result)
 end
+
+
 
 
 export getTransform
@@ -143,7 +147,8 @@ function getTransform(model)
     postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
             if v ∈ parameters(model)
-            eval(:(t = fromℝ($dist)))
+                t = fromℝ(@eval $dist)
+                # eval(:(t = fromℝ($dist)))
             push!(expr.args,:($v=$t))
         else x
         end
@@ -184,8 +189,11 @@ end
 export prior
 function prior(m :: Model)
     body = postwalk(m.body) do x
-        if @capture(x, v_ ⩪ dist_)
-            Nothing
+        if @capture(x, v_ ~ dist_)
+            if v ∈ parameters(m)
+                x
+            else Nothing
+            end
         else x
         end
     end
@@ -197,21 +205,21 @@ function freeVariables(m::Model)
     setdiff(arguments(m), stochastic(m))
 end
 
-export priorPredictive
-function priorPredictive(m :: Model)
-    args = copy(m.args)
-    body = postwalk(m.body) do x
-        if @capture(x, v_ ~ dist_)
-            setdiff!(args, [v])
-            x
-        elseif @capture(x, v_ ⩪ dist_)
-            setdiff!(args, [v])
-            @q ($v ~ $dist)
-        else x
-        end
-    end
-    Model(args, body)
-end
+# export priorPredictive
+# function priorPredictive(m :: Model)
+#     args = copy(m.args)
+#     body = postwalk(m.body) do x
+#         if @capture(x, v_ ~ dist_)
+#             setdiff!(args, [v])
+#             x
+#         elseif @capture(x, v_ ⩪ dist_)
+#             setdiff!(args, [v])
+#             @q ($v ~ $dist)
+#         else x
+#         end
+#     end
+#     Model(args, body)
+# end
 
 export likelihood
 function likelihood(m :: Model)
@@ -229,6 +237,7 @@ function likelihood(m :: Model)
     Model(args, body) |> pretty
 end
 
+
 export annotate
 function annotate(m::Model)
     newbody = postwalk(m.body) do x
@@ -241,6 +250,7 @@ function annotate(m::Model)
         else x
         end
     end
+
     Model(args = m.args, body=newbody, meta = m.meta)
 end
 
