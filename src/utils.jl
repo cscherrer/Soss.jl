@@ -52,16 +52,16 @@ function dependencies(m::Model)
     postwalk(m.body) do x
         if @capture(x,v_~d_) || @capture(x,v_=d_)
             parents = findsubexprs(d,vars)
-            if isempty(parents) 
+            if isempty(parents)
                 push!(result, [] => v)
-            else 
-                push!(result, (parents => v)) 
+            else
+                push!(result, (parents => v))
             end
         else x
         end
     end
     result
-end    
+end
 
 observed(m::Model) = setdiff(stochastic(m), parameters(m))
 
@@ -111,14 +111,14 @@ function logdensity(model;ℓ=:ℓ,par=:par,data=:data)
     body = postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
             if v ∈ parameters(model)
-            @q begin
-                $v = $par.$v
-                $ℓ += logpdf($dist, $v)
-            end
+                @q begin
+                    $v = $par.$v
+                    $ℓ += logpdf($dist, $v)
+                end
             else
-            @q begin
-                $ℓ += logpdf($dist, $v)
-            end
+                @q begin
+                    $ℓ += logpdf($dist, $v)
+                end
             end
 
         else x
@@ -149,9 +149,9 @@ function getTransform(model)
             if v ∈ parameters(model)
                 t = fromℝ(@eval $dist)
                 # eval(:(t = fromℝ($dist)))
-            push!(expr.args,:($v=$t))
-        else x
-        end
+                push!(expr.args,:($v=$t))
+            else x
+            end
         else x
         end
     end
@@ -293,8 +293,8 @@ pretty = stripNothing ∘ striplines ∘ flatten
 
 export expandinline
 function expandinline(m::Model)
-    body = postwalk(m.body) do x 
-        if @capture(x, v_ ~ dist_) 
+    body = postwalk(m.body) do x
+        if @capture(x, v_ ~ dist_)
             if typeof(eval(dist)) == Model
                 Let
             end
@@ -309,11 +309,11 @@ function expandinline(m::Model)
 end
 
 export expandSubmodels
-function expandSubmodels(m :: Model) 
-    newbody = postwalk(m.body) do x 
+function expandSubmodels(m :: Model)
+    newbody = postwalk(m.body) do x
         if @capture(x, @model expr__)
             eval(x)
-        else x 
+        else x
         end
     end
     Model(args=m.args, body=newbody, meta=m.meta)
