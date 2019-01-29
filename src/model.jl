@@ -1,12 +1,24 @@
 export Model, convert, @model
 
-Base.@kwdef struct Model
-    args :: Vector{Symbol}     = []
-    body :: Expr               = @q begin end
-    meta :: Dict{Symbol, Any}  = Dict()
+abstract type AbstractModel end
+
+struct Model <: AbstractModel
+    args :: Vector{Symbol}
+    body :: Expr
+    meta :: Dict{Symbol, Any}
+
+    function Model(args::Vector{Symbol}, body::Expr, meta::Dict{Symbol, Any})
+        new(args, body, meta)
+    end
+
+    function Model(args::Vector{Symbol}, body::Expr)
+        meta = Dict{Symbol, Any}()
+        Model(args, body, meta)
+    end
+
+    Model(; args, body, meta) = Model(args, body, meta)
 end
 
-Model(args::Vector{Symbol}, body::Expr) = expandSubmodels(Model(args=args, body=body))
 
 (m::Model)(v::Symbol) = begin
     args = copy(m.args)
