@@ -29,7 +29,7 @@ for dist in realDists
 end
 
 
-positiveDists = [HalfCauchy,Exponential,Gamma,HalfFlat]
+positiveDists = [HalfCauchy,Exponential,Gamma,HalfFlat, InverseGamma]
 
 for dist in positiveDists
     expr = quote
