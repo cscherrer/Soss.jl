@@ -1,39 +1,40 @@
 export makeRand
 
-# TODO: Make this work for other-than-Int sizes, and precompute instead of push!
-function makeRand(m :: Model)
-    myArgs = Expr(:tuple,arguments(m)...)
+export argtuple
+argtuple(m) = Expr(:tuple,arguments(m)...)
 
-    # if ~isempty(observed(m))
-    #     return logWeightedRand(m, N)
-    # end
+function makeRand(m :: Model)
 
     body = postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
             @q begin
-                par.$v = rand($dist)
+                $v = rand($dist)
                 val = merge(val, ($v=$v,))
             end
         else x
         end
     end
 
+    for arg in arguments(m)
+        expr = @q $arg = kwargs.$arg
+        pushfirst!(body.args, expr)
+    end
+
     #Wrap in a function to avoid global variables
-    flatten(@q par -> begin
+    flatten(@q kwargs -> begin
             val = NamedTuple()
             $body
             val
     end)
 end
 
-function rand(m :: Model, par)
-    f = makeRand(m) |> eval
-    Base.invokelatest(f,par)
+function rand(m :: Model,n::Int)
+    f = @eval $(makeRand(m))
+    println(typeof(f))
+    go(x) = Base.invokelatest(f,x)
+    go
 end
 
-rand(m :: Model, N :: Int) = begin
-
-end
 
 export logWeightedRand
 function logWeightedRand(m :: Model, N :: Int)
@@ -44,8 +45,6 @@ function logWeightedRand(m :: Model, N :: Int)
                 $v = rand($dist)
                 val = merge(val, ($v=$v,))
             end
-        elseif @capture(x, v_ ⩪ dist_)
-            @q ℓ += logpdf($dist, $v)
         else x
         end
     end
