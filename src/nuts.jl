@@ -25,6 +25,6 @@ function nuts(model; data=NamedTuple{}(), numSamples = 1000)
     P = TransformedLogDensity(t,f)
     ∇P = ADgradient(:ForwardDiff,P)
     chain, tuning = NUTS_init_tune_mcmc(∇P, numSamples);
-    samples = transform.(Ref(∇P.transformation), get_position.(chain));
+    samples = transform.(Ref(P.transformation), get_position.(chain));
     NUTS_result(chain, t, samples, tuning)
 end
