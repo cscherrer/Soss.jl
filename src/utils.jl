@@ -223,6 +223,7 @@ end
 
 export likelihood
 function likelihood(m :: Model)
+    m = annotate(m)
     args = copy(m.args)
     body = postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
