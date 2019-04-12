@@ -9,8 +9,6 @@ struct iid
     dist
 end
 
-# iid(n::Int) = dist -> iid(n,dist)
-
 # TODO: Clean up this hack
 iid(n::Int) = dist -> iid(n,dist)
 
