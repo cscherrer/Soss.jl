@@ -52,7 +52,7 @@ macro model(v::Symbol,body::Expr)
 end
 
 macro model(body :: Expr)
-    Model(body = pretty(body)) |> expandSubmodels
+    Model(Vector{Symbol}(), pretty(body)) |> expandSubmodels
 end
 
 # function getproperty(m::Model, key::Symbol)
