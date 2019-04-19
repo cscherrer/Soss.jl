@@ -1,15 +1,27 @@
-export makeRand
+export sourceRand
 
 export argtuple
 argtuple(m) = Expr(:tuple,arguments(m)...)
 
-function makeRand(m :: Model)
-
+function sourceRand(m :: Model)
     body = postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
-            @q begin
-                $v = rand($dist)
-                val = merge(val, ($v=$v,))
+            qv = QuoteNode(v)
+            prop = gensym(Symbol(v, "_prop"))
+            if v ∈ m.args
+                @q begin
+                    $prop = rand($dist)
+                    $prop == $v || return nothing
+                end
+            else
+                @q begin
+                    $v = rand($dist)
+                    $prop = getkey(kwargs, $qv, $v)
+                    # TODO: Swap == below with a comparison argument
+                    # This would help for ABC etc
+                    $prop == $v || return nothing
+                    val = merge(val, ($v=$v,))
+                end
             end
         else x
         end
@@ -20,20 +32,18 @@ function makeRand(m :: Model)
         pushfirst!(body.args, expr)
     end
 
+    @gensym rand
     #Wrap in a function to avoid global variables
-    flatten(@q kwargs -> begin
+    flatten(@q (
+        function $rand(args...;kwargs...) 
+            kwargs = Dict(kwargs)
             val = NamedTuple()
             $body
             val
-    end)
+        end
+    ))
 end
 
-function rand(m :: Model,n::Int)
-    f = @eval $(makeRand(m))
-    println(typeof(f))
-    go(x) = Base.invokelatest(f,x)
-    go
-end
 
 
 export logWeightedRand
@@ -65,11 +75,10 @@ function logWeightedRand(m :: Model, N :: Int)
 
 end
 
-# If no number is given, just take the first (and only) element from a singleton array
-function rand(m :: Model)
-    rand(m,1)[1]
+
+export makeRand
+function makeRand(m :: Model)
+    @eval $(sourceRand(m))
 end
 
-function rand(n::Int)
-    x -> rand(x,n)
-end
+
