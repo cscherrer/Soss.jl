@@ -16,7 +16,7 @@ function sourceRand(m :: Model)
             else
                 @q begin
                     $v = rand($dist)
-                    $prop = getkey(kwargs, $qv, $v)
+                    $prop = get(kwargs, $qv, $v)
                     # TODO: Swap == below with a comparison argument
                     # This would help for ABC etc
                     $prop == $v || return nothing
