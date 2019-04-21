@@ -319,3 +319,33 @@ function expandSubmodels(m :: Model)
     end
     Model(args=m.args, body=newbody, meta=m.meta)
 end
+
+function fold(leaf, expr) 
+    function go(ast)
+        @match ast begin
+            Expr(head, arg1, newargs...) => expr(head, arg1, map(go, newargs))
+            x                            => leaf(x)
+        end
+    end
+
+    return go
+end
+
+# Example usage:
+# --------------
+# function leafCount(ast)
+#     leaf(x) = 1
+#     expr(head, arg1, newargs) = sum(newargs)
+#     fold(leaf, expr)(ast)
+# end
+
+# leaves = begin
+#     leaf(x) = [x]
+#     expr(head, arg1, newargs) = union(newargs...)
+#     fold(leaf, expr)
+# end
+
+# ast = :(f(x + 3y))
+
+# leaves(ast)
+
