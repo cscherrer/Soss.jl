@@ -32,7 +32,17 @@ end
     setdiff!(args, keys(kwargs))
     assignments = [:($k = $v) for (k,v) in kwargs]
     pushfirst!(body.args, assignments...)
-    Model(args, body)
+    stoch = stochastic(m)
+    newbody = postwalk(body) do x
+        if @capture(x, v_ ~ dist_)
+            if isempty(symbols(dist) ∩ stoch)
+                Nothing
+            else x
+            end
+        else x
+        end
+    end |> rmNothing
+    Model(args, newbody) |> flatten
 end
 
 macro model(vs::Expr,body::Expr)
