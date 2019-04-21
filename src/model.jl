@@ -19,13 +19,6 @@ struct Model <: AbstractModel
     Model(; args, body, meta) = Model(args, body, meta)
 end
 
-
-(m::Model)(v::Symbol) = begin
-    args = copy(m.args)
-    push!(args, v)
-    Model(args, m.body)
-end
-
 (m::Model)(vs...) = begin
     args = copy(m.args)
     union!(args, vs)
