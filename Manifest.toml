@@ -69,6 +69,12 @@ git-tree-sha1 = "a427098d5aa2808504d94b8ed9fc5740ceaf71d0"
 uuid = "159f3aea-2a34-519c-b102-8c37f9878175"
 version = "0.5.6"
 
+[[Calculus]]
+deps = ["Compat"]
+git-tree-sha1 = "f60954495a7afcee4136f78d1d60350abd37a409"
+uuid = "49dc2e85-a5d0-5ad3-a950-438e2897f1b9"
+version = "0.4.1"
+
 [[Cassette]]
 deps = ["InteractiveUtils", "LinearAlgebra", "Test"]
 git-tree-sha1 = "5536cf95a81ff784f4d1eca2df39bb2629a7ee59"
@@ -154,6 +160,12 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 [[DelimitedFiles]]
 deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+
+[[DiffEqDiffTools]]
+deps = ["LinearAlgebra", "Test"]
+git-tree-sha1 = "30f82c63cb9d293513b360572e283c19577fcf82"
+uuid = "01453d9d-ee7c-5054-8395-0335cb756afa"
+version = "0.8.1"
 
 [[DiffResults]]
 deps = ["Compat", "StaticArrays"]
@@ -271,6 +283,12 @@ version = "0.10.3"
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
+[[GR]]
+deps = ["Base64", "DelimitedFiles", "LinearAlgebra", "Pkg", "Printf", "Random", "Serialization", "Sockets", "Test"]
+git-tree-sha1 = "537b61986d8a5fd21e577541f8f0735e481eb3ed"
+uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
+version = "0.39.1"
+
 [[GenericSVD]]
 deps = ["LinearAlgebra", "Random", "Test"]
 git-tree-sha1 = "8aa93c3f3d81562a8962047eafcc5712af0a0f59"
@@ -383,6 +401,12 @@ git-tree-sha1 = "c7222c370d5cf6d4e08ae40bddd8c0db6852dfb1"
 uuid = "093fc24a-ae57-5d10-9952-331d41423f4d"
 version = "1.2.0"
 
+[[LineSearches]]
+deps = ["LinearAlgebra", "NLSolversBase", "NaNMath", "Parameters", "Printf", "Test"]
+git-tree-sha1 = "54eb90e8dbe745d617c78dee1d6ae95c7f6f5779"
+uuid = "d3d80556-e9d4-5f37-9878-2ab0fcc64255"
+version = "7.0.1"
+
 [[LinearAlgebra]]
 deps = ["Libdl"]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -400,6 +424,12 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 deps = ["Random", "Statistics", "StatsBase", "Test"]
 git-tree-sha1 = "9c898f408400c0bffda7570acd57c98601c33b59"
 uuid = "6e857e4b-079a-58c4-aeab-bc2670384359"
+version = "0.3.0"
+
+[[MLStyle]]
+deps = ["Statistics", "Test"]
+git-tree-sha1 = "12d2f421dcff9c12b2aebcc25759f0cdca16a16b"
+uuid = "d8e11817-5142-5d16-987a-aa16d5891078"
 version = "0.3.0"
 
 [[MacroTools]]
@@ -439,6 +469,12 @@ version = "0.4.0"
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
+[[NLSolversBase]]
+deps = ["Calculus", "DiffEqDiffTools", "DiffResults", "Distributed", "ForwardDiff", "LinearAlgebra", "Random", "SparseArrays", "Test"]
+git-tree-sha1 = "0c6f0e7f2178f78239cfb75310359eed10f2cacb"
+uuid = "d41bc354-129a-5804-8e4c-c37616107c6c"
+version = "7.3.1"
+
 [[NNlib]]
 deps = ["Libdl", "LinearAlgebra", "MacroTools", "Requires", "Test"]
 git-tree-sha1 = "9ac5cd21484189339b27840818c4882d1b6df7fd"
@@ -463,11 +499,23 @@ git-tree-sha1 = "ae1a63457e14554df2159b0b028f48536125092d"
 uuid = "4d1e1d77-625e-5b40-9113-a560ec7a8ecd"
 version = "0.0.8"
 
+[[OffsetArrays]]
+deps = ["DelimitedFiles", "Test"]
+git-tree-sha1 = "e6893807f09c1d5517861ded8b203cb96cb7d44a"
+uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
+version = "0.10.0"
+
+[[Optim]]
+deps = ["Calculus", "DiffEqDiffTools", "ForwardDiff", "LineSearches", "LinearAlgebra", "NLSolversBase", "NaNMath", "Parameters", "PositiveFactorizations", "Printf", "Random", "SparseArrays", "StatsBase", "Test"]
+git-tree-sha1 = "a626e09c1f7f019b8f3a30a8172c7b82d2f4810b"
+uuid = "429524aa-4258-5aef-a3af-852621145aeb"
+version = "0.18.1"
+
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
-git-tree-sha1 = "85619a3f3e17bb4761fe1b1fd47f0e979f964d5b"
+git-tree-sha1 = "c4c13474d23c60d20a67b217f1d7f22a40edf8f1"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.0.2"
+version = "1.1.0"
 
 [[PDMats]]
 deps = ["Arpack", "LinearAlgebra", "SparseArrays", "SuiteSparse", "Test"]
@@ -509,6 +557,12 @@ git-tree-sha1 = "6ea4cfb9136d3ff2b9d30d6696cd72166a3b837c"
 uuid = "2dfb63ee-cc39-5dd5-95bd-886bf059d720"
 version = "0.5.1"
 
+[[PositiveFactorizations]]
+deps = ["LinearAlgebra", "Test"]
+git-tree-sha1 = "86ae7329c4b5c266acf5c7c524a972300d991e1c"
+uuid = "85a6dd25-e78a-55b7-8502-1745935b8125"
+version = "0.2.1"
+
 [[Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
@@ -524,6 +578,12 @@ deps = ["Conda", "Dates", "Libdl", "LinearAlgebra", "MacroTools", "Pkg", "Serial
 git-tree-sha1 = "6e5bac1b1faf3575731a6a5b76f638f2389561d3"
 uuid = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 version = "1.91.2"
+
+[[PyPlot]]
+deps = ["Colors", "LaTeXStrings", "PyCall", "Sockets", "Test", "VersionParsing"]
+git-tree-sha1 = "3ea391c3211f799df20396d256cee5c8bd755605"
+uuid = "d330b81b-6aea-500a-939a-2ce795aea3ee"
+version = "2.8.1"
 
 [[QuadGK]]
 deps = ["DataStructures", "LinearAlgebra", "Test"]
@@ -568,6 +628,12 @@ deps = ["BinaryProvider", "DataValues", "Dates", "Libdl", "StringEncodings", "Te
 git-tree-sha1 = "182df6a9c0dd0f78ee4ab51a16259deda26cd850"
 uuid = "d71aba96-b539-5138-91ee-935c3ee1374c"
 version = "0.4.1"
+
+[[RecipesBase]]
+deps = ["Random", "Test"]
+git-tree-sha1 = "0b3cb370ee4dc00f47f1193101600949f3dcf884"
+uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+version = "0.6.0"
 
 [[Reexport]]
 deps = ["Pkg"]
@@ -678,6 +744,14 @@ version = "0.3.1"
 deps = ["Libdl", "LinearAlgebra", "SparseArrays"]
 uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
+[[SymPy]]
+deps = ["LinearAlgebra", "OffsetArrays", "PyCall", "RecipesBase", "SpecialFunctions", "Test"]
+git-tree-sha1 = "53ed0caa6b82fc3c583adae332f6506dd551c431"
+repo-rev = "master"
+repo-url = "https://github.com/JuliaPy/SymPy.jl.git"
+uuid = "24249f21-da20-56a4-8eb1-6a02cf4ae2e6"
+version = "1.0.2+"
+
 [[TableShowUtils]]
 deps = ["DataValues", "Dates", "JSON", "Markdown", "Test"]
 git-tree-sha1 = "14c54e1e96431fb87f0d2f5983f090f1b9d06457"
@@ -743,10 +817,10 @@ uuid = "37b6cedf-1f77-55f8-9503-c64b63398394"
 version = "0.3.0"
 
 [[TranscodingStreams]]
-deps = ["Pkg", "Random", "Test"]
-git-tree-sha1 = "f42956022d8084539f1d7219f632542b0ea686ce"
+deps = ["Random", "Test"]
+git-tree-sha1 = "a25d8e5a28c3b1b06d3859f30757d43106791919"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.9.3"
+version = "0.9.4"
 
 [[TransformVariables]]
 deps = ["ArgCheck", "DocStringExtensions", "ForwardDiff", "LinearAlgebra", "MacroTools", "Parameters", "Pkg", "Random"]
