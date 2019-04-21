@@ -112,23 +112,19 @@ function logdensity(model;ℓ=:ℓ,par=:par,data=:data)
         if @capture(x, v_ ~ dist_)
             if v ∈ parameters(model)
                 @q begin
-                    $v = $par.$v
                     $ℓ += logpdf($dist, $v)
                 end
-            else
-                @q begin
-                    $ℓ += logpdf($dist, $v)
                 end
-            end
 
         else x
         end
     end
-    # print(body |> dump)
-    for v in arguments(model)
-        pushfirst!(body.args, :($v = data.$v))
-    end
+
+    parsExpr = Expr(:tuple,parameters(model)...)
+    dataExpr = Expr(:tuple,arguments(model)...)
     result = @q function($par, $data)
+        @unpack $(parsExpr) = pars
+        @unpack $(dataExpr) = data
         $ℓ = 0.0
 
         $body
