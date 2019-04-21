@@ -140,14 +140,14 @@ end
 
 
 
-
+# Note: `getTransform` currently assumes supports are not parameter-dependent
 export getTransform
 function getTransform(model)
     expr = Expr(:tuple)
     postwalk(model.body) do x
-        if @capture(x, v_ ~ dist_)
+        if @capture(x, v_ ~ dist_(args__))
             if v ∈ parameters(model)
-                t = fromℝ(@eval $dist)
+                t = fromℝ(@eval $dist())
                 # eval(:(t = fromℝ($dist)))
                 push!(expr.args,:($v=$t))
             else x
