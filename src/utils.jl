@@ -5,8 +5,7 @@ export arguments, args, stochastic, observed, parameters, supports
 export paramSupport
 
 
-using MacroTools: striplines, flatten, unresolve, resyntax, @q
-using MacroTools
+import MacroTools: striplines, flatten, unresolve, resyntax, @q, @capture
 using StatsFuns
 using DataStructures: counter
 
@@ -14,8 +13,9 @@ function arguments(model::Model)
     model.args
 end
 
+export stochastic
 "A stochastic node is any `v` in a model with `v ~ ...`"
-function stochastic(m::Model)
+function stochastic(m::Model) :: Vector{Symbol}
     nodes = []
     postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
@@ -167,15 +167,49 @@ end
 #     Model(model.args, body)
 # end
 
-function symbols(expr)
-    result = []
-    postwalk(expr) do x
-        if @capture(x, s_symbol_Symbol)
-            union!(result, [s])
+import MacroTools.@capture
+
+export fold
+function fold(leaf, branch; kwargs...) 
+    function go(ast)
+        # @show ast
+        MLStyle.@match ast begin
+            Expr(head, arg1, args...) => branch(head, arg1, map(go, args), kwargs...)
+            x                         => leaf(x, kwargs...)
         end
     end
-    result
+
+    return go
 end
+
+function foldall(leaf, branch; kwargs...) 
+    function go(ast)
+        # @show ast
+        MLStyle.@match ast begin
+            Expr(head, args...) => branch(head, map(go, args), kwargs...)
+            x                         => leaf(x, kwargs...)
+        end
+    end
+
+    return go
+end
+
+export symbols
+function symbols(expr :: Expr) 
+    leaf(x::Symbol) = begin
+        # @show x
+        [x]
+        end
+    leaf(x) = []
+    branch(head, newargs) = begin
+        # @show newargs
+        union(newargs...)
+    end
+    foldall(leaf, branch)(expr)
+end
+
+symbols(m :: Model) = symbols(m.body)
+
 
 export findsubexprs
 function findsubexprs(expr, vs)
@@ -316,19 +350,30 @@ function expandSubmodels(m :: Model)
     Model(args=m.args, body=newbody, meta=m.meta)
 end
 
-function fold(leaf, expr) 
-    function go(ast)
-        @match ast begin
-            Expr(head, arg1, newargs...) => expr(head, arg1, map(go, newargs))
-            x                            => leaf(x)
+
+
+function condition(vs...) 
+    function cond(m)
+        stoch = stochastic(m)
+        newbody = postwalk(m.body) do x
+            if @capture(x, v_ ~ dist_)
+                if v ∈ vs && isempty(symbols(dist) ∩ stoch)
+                    Nothing
+                else x
+                end
+            else x
         end
+        end |> rmNothing
+        Model(m.args, newbody)
     end
 
-    return go
+    cond
 end
 
-# Example usage:
-# --------------
+
+
+# fold example usage:
+# ------------------
 # function leafCount(ast)
 #     leaf(x) = 1
 #     expr(head, arg1, newargs) = sum(newargs)

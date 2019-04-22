@@ -22,27 +22,19 @@ end
 (m::Model)(vs...) = begin
     args = copy(m.args)
     union!(args, vs)
-    Model(args, m.body)
+    Model(args, m.body) |> condition(args...)
 end
 
 (m::Model)(;kwargs...) = begin
     result = deepcopy(m)
     args = result.args
     body = result.body
-    setdiff!(args, keys(kwargs))
+    vs = keys(kwargs)
+    setdiff!(args, vs)
     assignments = [:($k = $v) for (k,v) in kwargs]
     pushfirst!(body.args, assignments...)
     stoch = stochastic(m)
-    newbody = postwalk(body) do x
-        if @capture(x, v_ ~ dist_)
-            if isempty(symbols(dist) ∩ stoch)
-                Nothing
-            else x
-            end
-        else x
-        end
-    end |> rmNothing
-    Model(args, newbody) |> flatten
+    Model(args, body) |> condition(vs...) |> flatten
 end
 
 macro model(vs::Expr,body::Expr)
