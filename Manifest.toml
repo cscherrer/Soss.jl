@@ -1,10 +1,10 @@
 # This file is machine-generated - editing it directly is not advised
 
 [[ArgCheck]]
-deps = ["Random", "Test"]
-git-tree-sha1 = "9e3bff61bc46d3420d903b53ad07f85325fddc28"
+deps = ["Random"]
+git-tree-sha1 = "dab25d711a1dedb707a55dbc1eb9fd578f76ff32"
 uuid = "dce04be8-c92d-5529-be00-80e4d2c0e197"
-version = "1.0.0"
+version = "1.0.1"
 
 [[ArnoldiMethod]]
 deps = ["DelimitedFiles", "LinearAlgebra", "Random", "SparseArrays", "StaticArrays", "Test"]
@@ -184,10 +184,10 @@ deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
-deps = ["Distributed", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns", "Test"]
-git-tree-sha1 = "dec0ebacfbc3a2126c614ab5e903c9ef063688d0"
+deps = ["LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
+git-tree-sha1 = "0d048298541db10d16110508d5146f1fd13da971"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.17.0"
+version = "0.19.1"
 
 [[DocStringExtensions]]
 deps = ["LibGit2", "Markdown", "Pkg", "Test"]
@@ -746,7 +746,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
 [[SymPy]]
 deps = ["LinearAlgebra", "OffsetArrays", "PyCall", "RecipesBase", "SpecialFunctions", "Test"]
-git-tree-sha1 = "53ed0caa6b82fc3c583adae332f6506dd551c431"
+git-tree-sha1 = "252aac85e72e4021ec4ac72c7b6480438fafc941"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaPy/SymPy.jl.git"
 uuid = "24249f21-da20-56a4-8eb1-6a02cf4ae2e6"
