@@ -107,14 +107,14 @@ observed(m::Model) = setdiff(stochastic(m), parameters(m))
 
 
 export logdensity
-function logdensity(model;ℓ=:ℓ,par=:par,data=:data)
+function logdensity(model;ℓ=:ℓ,pars=:pars,data=:data)
     body = postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
             if v ∈ parameters(model)
                 @q begin
                     $ℓ += logpdf($dist, $v)
                 end
-                end
+            end
 
         else x
         end
@@ -122,7 +122,7 @@ function logdensity(model;ℓ=:ℓ,par=:par,data=:data)
 
     parsExpr = Expr(:tuple,parameters(model)...)
     dataExpr = Expr(:tuple,arguments(model)...)
-    result = @q function($par, $data)
+    result = @q function($pars, $data)
         @unpack $(parsExpr) = pars
         @unpack $(dataExpr) = data
         $ℓ = 0.0
@@ -138,13 +138,13 @@ end
 
 # Note: `getTransform` currently assumes supports are not parameter-dependent
 export getTransform
-function getTransform(model)
+function getTransform(m :: Model)
     expr = Expr(:tuple)
-    postwalk(model.body) do x
-        if @capture(x, v_ ~ dist_(args__))
-            if v ∈ parameters(model)
-                t = fromℝ(@eval $dist())
-                # eval(:(t = fromℝ($dist)))
+    postwalk(m.body) do x
+        if @capture(x, v_ ~ dist_)
+            # @show v
+            if v ∈ parameters(m)
+                t = getTransform(dist)
                 push!(expr.args,:($v=$t))
             else x
             end
@@ -152,6 +152,32 @@ function getTransform(model)
         end
     end
     return as(eval(expr))
+end
+
+function getTransform(expr :: Expr)
+    # @show expr
+    MLStyle.@match expr begin
+        :($f |> $g) => getTransform(:($g($f)))
+        # :(For($js) do $j $dist) => getTransform(:(For($j -> $dist, $js)))
+        :(MixtureModel($d,$(args...))) => getTransform(d)
+        :(iid($n)($dist))        => getTransform(:(iid($n, $dist)))
+        :(iid($n, $dist))        => as(Array, getTransform(dist), n)
+        :($dist($(args...))) => getTransform(dist)
+        d              => throw(MethodError(getTransform, d))
+    end
+end
+
+function getTransform(dist :: Symbol)
+    # @show dist
+    MLStyle.@match dist begin
+        :Normal => asℝ
+        :Cauchy => asℝ
+        :HalfCauchy => asℝ₊
+        :Gamma  => asℝ₊
+        :Beta   => as𝕀
+        :Uniform => as𝕀
+        d              => throw(MethodError(:getTransform, d))
+    end
 end
 
 # const locationScaleDists = [:Normal]
@@ -199,7 +225,7 @@ function symbols(expr :: Expr)
     leaf(x::Symbol) = begin
         # @show x
         [x]
-        end
+    end
     leaf(x) = []
     branch(head, newargs) = begin
         # @show newargs
@@ -362,12 +388,12 @@ function condition(vs...)
                 else x
                 end
             else x
-        end
+            end
         end |> rmNothing
         Model(m.args, newbody)
     end
 
-    cond
+    (cond ∘ cond)
 end
 
 
@@ -390,3 +416,6 @@ end
 
 # leaves(ast)
 
+# Example of Tamas Papp's `as` combinator:
+# julia> as((;s=as(Array, as𝕀,4), a=asℝ))(randn(5))
+# (s = [0.545324, 0.281332, 0.418541, 0.485946], a = 2.217762640580984)
