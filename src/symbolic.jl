@@ -18,16 +18,6 @@ import_from(stats)
 using MacroTools
 using MacroTools: postwalk
 
-function getsymbols(expr ::Expr) :: Vector{Symbol}
-    result = []
-    postwalk(expr) do x
-        if @capture(x, s_symbol_Symbol)
-            union!(result, [s])
-        end
-    end
-    result
-end
-
 """
     @getlogpdf(expr, params)
 
@@ -38,9 +28,9 @@ into an expression for the log-density
 WARNING
 For now, this only work with distributions that have the same name and parameterization in SymPy and Distributions.jl
 """
-macro getlogpdf(expr, params)
-    params = params.args
-    vars = params ∩ getsymbols(expr) 
+function getlogpdf(expr, params)
+    # params = params.args
+    vars = params ∩ Soss.symbols(expr) 
     # @show vars
 
     sym = Dict(v => SymPy.symbols(v) for v in vars )
