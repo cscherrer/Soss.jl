@@ -6,9 +6,8 @@ using Reexport: @reexport
 @reexport using Distributions
 @reexport using StatsFuns
 
-using MacroTools
-using MacroTools: prewalk, postwalk, @q, striplines, replace, flatten
-
+import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
+import MLStyle
 
 include("model.jl")
 include("weighted.jl")

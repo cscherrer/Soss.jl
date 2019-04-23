@@ -157,13 +157,14 @@ end
 function getTransform(expr :: Expr)
     # @show expr
     MLStyle.@match expr begin
-        :($f |> $g) => getTransform(:($g($f)))
+        :($f |> $g)           => getTransform(:($g($f)))
         # :(For($js) do $j $dist) => getTransform(:(For($j -> $dist, $js)))
         :(MixtureModel($d,$(args...))) => getTransform(d)
-        :(iid($n)($dist))        => getTransform(:(iid($n, $dist)))
-        :(iid($n, $dist))        => as(Array, getTransform(dist), n)
-        :($dist($(args...))) => getTransform(dist)
-        d              => throw(MethodError(getTransform, d))
+        :(iid($n)($dist))     => getTransform(:(iid($n, $dist)))
+        :(iid($n, $dist))     => as(Array, getTransform(dist), n)
+        :($dist($(args...)))  => getTransform(dist)
+        :(Dirichlet($k,$a))   => UnitVector(k)
+        d                     => throw(MethodError(getTransform, d))
     end
 end
 
@@ -173,6 +174,7 @@ function getTransform(dist :: Symbol)
         :Normal => asℝ
         :Cauchy => asℝ
         :HalfCauchy => asℝ₊
+        :HalfNormal => asℝ₊
         :Gamma  => asℝ₊
         :Beta   => as𝕀
         :Uniform => as𝕀
@@ -235,7 +237,8 @@ function symbols(expr :: Expr)
 end
 
 symbols(m :: Model) = symbols(m.body)
-
+symbols(s::Symbol) = [s]
+symbols(x) = []
 
 export findsubexprs
 function findsubexprs(expr, vs)

@@ -78,7 +78,9 @@ end
 
 export makeRand
 function makeRand(m :: Model)
-    @eval $(sourceRand(m))
+    fpre = @eval $(sourceRand(m))
+    f() = Base.invokelatest(fpre)
 end
 
-
+export rand
+rand(m::Model) = makeRand(m)()

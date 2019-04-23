@@ -25,16 +25,28 @@ end
     Model(args, m.body) |> condition(args...)
 end
 
+# (m::Model)(;kwargs...) = begin
+#     result = deepcopy(m)
+#     args = result.args
+#     body = result.body
+#     vs = keys(kwargs)
+#     setdiff!(args, vs)
+#     assignments = [:($k = $v) for (k,v) in kwargs]
+#     pushfirst!(body.args, assignments...)
+#     stoch = stochastic(m)
+#     Model(args, body) |> condition(vs...) |> flatten
+# end
+
+# inline for now
+# TODO: Be more careful about this
 (m::Model)(;kwargs...) = begin
-    result = deepcopy(m)
-    args = result.args
-    body = result.body
-    vs = keys(kwargs)
-    setdiff!(args, vs)
-    assignments = [:($k = $v) for (k,v) in kwargs]
-    pushfirst!(body.args, assignments...)
-    stoch = stochastic(m)
-    Model(args, body) |> condition(vs...) |> flatten
+    m = condition(keys(kwargs)...)(m)
+    kwargs = Dict(kwargs)
+    leaf(v) = get(kwargs, v, v)
+
+    branch(head, newargs) = Expr(head, newargs...)
+    body = foldall(leaf, branch)(m.body)
+    Model(setdiff(m.args, keys(kwargs)), body)
 end
 
 macro model(vs::Expr,body::Expr)

@@ -1,8 +1,6 @@
 using SymPy
 import PyCall
 
-using SymPy
-import PyCall
 stats = PyCall.pyimport_conda("sympy.stats", "sympy")
 import_from(stats)
 
@@ -15,8 +13,8 @@ import_from(stats)
 # end
 
 
-using MacroTools
-using MacroTools: postwalk
+import MacroTools: postwalk, @capture
+import MLStyle
 
 """
     @getlogpdf(expr, params)
@@ -50,7 +48,7 @@ function getlogpdf(expr, params)
     end
 
     s = :(SymPy.density($s).pdf($(sym[v])) |> log)
-    s = :(expand($s,log=true,deep=false,force=true))
+    s = expand(s,log=true,deep=false,force=true)
     # s = :(Meta.parse(repr($s)))
     s 
 
