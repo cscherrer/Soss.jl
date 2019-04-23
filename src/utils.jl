@@ -162,8 +162,8 @@ function getTransform(expr :: Expr)
         :(MixtureModel($d,$(args...))) => getTransform(d)
         :(iid($n)($dist))     => getTransform(:(iid($n, $dist)))
         :(iid($n, $dist))     => as(Array, getTransform(dist), n)
-        :($dist($(args...)))  => getTransform(dist)
         :(Dirichlet($k,$a))   => UnitVector(k)
+        :($dist($(args...)))  => getTransform(dist)
         d                     => throw(MethodError(getTransform, d))
     end
 end
