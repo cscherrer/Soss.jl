@@ -1,3 +1,7 @@
+using Pkg
+Pkg.activate(".")
+using Soss
+
 myModel = @model begin
     N ~ Poisson(100)
     K ~ Poisson(2.5)
