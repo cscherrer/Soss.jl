@@ -2,12 +2,21 @@ export Model, convert, @model
 
 abstract type AbstractModel end
 
+function readTilde(expr, cxt)
+    
+
+    if @capture(v_ ~ dist_)
+    else
+    end
+end
+
 struct Model <: AbstractModel
     args :: Vector{Symbol}
-    body :: Expr
+    body :: AbstractModelBlock
     meta :: Dict{Symbol, Any}
 
     function Model(args::Vector{Symbol}, body::Expr, meta::Dict{Symbol, Any})
+
         new(args, body, meta)
     end
 
@@ -81,3 +90,4 @@ function Base.show(io::IO, m::Model)
     end
     print(io, m.body)
 end
+

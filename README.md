@@ -39,7 +39,7 @@ MCMC (1000 steps)
  (σ = 1.8624606528160723,)
  ⋮                        
  (σ = 10.221616643596727,)
- (σ = 9.225830257664835,) 
+ (σ = 9.225830257664835,)
 ```
 
 
@@ -129,7 +129,7 @@ julia> likelihood(hello)
 end
 ```
 
-Note that the arguments are added or removed, as needed. 
+Note that the arguments are added or removed, as needed.
 
 ## Sampling from the posterior
 
@@ -152,35 +152,35 @@ Any inference algorithm is possible in Soss. So far, the _No U-Turn Sampler_ (NU
 ```julia
 julia> posterior = nuts(hello, data=(x=randn(10000),)).samples
 1000-element Array{NamedTuple{(:μ, :σ),Tuple{Float64,Float64}},1}:
- (μ = -0.016750250341334094, σ = 1.0269802073542134) 
- (μ = -0.008405510241302977, σ = 1.0167021756621375) 
- (μ = -0.015574923802842802, σ = 1.0171769791897423) 
- (μ = -0.013021593156077087, σ = 1.0184344558003013) 
+ (μ = -0.016750250341334094, σ = 1.0269802073542134)
+ (μ = -0.008405510241302977, σ = 1.0167021756621375)
+ (μ = -0.015574923802842802, σ = 1.0171769791897423)
+ (μ = -0.013021593156077087, σ = 1.0184344558003013)
  (μ = -0.01780477236109085, σ = 1.0131727185064554)  
- (μ = -0.032662131300842695, σ = 1.0153176322142905) 
- (μ = -0.019576842879711565, σ = 1.0046042202153795) 
- (μ = -0.010861251137647089, σ = 1.0132758259829258) 
- (μ = -0.010390367753548568, σ = 1.0197606285893195) 
+ (μ = -0.032662131300842695, σ = 1.0153176322142905)
+ (μ = -0.019576842879711565, σ = 1.0046042202153795)
+ (μ = -0.010861251137647089, σ = 1.0132758259829258)
+ (μ = -0.010390367753548568, σ = 1.0197606285893195)
  (μ = -0.006956586470160837, σ = 1.020321342370646)  
- (μ = -0.026570215043822204, σ = 1.0179981689741073) 
- (μ = 0.0038200696879123327, σ = 1.0101621107293388) 
+ (μ = -0.026570215043822204, σ = 1.0179981689741073)
+ (μ = 0.0038200696879123327, σ = 1.0101621107293388)
  (μ = 0.002818646907138813, σ = 1.0267531341033773)  
  (μ = -0.00929115068028712, σ = 1.0023324944611351)  
  ⋮                                                   
- (μ = -0.013539165964585525, σ = 1.0251881958130318) 
- (μ = -0.006739442336510352, σ = 1.0104953775322774) 
- (μ = -0.016820178082252172, σ = 1.0143872288565643) 
+ (μ = -0.013539165964585525, σ = 1.0251881958130318)
+ (μ = -0.006739442336510352, σ = 1.0104953775322774)
+ (μ = -0.016820178082252172, σ = 1.0143872288565643)
  (μ = -0.0015472822264999296, σ = 1.0106951232174335)
  (μ = -0.02395361215610855, σ = 0.9986872414407054)  
- (μ = -0.022213309614302235, σ = 0.9990999963876895) 
+ (μ = -0.022213309614302235, σ = 0.9990999963876895)
  (μ = -0.01986363495451096, σ = 1.0025106436071947)  
- (μ = -0.017228865956048067, σ = 1.0039663584854361) 
+ (μ = -0.017228865956048067, σ = 1.0039663584854361)
  (μ = -0.019226211417814627, σ = 1.002473160705432)  
  (μ = -0.0027371172635497665, σ = 1.0274537663874084)
- (μ = -0.007280591268333988, σ = 1.0164054485543828) 
+ (μ = -0.007280591268333988, σ = 1.0164054485543828)
  (μ = -0.0183919608566083, σ = 1.0173829850337315)   
- (μ = -0.010839639031948869, σ = 1.0142045654219038) 
- (μ = -0.010839639031948869, σ = 1.0142045654219038) 
+ (μ = -0.010839639031948869, σ = 1.0142045654219038)
+ (μ = -0.010839639031948869, σ = 1.0142045654219038)
 
 julia> quantile(getfield.(posterior, :μ),[0.05,0.5,0.95])
 3-element Array{Float64,1}:
@@ -212,7 +212,7 @@ julia> lda
     z ~ For(1:M) do m
             Categorical(θ[m]) |> iid(N[m])
         end
-    w ⩪ For(1:M) do m
+    w ~ For(1:M) do m
             For(1:N[m]) do n
                 Categorical(β[(z[m])[n]])
             end
@@ -244,7 +244,7 @@ Since its initial Stan implementation, "Automatic Differentiation Variational In
 - The covariance can be a diagonal matrix, so the components of the distribution are independent. This is computationally efficient, but is very constrained, and often leads to dramatic underestimation of the variance.
 - The covariance can be unconstrained - the only requirement in this case is that it be positive definite. This can result in much tighter bound and a better approximation, but with a great computational expense (quadratic in the dimension of the parameter space).
 
-There's a middle ground that (to my knowledge) has not been explored. The log-likelihood is a function of the parameters that takes the form of a sum of expressions, each involving a subset of the parameters. 
+There's a middle ground that (to my knowledge) has not been explored. The log-likelihood is a function of the parameters that takes the form of a sum of expressions, each involving a subset of the parameters.
 
 Now, for a multivariate normal, the inverse of the covariance has an interesting property. An element Sigma_ij of this is zero if and only x_i and x_j are independent, given x_{k | k not  in {i,j}}. And this conditional independence property is equivalent to "x_i and x_j do not occur together in any term of the log-likelihood".
 
@@ -269,11 +269,11 @@ linReg1D = @model N begin
     α ~ Cauchy(0,10)
     β ~ Cauchy(0,2.5)
     σ ~ Truncated(Cauchy(0,3), 0, Inf)
-    x ~ For(1:N) do n 
+    x ~ For(1:N) do n
         Cauchy(0,100)
     end
     ŷ = α + β .* x
-    y ~ For(1:N) do n 
+    y ~ For(1:N) do n
         Normal(ŷ[n], σ)
     end
 end
@@ -340,7 +340,7 @@ Dict{Symbol,Any} with 3 entries:
 
 Or you can transform it to a form suitable for specialized inference algorithms. For example, a Stan-like approach:
 
-(works for older implementation, but for now this is just a mockup) 
+(works for older implementation, but for now this is just a mockup)
 
 ```julia
 > logdensity(lr3)
