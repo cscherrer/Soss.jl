@@ -123,8 +123,8 @@ function sourceLogdensity(model;ℓ=:ℓ)
     unknowns = parameters(model) ∪ arguments(model)
     unkExpr = Expr(:tuple,unknowns...)
     @gensym logdensity
-    result = @q function $logdensity(;kwargs...)
-        @unpack $(unkExpr) = kwargs
+    result = @q function $logdensity(pars)
+        @unpack $(unkExpr) = pars
         $ℓ = 0.0
 
         $body
