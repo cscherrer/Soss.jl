@@ -1,3 +1,7 @@
+using Pkg
+Pkg.activate(".")
+using Soss
+
 myModel = @model begin
     N ~ Poisson(100)
     K ~ Poisson(2.5)
@@ -6,6 +10,9 @@ myModel = @model begin
     σ ~ HalfNormal(1)
     x ~ MixtureModel(Normal, tuple.(μ,σ), p) |> iid(N)
 end
+
+using Parameters
+using Plots
 
 function mplot(data) 
     @unpack μ,σ,p,x = rand(m)
@@ -18,35 +25,46 @@ function mplot(data)
     scatter!(plt, x, zeros(size(x)), marker=:vline)
 end
 
-m = myModel(N=100,K=2)
-anim = @animate for i=1:100
-    @unpack μ,σ,p,x = rand(m)
-    lo,hi = extrema(x)
-    lo=min(lo,-4)
-    hi=max(hi,4)
-    xs = range(lo,hi,length=1000)
-    dist = MixtureModel(Normal, tuple.(μ,σ), p)
-    plt=plot(xs, pdf.(dist, xs), legend=false)
-    scatter!(plt, x, zeros(size(x)), marker=:vline)
-end
-gif(anim, "m.gif", fps = 1)
 
-
-
-
-m = myModel(N=100, K=2)
 using Random
 Random.seed!(4);
 
 using StatsPlots
-
+m = myModel(N=100,K=2)
 grt = rand(m) 
+
+
+
+
 using Parameters
-@unpack μ,σ,p = grt
 mplot(grt)
 
+r = makeRand(m)
+anim = @animate for i=1:100
+    mplot(r())
+end
+gif(anim, "m.gif", fps = 1)
+
+
 m_fwd = m(:p,:μ,:σ)
+r = makeRand(m_fwd)
+anim = @animate for i=1:100
+    v = merge(grt, r(; grt...))
+    mplot(v)
+end
+gif(anim, "m_fwd.gif", fps = 1)
+
+
+
+
+
 m_inv = m(:x)
+
+
+m = myModel(N=100, K=2)
+
+
+
 
 
 d = MixtureModel(Normal, tuple.(μ,σ), p)
