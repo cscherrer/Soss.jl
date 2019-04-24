@@ -16,10 +16,6 @@ function sourceRand(m :: Model)
             else
                 @q begin
                     $v = rand($dist)
-                    $prop = get(kwargs, $qv, $v)
-                    # TODO: Swap == below with a comparison argument
-                    # This would help for ABC etc
-                    $prop == $v || return nothing
                     val = merge(val, ($v=$v,))
                 end
             end
@@ -27,16 +23,14 @@ function sourceRand(m :: Model)
         end
     end
 
-    for arg in arguments(m)
-        expr = @q $arg = kwargs.$arg
-        pushfirst!(body.args, expr)
-    end
-
     @gensym rand
+
+    argsExpr = Expr(:tuple,arguments(m)...)
     #Wrap in a function to avoid global variables
     flatten(@q (
         function $rand(args...;kwargs...) 
-            kwargs = Dict(kwargs)
+            @unpack $argsExpr = kwargs
+            # kwargs = Dict(kwargs)
             val = NamedTuple()
             $body
             val
@@ -79,8 +73,8 @@ end
 export makeRand
 function makeRand(m :: Model)
     fpre = @eval $(sourceRand(m))
-    f() = Base.invokelatest(fpre)
+    f(;kwargs...) = Base.invokelatest(fpre; kwargs...)
 end
 
 export rand
-rand(m::Model) = makeRand(m)()
+rand(m::Model; kwargs...) = makeRand(m)(;kwargs...)
