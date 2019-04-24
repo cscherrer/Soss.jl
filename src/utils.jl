@@ -110,11 +110,9 @@ export sourceLogdensity
 function sourceLogdensity(model;ℓ=:ℓ)
     body = postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
-            if v ∈ parameters(model)
                 @q begin
                     $ℓ += logpdf($dist, $v)
                 end
-            end
 
         else x
         end
