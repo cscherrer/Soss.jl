@@ -106,8 +106,8 @@ observed(m::Model) = setdiff(stochastic(m), parameters(m))
 # end
 
 
-export logdensity
-function logdensity(model;ℓ=:ℓ,pars=:pars,data=:data)
+export sourceLogdensity
+function sourceLogdensity(model;ℓ=:ℓ)
     body = postwalk(model.body) do x
         if @capture(x, v_ ~ dist_)
             if v ∈ parameters(model)
@@ -120,11 +120,11 @@ function logdensity(model;ℓ=:ℓ,pars=:pars,data=:data)
         end
     end
 
-    parsExpr = Expr(:tuple,parameters(model)...)
-    dataExpr = Expr(:tuple,arguments(model)...)
-    result = @q function($pars, $data)
-        @unpack $(parsExpr) = pars
-        @unpack $(dataExpr) = data
+    unknowns = parameters(model) ∪ arguments(model)
+    unkExpr = Expr(:tuple,unknowns...)
+    @gensym logdensity
+    result = @q function $logdensity(;kwargs...)
+        @unpack $(unkExpr) = kwargs
         $ℓ = 0.0
 
         $body
@@ -162,8 +162,8 @@ function getTransform(expr :: Expr)
         :(MixtureModel($d,$(args...))) => getTransform(d)
         :(iid($n)($dist))     => getTransform(:(iid($n, $dist)))
         :(iid($n, $dist))     => as(Array, getTransform(dist), n)
-        :($dist($(args...)))  => getTransform(dist)
         :(Dirichlet($k,$a))   => UnitVector(k)
+        :($dist($(args...)))  => getTransform(dist)
         d                     => throw(MethodError(getTransform, d))
     end
 end
