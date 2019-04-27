@@ -15,6 +15,8 @@ function sourceRand(m :: Model)
     @gensym rand
 
     argsExpr = Expr(:tuple,arguments(m)...)
+
+    # Pack stochastic variables into a NamedTuple
     stochExpr = begin
         vals = map(stochastic(m)) do x Expr(:(=), x,x) end
         Expr(:tuple, vals...)
