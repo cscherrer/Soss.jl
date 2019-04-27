@@ -16,7 +16,7 @@ function sourceRand(m :: Model)
 
     argsExpr = Expr(:tuple,arguments(m)...)
     stochExpr = begin
-        vals = map(stochastic(linReg1D)) do x Expr(:(=), x,x) end
+        vals = map(stochastic(m)) do x Expr(:(=), x,x) end
         Expr(:tuple, vals...)
     end
     #Wrap in a function to avoid global variables
