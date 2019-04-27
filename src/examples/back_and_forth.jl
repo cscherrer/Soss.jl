@@ -8,7 +8,8 @@ myModel = @model begin
     p ~ Dirichlet(K, 1.0)
     μ ~ Normal(0,1.5) |> iid(K)
     σ ~ HalfNormal(1)
-    x ~ MixtureModel(Normal, tuple.(μ,σ), p) |> iid(N)
+    θ = [(m,σ) for m in μ]
+    x ~ MixtureModel(Normal, θ, p) |> iid(N)
 end
 
 using Parameters
@@ -18,18 +19,18 @@ pyplot()
 
 using Random
 using StatsPlots
+
 m = @model begin
     p ~ Uniform()
     μ ~ Normal(0, 1.5) |> iid(2)
     σ ~ HalfNormal(1)
-    x ~ MixtureModel(Normal, tuple.(μ, σ), [p,1-p]) |> iid(100)
+    θ = [(m, σ) for m in μ]
+    x ~ MixtureModel(Normal, θ, [p,1-p]) |> iid(100)
 end
 
-
-Random.seed!(18);
-
-grt = rand(m) 
-
+Random.seed!(20)
+grt = rand(m)
+mplot(grt)
 
 function mplot(data) 
     @unpack μ,σ,p,x = data
@@ -51,25 +52,13 @@ function mplot(data)
 end
 
 r = makeRand(m)
-anim = @animate for i=1:10
-    mplot(r())
-end
-gif(anim, "m.gif", fps = 1)
-
-
-
-
-
-using Parameters
-mplot(grt)
-
-
-r = makeRand(m)
 anim = @animate for i=1:100
     mplot(r())
 end
 gif(anim, "m.gif", fps = 1)
 
+#############################
+# Inverse model (posterior distribution)
 
 m_fwd = m(:p,:μ,:σ)
 r = makeRand(m_fwd)
@@ -79,8 +68,10 @@ anim = @animate for i=1:100
 end
 gif(anim, "m_fwd.gif", fps = 3)
 
+
 m_inv = m(:x)
-post = nuts(m_inv; grt...).samples
+post = nuts(m_inv; grt...)
+post = post.samples
 
 anim = @animate for par in post[1:100]
     par = merge(grt, par)
@@ -88,22 +79,22 @@ anim = @animate for par in post[1:100]
 end
 gif(anim, "m_inv.gif", fps = 1)
 
-d = MixtureModel(Normal, tuple.(μ,σ), p)
-lo,hi = extrema(rand(d,1000))
+####################################
+# Posterior predictive checks
 
-xs = range(lo,hi,length=300)
-plot(xs, pdf.(d,xs), legend=false)
+using StatsBase
+xs  = range(-4,4,length=100)
+ppc = repeat(grt.x, 1, 1000)
+r = makeRand(m_fwd)
 
-using Plots
-plt = plot(grt.x, grt.yhat, ribbon=(ε95 , ε95))
-scatter!(plt, grt.x,grt.y, legend=false)
-
-# plot!(plt, grt.x, grt.yhat)
-
-m_fwd = m(:p, :μ, :σ)
-m_inv = m(:x)
-
-getMAP(m_inv, data=grt)
-
-
-μpost = hcat(getfield.(s,:μ)...) |> transpose
+plt = plot(xs,ecdf(grt.x).(xs)
+    ,linewidth=3,legend=false,size=(1200,800), axis=nothing)
+# Each column is a posterior prediction
+for j in 1:1000
+    ppc = r(;post[j]...).x
+    plot!(plt, xs, (rand(100) ./ 100 .+ ecdf(ppc).(xs)) ./ 1.01,linewidth=3, linecolor=:black, linealpha=0.01)
+end
+plot!(xs,ecdf(grt.x).(xs),linewidth=5,legend=false,linecolor=:white)
+plot!(xs,ecdf(grt.x).(xs),linewidth=4,legend=false,linecolor=:orange)
+plt
+savefig("ppc.png")
