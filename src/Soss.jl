@@ -22,5 +22,7 @@ include("bijections.jl")
 include("graph.jl")
 include("nuts.jl")
 include("optim.jl")
+include("importance.jl")
+
 
 end # module
