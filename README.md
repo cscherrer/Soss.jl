@@ -1,5 +1,7 @@
 # Soss
 
+**Docs are out of date! Until I update them, see [these slides](https://slides.com/cscherrer/2019-05-01-odsc-east#/) for details**
+
 Soss is a Julia library for _probabilistic metaprogramming_. Before we get into that, let’s have a look at a simple example:
 
 ```julia
@@ -8,6 +10,9 @@ julia> hello = @model μ,x begin
        x ~ Normal(μ,σ) |> iid
        end
 ```
+
+
+
 
 Now given some input data...
 ```julia
