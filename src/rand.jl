@@ -7,18 +7,7 @@ function sourceRand(m :: Model)
     body = postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
             qv = QuoteNode(v)
-            prop = gensym(Symbol(v, "_prop"))
-            if v ∈ m.args
-                @q begin
-                    $prop = rand($dist)
-                    $prop == $v || return nothing
-                end
-            else
-                @q begin
-                    $v = rand($dist)
-                    val = merge(val, ($v=$v,))
-                end
-            end
+            @q ($v = rand($dist))
         else x
         end
     end
@@ -26,14 +15,19 @@ function sourceRand(m :: Model)
     @gensym rand
 
     argsExpr = Expr(:tuple,arguments(m)...)
+
+    # Pack stochastic variables into a NamedTuple
+    stochExpr = begin
+        vals = map(stochastic(m)) do x Expr(:(=), x,x) end
+        Expr(:tuple, vals...)
+    end
     #Wrap in a function to avoid global variables
     flatten(@q (
         function $rand(args...;kwargs...) 
             @unpack $argsExpr = kwargs
             # kwargs = Dict(kwargs)
-            val = NamedTuple()
             $body
-            val
+            $stochExpr
         end
     ))
 end

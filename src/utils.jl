@@ -200,8 +200,8 @@ function fold(leaf, branch; kwargs...)
     function go(ast)
         # @show ast
         MLStyle.@match ast begin
-            Expr(head, arg1, args...) => branch(head, arg1, map(go, args), kwargs...)
-            x                         => leaf(x, kwargs...)
+            Expr(head, arg1, args...) => branch(head, arg1, map(go, args); kwargs...)
+            x                         => leaf(x; kwargs...)
         end
     end
 
@@ -212,8 +212,8 @@ function foldall(leaf, branch; kwargs...)
     function go(ast)
         # @show ast
         MLStyle.@match ast begin
-            Expr(head, args...) => branch(head, map(go, args), kwargs...)
-            x                         => leaf(x, kwargs...)
+            Expr(head, args...) => branch(head, map(go, args); kwargs...)
+            x                         => leaf(x; kwargs...)
         end
     end
 
