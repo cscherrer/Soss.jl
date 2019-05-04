@@ -1,11 +1,10 @@
 using MLStyle
 
 
-canonicalize(x) = x
+canonical(x) = x
 
-
-function canonicalize(expr :: Expr)
-    r = canonicalize
+function canonical(expr :: Expr)
+    r = canonical
     @match expr begin
         :($x |> $f) => begin
             rf = r(f)
@@ -20,10 +19,22 @@ function canonicalize(expr :: Expr)
             :($rg($rf, $rx)) |> r
         end        
         
+        :($f($(args...))) => begin
+            rf = r(f)
+            rx = map(r,args)
+            :($rf($(rx...)))
+        end
+
         x => x
     end
 end
 
+function canonical(m :: Model)
+    newbody = Expr(:block, map(canonical, m.body.args)...)
+    Model(m.args, newbody)
+end    
+
 ex1 = :(map(1:10) do x x^2 end)
 
-canonicalize(ex1)
+canonical(ex1)
+canonical(linReg1D)
