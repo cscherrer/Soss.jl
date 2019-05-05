@@ -1,13 +1,12 @@
 import LogDensityProblems: logdensity
 using ResumableFunctions
 
-export arguments, args, stochastic, observed, parameters, supports
-export paramSupport
 
+arguments(m) = m.args
+stochastic(m) = keys(m.stoch)
+bound(m) = keys(m.bound)
+variables(m) = arguments(m) ∪ stochastic(m) ∪ bound(m)
 
-import MacroTools: striplines, flatten, unresolve, resyntax, @q, @capture
-using StatsFuns
-using DataStructures: counter
 
 function arguments(model::Model)
     model.args
