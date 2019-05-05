@@ -1,23 +1,75 @@
 export Model, convert, @model
+using MLStyle
 
 abstract type AbstractModel end
 
 struct Model <: AbstractModel
     args :: Vector{Symbol}
-    body :: Expr
-    meta :: Dict{Symbol, Any}
-
-    function Model(args::Vector{Symbol}, body::Expr, meta::Dict{Symbol, Any})
-        new(args, body, meta)
-    end
-
-    function Model(args::Vector{Symbol}, body::Expr)
-        meta = Dict{Symbol, Any}()
-        Model(args, body, meta)
-    end
-
-    Model(; args, body, meta) = Model(args, body, meta)
+    vars :: Vector{Symbol}
+    stoch :: Dict{Symbol, Any}
+    bound :: Dict{Symbol, Any}
+    retn
+    
 end
+
+# Add a new line to a Model
+function merge(m :: Model, expr :: Expr)
+    @match expr begin
+        :($x ~ $dist) => begin
+            args = m.args
+            vars = union(m.vars,[x])
+            stoch = merge(m.stoch, Dict(x => dist))
+            bound = m.bound
+            retn = m.retn
+            Model(args, vars, stoch, bound, retn)
+        end
+
+        :($x = $val) => begin
+            args = m.args
+            vars = union(m.vars,[x])
+            stoch = m.stoch
+            bound = merge(m.bound, Dict(x => val))
+            retn = m.retn
+            Model(args, vars, stoch, bound, retn)
+        end
+
+        :(return $x) => begin
+            args = m.args
+            vars = m.vars
+            stoch = m.stoch
+            bound = m.bound
+            retn = x
+            Model(args, vars, stoch, bound, retn)
+        end
+    end
+end
+
+macro model(vs::Expr,body::Expr)
+    @assert vs.head == :tuple
+    (stoch, bound, retn) = foldl(proc, body)
+    Model(Vector{Symbol}(vs.args), pretty(body)) |> expandSubmodels
+end
+
+macro model(v::Symbol,body::Expr)
+    Model([v], pretty(body)) |> expandSubmodels
+end
+
+macro model(body :: Expr)
+    Model(Vector{Symbol}(), pretty(body)) |> expandSubmodels
+end
+
+
+
+function Model(args::Vector{Symbol}, body::Expr, meta::Dict{Symbol, Any})
+    new(args, body, meta)
+end
+
+function Model(args::Vector{Symbol}, body::Expr)
+    meta = Dict{Symbol, Any}()
+    Model(args, body, meta)
+end
+
+Model(; args, body, meta) = Model(args, body, meta)
 
 (m::Model)(vs...) = begin
     args = copy(m.args)
@@ -47,19 +99,6 @@ end
     branch(head, newargs) = Expr(head, newargs...)
     body = foldall(leaf, branch)(m.body)
     Model(setdiff(m.args, keys(kwargs)), body)
-end
-
-macro model(vs::Expr,body::Expr)
-    @assert vs.head == :tuple
-    Model(Vector{Symbol}(vs.args), pretty(body)) |> expandSubmodels
-end
-
-macro model(v::Symbol,body::Expr)
-    Model([v], pretty(body)) |> expandSubmodels
-end
-
-macro model(body :: Expr)
-    Model(Vector{Symbol}(), pretty(body)) |> expandSubmodels
 end
 
 # function getproperty(m::Model, key::Symbol)
