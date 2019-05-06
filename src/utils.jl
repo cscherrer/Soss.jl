@@ -1,8 +1,14 @@
 
-
+export arguments
 arguments(m) = m.args
+
+export stochastic
 stochastic(m) = keys(m.stoch)
+
+export bound
 bound(m) = keys(m.bound)
+
+export variables
 variables(m) = arguments(m) ∪ stochastic(m) ∪ bound(m)
 
 
