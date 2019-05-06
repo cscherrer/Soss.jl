@@ -1,3 +1,4 @@
+using MLStyle
 
 export arguments
 arguments(m) = m.args
@@ -27,21 +28,37 @@ export getSymbols
 function getSymbols(expr :: Expr) 
     leaf(x::Symbol) = begin
         [x]
-                end
+    end
     leaf(x) = []
     branch(head, newargs) = begin
         union(newargs...)
-            end
-    foldall(leaf, branch)(expr)
     end
+    foldall(leaf, branch)(expr)
+end
 
 getSymbols(m :: Model) = variables(m)
 getSymbols(s::Symbol) = [s]
 getSymbols(x) = []
 
 
+# function condition(vs...) 
+#     function cond(m)
+#         stoch = stochastic(m)
 
+#         newbody = postwalk(m.body) do x
+#             if @capture(x, v_ ~ dist_)
+#                 if v ∈ vs && isempty(getSymbols(dist) ∩ stoch)
+#                     Nothing
+#                 else x
+#                 end
+#             else x
+#             end
+#         end |> rmNothing
+#         Model(m.args, newbody)
+#     end
 
+#     (cond ∘ cond)
+# end
 
 # import LogDensityProblems: logdensity
 # using ResumableFunctions
@@ -56,19 +73,6 @@ getSymbols(x) = []
 
 # function arguments(model::Model)
 #     model.args
-# end
-
-# export stochastic
-# "A stochastic node is any `v` in a model with `v ~ ...`"
-# function stochastic(m::Model) :: Vector{Symbol}
-#     nodes = []
-#     postwalk(m.body) do x
-#         if @capture(x, v_ ~ dist_)
-#             union!(nodes, [v])
-#         else x
-#         end
-#     end
-#     nodes
 # end
 
 
@@ -277,37 +281,6 @@ end
 
 #     return go
 # end
-
-# export foldall
-# function foldall(leaf, branch; kwargs...) 
-#     function go(ast)
-#         # @show ast
-#         MLStyle.@match ast begin
-#             Expr(head, args...) => branch(head, map(go, args); kwargs...)
-#             x                         => leaf(x; kwargs...)
-#         end
-#     end
-
-#     return go
-# end
-
-# export getSymbols
-# function getSymbols(expr :: Expr) 
-#     leaf(x::Symbol) = begin
-#         # @show x
-#         [x]
-#     end
-#     leaf(x) = []
-#     branch(head, newargs) = begin
-#         # @show newargs
-#         union(newargs...)
-#     end
-#     foldall(leaf, branch)(expr)
-# end
-
-# getSymbols(m :: Model) = getSymbols(m.body)
-# getSymbols(s::Symbol) = [s]
-# getSymbols(x) = []
 
 # export findsubexprs
 # function findsubexprs(expr, vs)
