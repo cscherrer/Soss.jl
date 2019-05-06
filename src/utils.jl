@@ -84,6 +84,31 @@ getSymbols(x) = []
 #     end
 # end
 
+export dependencies
+function dependencies(m::Model)
+    Parents = Vector{Symbol}
+    Dep = Pair{Symbol, Parents}
+
+    result = Dep[]
+    m_vars = variables(m)
+
+    for v in m.args
+        push!(result, v => [])
+    end
+
+    for (v, expr) in m.bound
+        x = getSymbols(expr) ∩ m_vars
+        push!(result, v => x)
+    end
+
+    for (v, expr) in m.stoch
+        x = getSymbols(expr) ∩ m_vars
+        push!(result, v => x)
+    end
+
+    result
+end
+
 # export dependencies
 # function dependencies(m::Model)
 #     Parents = Vector{Symbol}
