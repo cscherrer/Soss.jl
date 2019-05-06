@@ -23,24 +23,22 @@ function foldall(leaf, branch; kwargs...)
     return go
 end
 
-function condition(vs...) 
-    function cond(m)
-        stoch = stochastic(m)
-
-        newbody = postwalk(m.body) do x
-            if @capture(x, v_ ~ dist_)
-                if v ∈ vs && isempty(symbols(dist) ∩ stoch)
-                    Nothing
-                else x
+export getSymbols
+function getSymbols(expr :: Expr) 
+    leaf(x::Symbol) = begin
+        [x]
                 end
-            else x
+    leaf(x) = []
+    branch(head, newargs) = begin
+        union(newargs...)
             end
-        end |> rmNothing
-        Model(m.args, newbody)
+    foldall(leaf, branch)(expr)
     end
 
-    (cond ∘ cond)
-end
+getSymbols(m :: Model) = variables(m)
+getSymbols(s::Symbol) = [s]
+getSymbols(x) = []
+
 
 
 
