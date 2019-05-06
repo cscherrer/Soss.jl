@@ -11,7 +11,17 @@ bound(m) = keys(m.bound)
 export variables
 variables(m) = arguments(m) ∪ stochastic(m) ∪ bound(m)
 
+export foldall
+function foldall(leaf, branch; kwargs...) 
+    function go(ast)
+        MLStyle.@match ast begin
+            Expr(head, args...) => branch(head, map(go, args); kwargs...)
+            x                   => leaf(x; kwargs...)
+        end
+    end
 
+    return go
+end
 
 function condition(vs...) 
     function cond(m)
