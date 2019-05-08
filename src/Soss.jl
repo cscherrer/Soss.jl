@@ -9,12 +9,13 @@ using Reexport: @reexport
 import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
 import MLStyle
 
+include("statement.jl")
 # include("ast.jl")
 include("model.jl")
 # include("weighted.jl")
 # include("rand.jl")
 # include("dist.jl")
-# include("utils.jl")
+include("utils.jl")
 # include("iid.jl")
 # include("for.jl")
 # include("flat.jl")
