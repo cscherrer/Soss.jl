@@ -1,97 +1,56 @@
 export Model, convert, @model
 using MLStyle
 
+
 abstract type AbstractModel end
 
-struct Model <: AbstractModel
+struct Model{T} <: AbstractModel
     args :: Vector{Symbol}
     vars :: Vector{Symbol}
-    stoch :: Dict{Symbol, Any}
-    bound :: Dict{Symbol, Any}
-    retn
-    
+    body :: Vector{Statement}
+    meta :: Dict{Symbol, Any}
 end
 
-function justArgs(args :: Vector{Symbol})
-    Model(args, [], Dict(), Dict(), nothing)
-end
 
-import Base.merge
-export merge
-function merge(m :: Model, expr :: LineNumberNode)
-    m
-end
-
-# Add a new line to a Model
-function merge(m :: Model, expr :: Expr)
-    @match expr begin
-        :($x ~ $dist) => begin
-            args = m.args
-            vars = union(m.vars,[x])
-            stoch = merge(m.stoch, Dict(x => dist))
-            bound = m.bound
-            retn = m.retn
-            Model(args, vars, stoch, bound, retn)
-        end
-
-        :($x = $val) => begin
-            args = m.args
-            vars = union(m.vars,[x])
-            stoch = m.stoch
-            bound = merge(m.bound, Dict(x => val))
-            retn = m.retn
-            Model(args, vars, stoch, bound, retn)
-        end
-
-        :(return $x) => begin
-            args = m.args
-            vars = m.vars
-            stoch = m.stoch
-            bound = m.bound
-            retn = x
-            Model(args, vars, stoch, bound, retn)
-        end
+function Model(vs :: Vector{Symbol}, expr :: Expr)
+    body = filter([Statement(x) for x in expr.args]) do x
+        !isnothing(x)
     end
-end
-
-function Model(vs::Vector{Symbol}, body::Expr)
-    m = justArgs(vs)
-    # Add all the lines!
-    foldl(merge, body.args; init=justArgs(vs))
-end
-
-macro model(vs::Expr,body::Expr)
-    @assert vs.head == :tuple
+    @show body
+    vars = union(vs, [varName(s) for s in body]...)
     Model(Vector{Symbol}(vs.args), body)
+end
+
+# function Model(vs::Vector{Symbol}, body::Vector{Statement})
+
+#     m = justArgs(vs)
+#     # Add all the lines!
+#     foldl(merge, body.args; init=justArgs(vs))
+# end
+
+macro model(vs::Expr,expr::Expr)
+    @assert vs.head == :tuple
+    @assert expr.head == :block
+    Model(Vector{Symbol}(vs.args), expr)
     # Model(Vector{Symbol}(vs.args), pretty(body)) |> expandSubmodels
 end
 
-macro model(v::Symbol,body::Expr)
-    Model([v], body)
+macro model(v::Symbol, expr::Expr)
+    Model([v], expr)
 end
 
-macro model(body :: Expr)
-    Model(Vector{Symbol}(), body) 
+macro model(expr :: Expr)
+    Model(Vector{Symbol}(), expr) 
 end
 
 
+(m::Model)(vs...) = begin
+    args = m.args ∪ vs
+    vars = m.vars ∪ vs
+    
 
-# function Model(args::Vector{Symbol}, body::Expr, meta::Dict{Symbol, Any})
-#     new(args, body, meta)
-# end
-
-# function Model(args::Vector{Symbol}, body::Expr)
-#     meta = Dict{Symbol, Any}()
-#     Model(args, body, meta)
-# end
-
-# Model(; args, body, meta) = Model(args, body, meta)
-
-# (m::Model)(vs...) = begin
-#     args = copy(m.args)
-#     union!(args, vs)
-#     Model(args, m.body) |> condition(args...)
-# end
+    Model(args, m.vars, m.stoch, m.bound, m.retn) |> condition(args...)
+end
 
 # # (m::Model)(;kwargs...) = begin
 # #     result = deepcopy(m)
