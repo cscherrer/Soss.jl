@@ -1,84 +1,96 @@
 export Model, convert, @model
+using MLStyle
+
 
 abstract type AbstractModel end
 
-function readTilde(expr, cxt)
-    
-
-    if @capture(v_ ~ dist_)
-    else
-    end
-end
-
-struct Model <: AbstractModel
+struct Model{T} <: AbstractModel
     args :: Vector{Symbol}
-    body :: AbstractModelBlock
+    vars :: Vector{Symbol}
+    body :: Vector{Statement}
     meta :: Dict{Symbol, Any}
+end
 
-    function Model(args::Vector{Symbol}, body::Expr, meta::Dict{Symbol, Any})
 
-        new(args, body, meta)
+function Model(vs :: Vector{Symbol}, expr :: Expr)
+    body = filter([Statement(x) for x in expr.args]) do x
+        !isnothing(x)
     end
-
-    function Model(args::Vector{Symbol}, body::Expr)
-        meta = Dict{Symbol, Any}()
-        Model(args, body, meta)
-    end
-
-    Model(; args, body, meta) = Model(args, body, meta)
+    @show body
+    vars = union(vs, [varName(s) for s in body]...)
+    Model(Vector{Symbol}(vs.args), body)
 end
 
+# function Model(vs::Vector{Symbol}, body::Vector{Statement})
 
-(m::Model)(v::Symbol) = begin
-    args = copy(m.args)
-    push!(args, v)
-    Model(args, m.body)
-end
-
-(m::Model)(vs...) = begin
-    args = copy(m.args)
-    union!(args, vs)
-    Model(args, m.body)
-end
-
-(m::Model)(;kwargs...) = begin
-    result = deepcopy(m)
-    args = result.args
-    body = result.body
-    setdiff!(args, keys(kwargs))
-    assignments = [:($k = $v) for (k,v) in kwargs]
-    pushfirst!(body.args, assignments...)
-    Model(args, body)
-end
-
-macro model(vs::Expr,body::Expr)
-    @assert vs.head == :tuple
-    Model(Vector{Symbol}(vs.args), pretty(body)) |> expandSubmodels
-end
-
-macro model(v::Symbol,body::Expr)
-    Model([v], pretty(body)) |> expandSubmodels
-end
-
-macro model(body :: Expr)
-    Model(body = pretty(body)) |> expandSubmodels
-end
-
-# function getproperty(m::Model, key::Symbol)
-#     if key ∈ [:args, :body, :meta]
-#         m.key
-#     else
-#         get!(m.meta, key, eval(Expr(:call, key, m)))
-#     end
+#     m = justArgs(vs)
+#     # Add all the lines!
+#     foldl(merge, body.args; init=justArgs(vs))
 # end
 
-import Base.convert
-convert(Expr, m::Model) = begin
-    func = @q function($(m.args),) $(m.body) end
-    pretty(func)
+macro model(vs::Expr,expr::Expr)
+    @assert vs.head == :tuple
+    @assert expr.head == :block
+    Model(Vector{Symbol}(vs.args), expr)
+    # Model(Vector{Symbol}(vs.args), pretty(body)) |> expandSubmodels
 end
 
-convert(::Type{Any},m::Model) = println(m)
+macro model(v::Symbol, expr::Expr)
+    Model([v], expr)
+end
+
+macro model(expr :: Expr)
+    Model(Vector{Symbol}(), expr) 
+end
+
+
+(m::Model)(vs...) = begin
+    args = m.args ∪ vs
+    vars = m.vars ∪ vs
+    
+
+    Model(args, m.vars, m.stoch, m.bound, m.retn) |> condition(args...)
+end
+
+# # (m::Model)(;kwargs...) = begin
+# #     result = deepcopy(m)
+# #     args = result.args
+# #     body = result.body
+# #     vs = keys(kwargs)
+# #     setdiff!(args, vs)
+# #     assignments = [:($k = $v) for (k,v) in kwargs]
+# #     pushfirst!(body.args, assignments...)
+# #     stoch = stochastic(m)
+# #     Model(args, body) |> condition(vs...) |> flatten
+# # end
+
+# # inline for now
+# # TODO: Be more careful about this
+# (m::Model)(;kwargs...) = begin
+#     m = condition(keys(kwargs)...)(m)
+#     kwargs = Dict(kwargs)
+#     leaf(v) = get(kwargs, v, v)
+
+#     branch(head, newargs) = Expr(head, newargs...)
+#     body = foldall(leaf, branch)(m.body)
+#     Model(setdiff(m.args, keys(kwargs)), body)
+# end
+
+# # function getproperty(m::Model, key::Symbol)
+# #     if key ∈ [:args, :body, :meta]
+# #         m.key
+# #     else
+# #         get!(m.meta, key, eval(Expr(:call, key, m)))
+# #     end
+# # end
+
+# import Base.convert
+# convert(Expr, m::Model) = begin
+#     func = @q function($(m.args),) $(m.body) end
+#     pretty(func)
+# end
+
+# convert(::Type{Any},m::Model) = println(m)
 
 function Base.show(io::IO, m::Model) 
     print(io, "@model ")
@@ -88,6 +100,14 @@ function Base.show(io::IO, m::Model)
     elseif numArgs > 1
         print(io, "$(Expr(:tuple, [x for x in m.args]...)) ")
     end
-    print(io, m.body)
+    println(io, "begin")
+    for (x,val) in m.bound
+        println(x," = ",val)
+    end
+    for (x,dist) in m.stoch
+        println(x," ~ ",dist)
+    end
+    println("end")
+
 end
 

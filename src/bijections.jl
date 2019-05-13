@@ -47,7 +47,7 @@ end
 #     eval(expr)
 # end
 
-unitIntervalDists = [Beta]
+unitIntervalDists = [Beta, Uniform]
 for dist in unitIntervalDists
     expr = quote
         fromℝ(d::typeof($dist())) = as𝕀
@@ -55,3 +55,5 @@ for dist in unitIntervalDists
     end
     eval(expr)
 end
+
+fromℝ(d::MixtureModel) = fromℝ(d.components[1])

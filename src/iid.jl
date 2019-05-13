@@ -9,13 +9,11 @@ struct iid
     dist
 end
 
-# iid(n::Int) = dist -> iid(n,dist)
-
 # TODO: Clean up this hack
 iid(n::Int) = dist -> iid(n,dist)
 
 iid(dist) = iid(Nothing, dist)
 
-# rand(ndist::iid) = rand(ndist.dist, ndist.n)
+rand(d::iid) = rand(d.dist, d.shape)
 
 logpdf(d::iid,x) = sum(logpdf.(d.dist,x))

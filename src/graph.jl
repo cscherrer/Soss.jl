@@ -11,12 +11,10 @@ function graph(m::Model)
         set_prop!(g, n, :name, v)
     end
     set_indexing_prop!(g, :name)
-    postwalk(m.body) do x
-        if @capture(x, v_ ~ d_) || @capture(x, v_ = d_)
-            for rhs in findsubexprs(d,vars)
-                add_edge!(g,(g[rhs,:name],g[v,:name]))
-            end
-        else x
+
+    for (v, v_parents) in dependencies(m)
+        for p in v_parents
+            add_edge!(g, (g[p,:name],g[v,:name]))
         end
     end
     g
@@ -27,6 +25,8 @@ function graphEdges(m::Model)
     g = graph(m)
     [(g[e.src,:name] => g[e.dst,:name]) for e in edges(g)]
 end
+
+# TODO: order statements using topological_sort_by_dfs(graph(m))
 
 # EXAMPLE
 

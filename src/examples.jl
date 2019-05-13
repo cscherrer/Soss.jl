@@ -137,18 +137,19 @@ seeds = @model (n,x) begin
         end
 end
 
-# stacks = @model
-#     σ2 ~ InverseGamma(0.001,0.001)
-#     βDist = Normal(0,1000)
-#     β0 ~ βDist
-#     β1 ~ βDist
-#     β2 ~ βDist
-#     β3 ~ βDist
-#     μ = β0 + β1*z[1,:] + β2*z[2,:] + β3*z[3,:]
-#     y ~ For(1:21) do i
-#             Laplace(μ[i],σ2)
-#         end
-# end
+stacks = @model begin
+    σ2 ~ InverseGamma(0.001,0.001)
+    βDist = Normal(0,1000)
+    β0 ~ βDist
+    β1 ~ βDist
+    β2 ~ βDist
+    β3 ~ βDist
+    μ = β0 + β1*z[1,:] + β2*z[2,:] + β3*z[3,:]
+    y ~ For(1:21) do i
+            Laplace(μ[i],σ2)
+        end
+end
+
 y = [28.,  8., -3.,  7., -1.,  1., 18., 12.]
 σ = [15., 10., 16., 11.,  9., 11., 10., 18.]
 

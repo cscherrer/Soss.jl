@@ -1,39 +1,37 @@
-export makeRand
+export sourceRand
 
 export argtuple
 argtuple(m) = Expr(:tuple,arguments(m)...)
 
-function makeRand(m :: Model)
-
+function sourceRand(m :: Model)
     body = postwalk(m.body) do x
         if @capture(x, v_ ~ dist_)
-            @q begin
-                $v = rand($dist)
-                val = merge(val, ($v=$v,))
-            end
+            qv = QuoteNode(v)
+            @q ($v = rand($dist))
         else x
         end
     end
 
-    for arg in arguments(m)
-        expr = @q $arg = kwargs.$arg
-        pushfirst!(body.args, expr)
+    @gensym rand
+
+    argsExpr = Expr(:tuple,arguments(m)...)
+
+    # Pack stochastic variables into a NamedTuple
+    stochExpr = begin
+        vals = map(stochastic(m)) do x Expr(:(=), x,x) end
+        Expr(:tuple, vals...)
     end
-
     #Wrap in a function to avoid global variables
-    flatten(@q kwargs -> begin
-            val = NamedTuple()
+    flatten(@q (
+        function $rand(args...;kwargs...) 
+            @unpack $argsExpr = kwargs
+            # kwargs = Dict(kwargs)
             $body
-            val
-    end)
+            $stochExpr
+        end
+    ))
 end
 
-function rand(m :: Model,n::Int)
-    f = @eval $(makeRand(m))
-    println(typeof(f))
-    go(x) = Base.invokelatest(f,x)
-    go
-end
 
 
 export logWeightedRand
@@ -65,11 +63,12 @@ function logWeightedRand(m :: Model, N :: Int)
 
 end
 
-# If no number is given, just take the first (and only) element from a singleton array
-function rand(m :: Model)
-    rand(m,1)[1]
+
+export makeRand
+function makeRand(m :: Model)
+    fpre = @eval $(sourceRand(m))
+    f(;kwargs...) = Base.invokelatest(fpre; kwargs...)
 end
 
-function rand(n::Int)
-    x -> rand(x,n)
-end
+export rand
+rand(m::Model; kwargs...) = makeRand(m)(;kwargs...)
