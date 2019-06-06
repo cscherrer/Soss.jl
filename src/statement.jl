@@ -2,7 +2,7 @@ using MLStyle
 
 abstract type Statement end
 
-Statement(x) = convert(Statement, x)
+Statement(x) = convert(::Type{Statement}, x)
 
 struct Let <: Statement
     name :: Symbol
@@ -30,6 +30,12 @@ end
 
 varName(st :: LineNumber) = nothing
 
+import Base.convert
+
+# function convert(::Type{Vector{Statement}}, expr :: Expr)
+    
+
+function convert(::Type{Statement}, expr :: Expr)
     @match expr begin
         :($x ~ $dist)  => Follows(x, dist)
         :($x = $value) => Let(x, value)
@@ -39,5 +45,6 @@ end
 
 varName(::Nothing) = nothing
 
-convert(Statement, node :: LineNumberNode) = nothing
+
+convert(::Type{Statement}, node :: LineNumberNode) = LineNumber(node)
 
