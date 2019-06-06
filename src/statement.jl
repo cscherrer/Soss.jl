@@ -2,7 +2,7 @@ using MLStyle
 
 abstract type Statement end
 
-Statement(x) = convert(::Type{Statement}, x)
+Statement(x) = convert(Statement, x)
 
 struct Let <: Statement
     name :: Symbol
