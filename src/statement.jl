@@ -13,7 +13,7 @@ varName(st :: Let) = st.name
 
 struct Follows <: Statement
     name :: Symbol
-    dist 
+    value 
 end
 
 varName(st :: Follows) = st.name
