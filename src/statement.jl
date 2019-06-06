@@ -24,7 +24,12 @@ end
 
 varName(st :: Return) = nothing
 
-function convert(Statement, expr :: Expr)
+struct LineNumber <: Statement
+    node :: LineNumberNode
+end
+
+varName(st :: LineNumber) = nothing
+
     @match expr begin
         :($x ~ $dist)  => Follows(x, dist)
         :($x = $value) => Let(x, value)
