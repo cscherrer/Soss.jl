@@ -50,24 +50,24 @@ variables(s::Symbol) = [s]
 variables(x) = []
 
 
-# function condition(vs...) 
-#     function cond(m)
-#         stoch = stochastic(m)
+function condition(vs...) 
+    function cond(m)
+        keep(::Let)        = true
+        keep(::Return)     = true
+        keep(::LineNumber) = true
+        function keep(st :: Follows)
+            if (st.name ∈ vs)
+                isempty(variables(st.value) ∩ stochastic(m))
+            else
+                return true
+            end
+        end    
 
-#         newbody = postwalk(m.body) do x
-#             if @capture(x, v_ ~ dist_)
-#                 if v ∈ vs && isempty(getSymbols(dist) ∩ stoch)
-#                     Nothing
-#                 else x
-#                 end
-#             else x
-#             end
-#         end |> rmNothing
-#         Model(m.args, newbody)
-#     end
+        Model(m.args, filter(keep, m.body))
+    end
 
-#     (cond ∘ cond)
-# end
+    (cond ∘ cond)
+end
 
 # import LogDensityProblems: logdensity
 # using ResumableFunctions
