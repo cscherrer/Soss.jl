@@ -24,8 +24,8 @@ function foldall(leaf, branch; kwargs...)
     return go
 end
 
-export getSymbols
-function getSymbols(expr :: Expr) 
+export variables
+function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
         [x]
     end
@@ -36,9 +36,8 @@ function getSymbols(expr :: Expr)
     foldall(leaf, branch)(expr)
 end
 
-getSymbols(m :: Model) = variables(m)
-getSymbols(s::Symbol) = [s]
-getSymbols(x) = []
+variables(s::Symbol) = [s]
+variables(x) = []
 
 
 # function condition(vs...) 
@@ -101,12 +100,12 @@ function dependencies(m::Model)
     end
 
     for (v, expr) in m.bound
-        x = getSymbols(expr) ∩ m_vars
+        x = variables(expr) ∩ m_vars
         push!(result, v => x)
     end
 
     for (v, expr) in m.stoch
-        x = getSymbols(expr) ∩ m_vars
+        x = variables(expr) ∩ m_vars
         push!(result, v => x)
     end
 
