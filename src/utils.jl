@@ -4,10 +4,20 @@ export arguments
 arguments(m) = m.args
 
 export stochastic
-stochastic(m) = keys(m.stoch)
+stochastic(st :: Let)        = Symbol[]
+stochastic(st :: Follows)    = Symbol[st.name]
+stochastic(st :: Return)     = Symbol[]
+stochastic(st :: LineNumber) = Symbol[]
+
+stochastic(m :: Model) = unique(stochastic.(m.body))
 
 export bound
-bound(m) = keys(m.bound)
+bound(st :: Let)        = Symbol[st.name]
+bound(st :: Follows)    = Symbol[]
+bound(st :: Return)     = Symbol[]
+bound(st :: LineNumber) = Symbol[]
+
+bound(m :: Model) = unique(bound.(m.body))
 
 export variables
 variables(m) = arguments(m) ∪ stochastic(m) ∪ bound(m)
