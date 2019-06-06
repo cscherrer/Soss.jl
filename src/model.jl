@@ -71,42 +71,49 @@ end
 #     kwargs = Dict(kwargs)
 #     leaf(v) = get(kwargs, v, v)
 
-#     branch(head, newargs) = Expr(head, newargs...)
-#     body = foldall(leaf, branch)(m.body)
-#     Model(setdiff(m.args, keys(kwargs)), body)
-# end
-
-# # function getproperty(m::Model, key::Symbol)
-# #     if key ∈ [:args, :body, :meta]
-# #         m.key
-# #     else
-# #         get!(m.meta, key, eval(Expr(:call, key, m)))
-# #     end
-# # end
-
-# import Base.convert
-# convert(Expr, m::Model) = begin
-#     func = @q function($(m.args),) $(m.body) end
-#     pretty(func)
-# end
-
-# convert(::Type{Any},m::Model) = println(m)
-
 function Base.show(io::IO, m::Model) 
     print(io, "@model ")
+    indent = get(io, :indent, 0)
     numArgs = length(m.args)
+    
     if numArgs == 1
         print(m.args[1], " ")
     elseif numArgs > 1
         print(io, "$(Expr(:tuple, [x for x in m.args]...)) ")
     end
     println(io, "begin")
-    for (x,val) in m.bound
-        println(x," = ",val)
+
+    io2 = IOContext(io, :indent => indent + 1)
+    for st in m.body
+        print(io2, st)
     end
-    for (x,dist) in m.stoch
-        println(x," ~ ",dist)
-    end
-    println("end")
+    print("end")
 
 end
+
+function Base.show(io :: IO, st :: Follows)
+    indent = get(io, :indent, 0)
+    print(repeat("    ",indent))
+    print(io, st.name, " ~ ")
+    printdist(io, st.value)
+end
+
+function Base.show(io :: IO, st :: Let)
+    indent = get(io, :indent, 0)
+    print(repeat("    ",indent))
+    println(io, st.name, " = ", st.value)
+    end
+
+function Base.show(io :: IO, st :: LineNumber)
+    return ()
+    end
+
+function Base.show(io, st :: Return)
+    indent = get(io, :indent, 0)
+    print(repeat("    ",indent))
+    println("return ",value)
+end
+
+
+# function printdist(io, dist)
+#     @match dist begin
