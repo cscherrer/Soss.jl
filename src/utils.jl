@@ -69,6 +69,8 @@ function condition(vs...)
     (cond ∘ cond)
 end
 
+import MacroTools: striplines, @q
+
 # import LogDensityProblems: logdensity
 # using ResumableFunctions
 
@@ -454,3 +456,13 @@ end
 # # Example of Tamas Papp's `as` combinator:
 # # julia> as((;s=as(Array, as𝕀,4), a=asℝ))(randn(5))
 # # (s = [0.545324, 0.281332, 0.418541, 0.485946], a = 2.217762640580984)
+
+function buildSource(m::Model, buildExpr!)
+    ctx = Dict(:m => m)
+    q = @q begin end
+    for st in m.body
+        ex = buildExpr!(ctx, st)
+        isnothing(ex) || push!(q.args, ex)
+    end
+    q
+end
