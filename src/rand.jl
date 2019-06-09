@@ -43,11 +43,35 @@ end
 export rand
 rand(m::Model; kwargs...) = makeRand(m)(;kwargs...)
 
+function rand(m::Model, n::Int64; kwargs...)
+    r = makeRand(m)(;kwargs...)
+
+end
+
 function sourceRand(m::Model)
     buildExpr!(ctx, st::Let)     = :($(st.name) = $(st.value))
     buildExpr!(ctx, st::Follows) = :($(st.name) = rand($(st.value)))
     buildExpr!(ctx, st::Return)  = :(return $(st.value))
     buildExpr!(ctx, st::LineNumber) = nothing
 
-    buildSource(m, buildExpr!)
+    body = buildSource(m, buildExpr!) |> striplines
+    
+    argsExpr = argtuple(m)
+
+    stochExpr = begin
+        vals = map(stochastic(linReg1D)) do x Expr(:(=), x,x) end
+        Expr(:tuple, vals...)
+    end
+    
+    @gensym rand
+    
+    flatten(@q (
+        function $rand(args...;kwargs...) 
+            @unpack $argsExpr = kwargs
+            # kwargs = Dict(kwargs)
+            $body
+            $stochExpr
+        end
+    ))
+
 end
