@@ -101,27 +101,25 @@ import MacroTools: striplines, @q
 
 export dependencies
 function dependencies(m::Model)
+
     Parents = Vector{Symbol}
     Dep = Pair{Symbol, Parents}
 
-    result = Dep[]
-    m_vars = variables(m)
+    deps = DefaultDict{Symbol, Vector{Symbol}}(Symbol[])
 
-    for v in m.args
-        push!(result, v => [])
+    mvars = variables(m)
+    f!(deps, st::Let) = 
+        deps[st.name] = union(deps[st.name], mvars ∩ variables(st.value))
+    f!(deps, st::Follows) = 
+        deps[st.name] = union(deps[st.name], mvars ∩ variables(st.value))
+    f!(deps, st::Return)  = nothing
+    f!(deps, st::LineNumber) = nothing
+
+    for st in m.body
+        f!(deps, st)
     end
 
-    for (v, expr) in m.bound
-        x = variables(expr) ∩ m_vars
-        push!(result, v => x)
-    end
-
-    for (v, expr) in m.stoch
-        x = variables(expr) ∩ m_vars
-        push!(result, v => x)
-    end
-
-    result
+    deps
 end
 
 # export dependencies
