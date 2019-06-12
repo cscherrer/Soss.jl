@@ -1,7 +1,7 @@
 using MLStyle
 
 export canonical
-
+using Lazy
 canonical(x) = x
 
 function canonical(expr :: Expr)
