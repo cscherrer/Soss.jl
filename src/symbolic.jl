@@ -94,7 +94,7 @@ function expandSum(s::Sym)
 end
 
 import Base.in
-function in(j::Sym, s::Sym)
+function Base.in(j::Sym, s::Sym)
     for t in s.args
         if j==t || in(j,t)
             return true
