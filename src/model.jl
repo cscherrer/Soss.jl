@@ -58,3 +58,14 @@ function convert(::Type{Expr}, m::Model)
     end
     striplines(q).args[1]
 end
+
+dropLines(l::Let)        = [l]
+dropLines(l::Follows)    = [l]
+dropLines(l::Return)     = [l]
+dropLines(l::LineNumber) = []
+
+export dropLines
+dropLines(m::Model) = begin
+    newbody = cat(dropLines.(m.body)..., dims=1)
+    Model(m.args, newbody)
+end
