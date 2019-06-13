@@ -467,10 +467,9 @@ end
 # # julia> as((;s=as(Array, as𝕀,4), a=asℝ))(randn(5))
 # # (s = [0.545324, 0.281332, 0.418541, 0.485946], a = 2.217762640580984)
 
-function buildSource(m::Model, buildExpr!)
-    ctx = Dict(:m => m)
+function buildSource(ctx, buildExpr!)
     q = @q begin end
-    for st in m.body
+    for st in ctx[:m].body
         ex = buildExpr!(ctx, st)
         isnothing(ex) || push!(q.args, ex)
     end
