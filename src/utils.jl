@@ -35,7 +35,18 @@ function foldall(leaf, branch; kwargs...)
     return go
 end
 
-export variables
+export foldall1
+function foldall1(leaf, branch; kwargs...) 
+    function go(ast)
+        MLStyle.@match ast begin
+            Expr(head, arg1, args...) => branch(head, arg1, map(go, args); kwargs...)
+            x                         => leaf(x; kwargs...)
+        end
+    end
+
+    return go
+end
+
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
         [x]
