@@ -17,7 +17,7 @@ function sym(expr::Expr)
     end
 end
 
-
+export symlogpdf
 function symlogpdf(m::Model)
     result = @q begin
         ctx = Dict()
@@ -109,18 +109,8 @@ function maybesum(t::Sym, limits::Sym)
     ifelse(j in t, thesum, thesum.doit())
 end
 
-@vars μ σ
-
-m = @model begin
-    μ ~ Normal(0,1)
-end
-
-ℓ = m |> symlogpdf 
-diff(ℓ,μ) |> expand
-diff(ℓ,sym(:logσ)) |> simplify
-
 # integrate(exp(ℓ), (sym(:μ), -oo, oo), (sym(:logσ),-oo,oo))
-
+export marginal
 function marginal(ℓ,v)
     f = ℓ.func
     f == sympy.Add || return ℓ
@@ -128,7 +118,10 @@ function marginal(ℓ,v)
     sum(newargs)
 end
 
+marginal(m::Model, v) = marginal(m |> symlogpdf, v)
+
 # We should be able to reason about a marginal from its derivative
+export dmarginal
 function dmarginal(ℓ, v)
     @as x ℓ begin
         marginal(x,sym(v))
@@ -137,3 +130,5 @@ function dmarginal(ℓ, v)
         sympy.collect(x, sym(v))
     end
 end
+
+dmarginal(m::Model, v) = dmarginal(m |> symlogpdf, v)
