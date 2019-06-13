@@ -92,7 +92,7 @@ import MacroTools: striplines, @q
 
 # import MacroTools: striplines, flatten, unresolve, resyntax, @q, @capture
 # using StatsFuns
-# using DataStructures: counter
+using DataStructures: counter
 
 # function arguments(model::Model)
 #     model.args
