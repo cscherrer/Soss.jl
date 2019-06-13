@@ -26,6 +26,7 @@ include("nuts.jl")
 include("optim.jl")
 include("importance.jl")
 include("canonical.jl")
-
-
+include("symbolic.jl")
+include("fromcube.jl")
+include("tocube.jl")
 end # module

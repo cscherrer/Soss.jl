@@ -3,10 +3,10 @@ using DataStructures
 using Soss: Let, Follows, Return, LineNumber
 using MacroTools
 using MacroTools: @q, striplines
-@reexport using Parameters
+using Parameters
 
-export fromcube
-function fromcube(m::Model)
+export tocube
+function tocube(m::Model)
     function buildExpr!(ctx, st::Let)  
         x = st.name
         val = st.value
@@ -18,9 +18,10 @@ function fromcube(m::Model)
         val = st.value
         u = ctx[:u]
         j = push!(ctx[:j],1)
-        res = :($x = @. quantile($val, $u[:,$j]))
+        res = :($x = @. cdf($val, $u[:,$j]))
         res
     end
+    
     buildExpr!(ctx, st::Return)  = :(return $(st.value))
     buildExpr!(ctx, st::LineNumber) = nothing
 
@@ -34,7 +35,7 @@ function fromcube(m::Model)
 
     body = Soss.buildSource(ctx, buildExpr!) |> striplines
 
-    f = gensym(:fromcube)
+    f = gensym(:tocube)
 
     argsExpr = argtuple(m)
 
@@ -50,20 +51,4 @@ function fromcube(m::Model)
             $returnexp
         end
     ))
-end
-
-using Sobol
-using Plots
-
-function fromcubeExample()
-    m = @model begin
-        x ~ Normal(0,1)
-        y ~ Normal(x^2, 1)
-    end
-
-    fpre = fromcube(m) |> eval
-    f(u;kwargs...) = Base.invokelatest(fpre,u; kwargs...)
-    s = SobolSeq(2)
-    p = hcat([next!(s) for i = 1:100]...)'
-    f(p)
 end
