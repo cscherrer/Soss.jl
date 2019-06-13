@@ -1,24 +1,38 @@
+using Pkg
+Pkg.activate(".")
+using Revise
+using Soss
+linReg1D
+
 using MacroTools: @q
 using SymPy
 import PyCall
 using MLStyle
 using Lazy
 
-
-# stats = PyCall.pyimport_conda("sympy.stats", "sympy")
-# import_from(stats)
-
 sym(s::Symbol) = SymPy.symbols(s)
+
 sym(s) = Base.convert(Sym, s)
-function sym(expr::Expr) 
+
+function sym(expr::Expr)
     @match expr begin
+        :($x = $val)            => :(ctx[$x] = sym($val))
+        :($x ~ $d)              => :(ℓ += $(symlogpdf(d,x)))
         Expr(:call, f, args...) => :($f($(map(sym,args)...)))
-        _                       => error("sym: Argument type not implemented")
+        _                       => expr
     end
 end
 
-export symlogpdf
-function symlogpdf(m::Model)
+function symbolic(expr)
+    quote
+        ctx = Dict()
+        ℓ = zero(Sym)
+        $(sym(expr))
+        (ctx, ℓ)
+    end
+end
+
+function symbolic(m::Model)
     result = @q begin
         ctx = Dict()
         ℓ = zero(Sym)
@@ -28,39 +42,31 @@ function symlogpdf(m::Model)
         canonical(x)
         dropLines(x)
         x.body
-        symlogpdf.(x)
+        Soss.convert.(Expr,x)
+        sym.(x)
     end
 
     append!(result.args, exprs)
 
     push!(result.args, :(ℓ))
-    eval(result) |> expandSums
-end
-
-function symlogpdf(st::Soss.Follows)
-    d = st.value
-    x = st.name
-    :(ℓ += $(symlogpdf(d,x)))
+    result
 end
 
 
-function symlogpdf(st::Soss.Let)
-    val = st.value
-    x = st.name
-    :(ctx[$(QuoteNode(x))] = $(sym(val)))
+macro symbolic(expr)
+    symbolic(expr) |> esc
 end
-
 
 
 
 function symlogpdf(d::Expr, x::Symbol)
     @match d begin
         :(iid($n,$dist)) => begin
-                j = symbols(:j, cls=sympy.Idx)
-                dist = sym(dist)
-                x = sympy.IndexedBase(x)
-                :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
-            end
+            j = symbols(:j, cls=sympy.Idx)
+            dist = sym(dist)
+            x = sympy.IndexedBase(x)
+            :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
+        end
 
         _ => :(logpdf($(sym(d)), $(sym(x))))
     end
@@ -94,7 +100,7 @@ function expandSum(s::Sym)
 end
 
 import Base.in
-function Base.in(j::Sym, s::Sym)
+function in(j::Sym, s::Sym)
     for t in s.args
         if j==t || in(j,t)
             return true
@@ -109,26 +115,6 @@ function maybesum(t::Sym, limits::Sym)
     ifelse(j in t, thesum, thesum.doit())
 end
 
-# integrate(exp(ℓ), (sym(:μ), -oo, oo), (sym(:logσ),-oo,oo))
-export marginal
-function marginal(ℓ,v)
-    f = ℓ.func
-    f == sympy.Add || return ℓ
-    newargs = filter(t -> sym(v) in t, collect(ℓ.args))
-    sum(newargs)
-end
+# s = sym(canonical(:(x ~ Normal(μ, σ) |> iid(10)))).args[2] |> eval |> expandSums
 
-marginal(m::Model, v) = marginal(m |> symlogpdf, v)
-
-# We should be able to reason about a marginal from its derivative
-export dmarginal
-function dmarginal(ℓ, v)
-    @as x ℓ begin
-        marginal(x,sym(v))
-        diff(x, sym(v))
-        expand(x)
-        sympy.collect(x, sym(v))
-    end
-end
-
-dmarginal(m::Model, v) = dmarginal(m |> symlogpdf, v)
+normalModel |> symbolic |> eval |> expandSums

@@ -1,16 +1,27 @@
 using MLStyle
+using DataStructures
 
 export arguments
 arguments(m) = m.args
 
 export stochastic
-stochastic(m) = keys(m.stoch)
+stochastic(st :: Let)        = Symbol[]
+stochastic(st :: Follows)    = Symbol[st.name]
+stochastic(st :: Return)     = Symbol[]
+stochastic(st :: LineNumber) = Symbol[]
+
+stochastic(m :: Model) = union(stochastic.(m.body)...)
 
 export bound
-bound(m) = keys(m.bound)
+bound(st :: Let)        = Symbol[st.name]
+bound(st :: Follows)    = Symbol[]
+bound(st :: Return)     = Symbol[]
+bound(st :: LineNumber) = Symbol[]
+
+bound(m :: Model) = union(bound.(m.body)...)
 
 export variables
-variables(m) = arguments(m) ∪ stochastic(m) ∪ bound(m)
+variables(m :: Model) = arguments(m) ∪ stochastic(m) ∪ bound(m)
 
 export foldall
 function foldall(leaf, branch; kwargs...) 
@@ -24,8 +35,8 @@ function foldall(leaf, branch; kwargs...)
     return go
 end
 
-export getSymbols
-function getSymbols(expr :: Expr) 
+export variables
+function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
         [x]
     end
@@ -36,29 +47,30 @@ function getSymbols(expr :: Expr)
     foldall(leaf, branch)(expr)
 end
 
-getSymbols(m :: Model) = variables(m)
-getSymbols(s::Symbol) = [s]
-getSymbols(x) = []
+variables(s::Symbol) = [s]
+variables(x) = []
 
 
-# function condition(vs...) 
-#     function cond(m)
-#         stoch = stochastic(m)
+function condition(vs...) 
+    function cond(m)
+        keep(::Let)        = true
+        keep(::Return)     = true
+        keep(::LineNumber) = true
+        function keep(st :: Follows)
+            if (st.name ∈ vs)
+                isempty(variables(st.value) ∩ stochastic(m))
+            else
+                return true
+            end
+        end    
 
-#         newbody = postwalk(m.body) do x
-#             if @capture(x, v_ ~ dist_)
-#                 if v ∈ vs && isempty(getSymbols(dist) ∩ stoch)
-#                     Nothing
-#                 else x
-#                 end
-#             else x
-#             end
-#         end |> rmNothing
-#         Model(m.args, newbody)
-#     end
+        Model(m.args, filter(keep, m.body))
+    end
 
-#     (cond ∘ cond)
-# end
+    (cond ∘ cond)
+end
+
+import MacroTools: striplines, @q
 
 # import LogDensityProblems: logdensity
 # using ResumableFunctions
@@ -90,27 +102,25 @@ getSymbols(x) = []
 
 export dependencies
 function dependencies(m::Model)
+
     Parents = Vector{Symbol}
     Dep = Pair{Symbol, Parents}
 
-    result = Dep[]
-    m_vars = variables(m)
+    deps = DefaultDict{Symbol, Vector{Symbol}}(Symbol[])
 
-    for v in m.args
-        push!(result, v => [])
+    mvars = variables(m)
+    f!(deps, st::Let) = 
+        deps[st.name] = union(deps[st.name], mvars ∩ variables(st.value))
+    f!(deps, st::Follows) = 
+        deps[st.name] = union(deps[st.name], mvars ∩ variables(st.value))
+    f!(deps, st::Return)  = nothing
+    f!(deps, st::LineNumber) = nothing
+
+    for st in m.body
+        f!(deps, st)
     end
 
-    for (v, expr) in m.bound
-        x = getSymbols(expr) ∩ m_vars
-        push!(result, v => x)
-    end
-
-    for (v, expr) in m.stoch
-        x = getSymbols(expr) ∩ m_vars
-        push!(result, v => x)
-    end
-
-    result
+    deps
 end
 
 # export dependencies
@@ -445,3 +455,13 @@ end
 # # Example of Tamas Papp's `as` combinator:
 # # julia> as((;s=as(Array, as𝕀,4), a=asℝ))(randn(5))
 # # (s = [0.545324, 0.281332, 0.418541, 0.485946], a = 2.217762640580984)
+
+function buildSource(m::Model, buildExpr!)
+    ctx = Dict(:m => m)
+    q = @q begin end
+    for st in m.body
+        ex = buildExpr!(ctx, st)
+        isnothing(ex) || push!(q.args, ex)
+    end
+    q
+end

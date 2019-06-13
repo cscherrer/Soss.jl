@@ -1,6 +1,7 @@
 using MLStyle
 
-
+export canonical
+using Lazy
 canonical(x) = x
 
 function canonical(expr :: Expr)
@@ -25,6 +26,12 @@ function canonical(expr :: Expr)
             :($rf($(rx...)))
         end
 
+        :(iid($n)($dist)) => begin
+            rn = r(n)
+            rdist = r(dist)
+            :(iid($rn,$rdist)) |> r
+        end
+
         x => x
     end
 end
@@ -36,5 +43,5 @@ end
 
 ex1 = :(map(1:10) do x x^2 end)
 
-canonical(ex1)
-canonical(linReg1D)
+# canonical(ex1)
+# canonical(linReg1D)
