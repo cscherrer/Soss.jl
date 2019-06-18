@@ -1,3 +1,5 @@
+@reexport using DataFrames
+
 export sourceRand
 
 export argtuple
@@ -44,22 +46,24 @@ export rand
 rand(m::Model; kwargs...) = makeRand(m)(;kwargs...)
 
 function rand(m::Model, n::Int64; kwargs...)
-    r = makeRand(m)(;kwargs...)
+    r = makeRand(m)
+    [r(;kwargs...) for j in 1:n] |> DataFrame
 
 end
 
 function sourceRand(m::Model)
-    buildExpr!(ctx, st::Let)     = :($(st.name) = $(st.value))
-    buildExpr!(ctx, st::Follows) = :($(st.name) = rand($(st.value)))
-    buildExpr!(ctx, st::Return)  = :(return $(st.value))
-    buildExpr!(ctx, st::LineNumber) = nothing
+    m = canonical(m)
+    proc(m, st::Let)     = :($(st.x) = $(st.rhs))
+    proc(m, st::Follows) = :($(st.x) = rand($(st.rhs)))
+    proc(m, st::Return)  = :(return $(st.rhs))
+    proc(m, st::LineNumber) = nothing
 
-    body = buildSource(m, buildExpr!) |> striplines
+    body = buildSource(m, proc) |> striplines
     
-    argsExpr = argtuple(m)
+    argsExpr = Expr(:tuple,freeVariables(m)...)
 
     stochExpr = begin
-        vals = map(stochastic(linReg1D)) do x Expr(:(=), x,x) end
+        vals = map(stochastic(m)) do x Expr(:(=), x,x) end
         Expr(:tuple, vals...)
     end
     

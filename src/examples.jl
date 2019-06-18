@@ -30,7 +30,7 @@ export normalModel
 normalModel = @model x begin
     μ ~ Normal(0,5)
     σ ~ HalfCauchy(3)
-    x ~ Normal(μ,σ) |> iid
+    x ~ Normal(μ,σ) |> iid(10)
 end
 
 export nested

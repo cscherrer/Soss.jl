@@ -4,66 +4,80 @@ using Soss: Let, Follows, Return, LineNumber
 using MacroTools
 using MacroTools: @q, striplines
 @reexport using Parameters
+using IterTools
 
 export fromcube
-function fromcube(m::Model)
-    function buildExpr!(ctx, st::Let)  
-        x = st.name
-        val = st.value
-        :($x = @. $val)
-    end
+fromcube(dist, next) = quantile(dist, next())
+fromcube(dist::iid, next) = [fromcube(dist.dist,next) for j in 1:dist.size]
+fromcube(dist::For, next) = [fromcube(dist.f(x),next) for x in dist.xs]
 
-    function buildExpr!(ctx, st::Follows)
-        x = st.name
-        val = st.value
-        u = ctx[:u]
-        j = push!(ctx[:j],1)
-        res = :($x = @. quantile($val, $u[:,$j]))
-        res
-    end
-    buildExpr!(ctx, st::Return)  = :(return $(st.value))
-    buildExpr!(ctx, st::LineNumber) = nothing
 
-    ctx = Dict{Symbol, Any}()
-    ctx[:j] = counter(Int)
-    ctx[:m] = m
-    @gensym u
-    ctx[:u] = u
 
-    m = canonical(m) |> dropLines
+export makeFromcube
+function makeFromcube(m :: Model)
+    fpre = @eval $(sourceFromcube(m))
+    f(next;kwargs...) = Base.invokelatest(fpre, next; kwargs...)
+end
 
-    body = Soss.buildSource(ctx, buildExpr!) |> striplines
+export fromcube
+fromcube(m::Model, next; kwargs...) = makeFromcube(m)(next;kwargs...)
 
-    f = gensym(:fromcube)
+function fromcube(m::Model, next, n::Int64; kwargs...)
+    r = makeFromcube(m)
+    [r(next;kwargs...) for j in 1:n] |> DataFrame
 
-    argsExpr = argtuple(m)
+end
 
-    returnexp = begin
+
+export sourceFromcube
+function sourceFromcube(m::Model)
+    m = canonical(m)
+
+    @gensym next
+    proc(m, st::Let)     = :($(st.x) = $(st.rhs))
+    proc(m, st::Follows) = :($(st.x) = fromcube($(st.rhs), $next))
+    proc(m, st::Return)  = :(return $(st.rhs))
+    proc(m, st::LineNumber) = nothing
+
+    body = buildSource(m, proc) |> striplines
+    
+    argsExpr = Expr(:tuple,freeVariables(m)...)
+
+    stochExpr = begin
         vals = map(stochastic(m)) do x Expr(:(=), x,x) end
         Expr(:tuple, vals...)
     end
-
-    MacroTools.flatten(@q (
-        function $f($u; kwargs...)
+    
+    @gensym fromcube
+    
+    flatten(@q (
+        function $fromcube($next;kwargs...) 
             @unpack $argsExpr = kwargs
+            # kwargs = Dict(kwargs)
             $body
-            $returnexp
+            $stochExpr
         end
     ))
+
 end
+
 
 using Sobol
-using Plots
 
-function fromcubeExample()
-    m = @model begin
-        x ~ Normal(0,1)
-        y ~ Normal(x^2, 1)
-    end
 
-    fpre = fromcube(m) |> eval
-    f(u;kwargs...) = Base.invokelatest(fpre,u; kwargs...)
-    s = SobolSeq(2)
-    p = hcat([next!(s) for i = 1:100]...)'
-    f(p)
-end
+# function fromcubeExample()
+#     m = @model begin
+#         x ~ Normal(0,1)
+#         y ~ Normal(x^2, 1) |> iid(3)
+#     end
+
+#     fpre = fromcube(m) |> eval
+#     f(u;kwargs...) = Base.invokelatest(fpre,u; kwargs...)
+    
+#     s = SobolSeq(4)
+#     u = hcat([next!(s) for i = 1:100]...)'
+#     # f(u)
+#     f(rand(4))
+# end
+
+# quantile.(iid.(3, Normal.(rand(100).^2, 1)), rand(3,100))

@@ -13,7 +13,11 @@ sym(s) = Base.convert(Sym, s)
 function sym(expr::Expr) 
     @match expr begin
         Expr(:call, f, args...) => :($f($(map(sym,args)...)))
-        _                       => error("sym: Argument type not implemented")
+        _                       => 
+            begin
+                @show expr
+                error("sym: Argument type not implemented")
+            end
     end
 end
 
@@ -38,15 +42,15 @@ function symlogpdf(m::Model)
 end
 
 function symlogpdf(st::Soss.Follows)
-    d = st.value
-    x = st.name
+    d = st.rhs
+    x = st.x
     :(ℓ += $(symlogpdf(d,x)))
 end
 
 
 function symlogpdf(st::Soss.Let)
-    val = st.value
-    x = st.name
+    val = st.rhs
+    x = st.x
     :(ctx[$(QuoteNode(x))] = $(sym(val)))
 end
 

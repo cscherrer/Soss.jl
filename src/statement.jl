@@ -4,17 +4,17 @@ abstract type Statement end
 
 
 struct Let <: Statement
-    name :: Symbol
-    value
+    x :: Symbol
+    rhs
 end
 
 struct Follows <: Statement
-    name :: Symbol
-    value 
+    x :: Symbol
+    rhs 
 end
 
 struct Return <: Statement
-    value 
+    rhs 
 end
 
 struct LineNumber <: Statement
@@ -31,8 +31,8 @@ function convert(::Type{Statement}, expr :: Expr)
     end
 end
 
-varName(st :: Follows)    = st.name
-varName(st :: Let)        = st.name
+varName(st :: Follows)    = st.x
+varName(st :: Let)        = st.x
 varName(st :: Return)     = nothing
 varName(st :: LineNumber) = nothing
 varName(::Nothing)        = nothing

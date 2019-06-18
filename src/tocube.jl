@@ -7,23 +7,33 @@ using Parameters
 
 export tocube
 function tocube(m::Model)
-    function buildExpr!(ctx, st::Let)  
-        x = st.name
-        val = st.value
+
+    m = canonical(m) |> dropLines
+
+    dims = Dict([k => length(x) for (k,x) in pairs(rand(m))])
+    dimTotal = sum(values(dims))
+
+    function proc(m, st::Let; ctx=ctx)  
+        x = st.x
+        val = st.rhs
         :($x = @. $val)
     end
 
-    function buildExpr!(ctx, st::Follows)
-        x = st.name
-        val = st.value
+    function proc(m, st::Follows; ctx=ctx)
+        x = st.x
+        val = st.rhs
         u = ctx[:u]
-        j = push!(ctx[:j],1)
-        res = :($x = @. cdf($val, $u[:,$j]))
+        lo = ctx[:j][1] + 1
+        hi = push!(ctx[:j],1,dims[x])
+
+        res = @q begin
+            $u[$lo:$hi,:] .= cdf.($val, $x)
+        end
         res
     end
     
-    buildExpr!(ctx, st::Return)  = :(return $(st.value))
-    buildExpr!(ctx, st::LineNumber) = nothing
+    proc(m, st::Return; ctx=ctx)  = :(return $(st.rhs))
+    proc(m, st::LineNumber; ctx=ctx) = nothing
 
     ctx = Dict{Symbol, Any}()
     ctx[:j] = counter(Int)
@@ -31,24 +41,18 @@ function tocube(m::Model)
     @gensym u
     ctx[:u] = u
 
-    m = canonical(m) |> dropLines
-
-    body = Soss.buildSource(ctx, buildExpr!) |> striplines
+    body = Soss.buildSource(m, proc; ctx=ctx) |> striplines
 
     f = gensym(:tocube)
 
-    argsExpr = argtuple(m)
-
-    returnexp = begin
-        vals = map(stochastic(m)) do x Expr(:(=), x,x) end
-        Expr(:tuple, vals...)
-    end
+    argsExpr = Expr(:tuple,variables(m)...)
 
     MacroTools.flatten(@q (
-        function $f($u; kwargs...)
+        function $f(; kwargs...)
+            $u = zeros($dimTotal,10)
             @unpack $argsExpr = kwargs
             $body
-            $returnexp
+            return $u
         end
     ))
 end
