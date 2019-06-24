@@ -14,7 +14,6 @@ iid(n::Int) = dist -> iid(n,dist)
 
 iid(dist) = iid(Nothing, dist)
 
-
 function Base.iterate(d::iid)
     n = prod(d.size) * length(d.dist)
     return (d.dist, (n, 1))
@@ -35,8 +34,13 @@ Base.length(d::iid) = prod(d.size)
 import Base.eltype
 Base.eltype(d::iid) = typeof(d.dist)
 
-rand(d::iid) = [rand(d.dist) for j in 1:d.size]
+rand(d::iid) = rand(d.dist,d.size)
 
-Distributions.logpdf(d::iid,x) = 
-    sum((logpdf(d.dist,x[j]) for j in 1:d.size))
-
+function Distributions.logpdf(d::iid,x)
+    s = Float64(0)
+    Δs(xj) = logpdf(d.dist, xj)
+    @inbounds @simd for j = 1:length(x)
+        s += Δs(x[j])::Float64
+    end
+    s
+end
