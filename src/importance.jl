@@ -1,13 +1,15 @@
 using Distributions
+using MonteCarloMeasurements
 
-export sourceImportanceLogWeights
-function sourceImportanceLogWeights(p,q;ℓ=:ℓ)
+export sourceImportanceSampler
+function sourceImportanceSampler(p,q;ℓ=:ℓ)
     procp(p, st::Follows) = :($ℓ += logpdf($(st.rhs), $(st.x)))
     procp(p, st::Let)     = convert(Expr, st)
     procp(p, st::Return)  = nothing
     procp(p, st::LineNumber) = convert(Expr, st)
 
     procq(q, st::Follows) = @q begin
+        $(st.x) = rand($(st.rhs))
         $ℓ -= logpdf($(st.rhs), $(st.x))
     end
     procq(q, st::Let)     = convert(Expr, st)
@@ -16,25 +18,111 @@ function sourceImportanceLogWeights(p,q;ℓ=:ℓ)
 
     pbody = buildSource(p, procp) |> striplines
     qbody = buildSource(q, procq) |> striplines
+
+    kwargs = freeVariables(q) ∪ arguments(p)
+    kwargsExpr = Expr(:tuple,kwargs...)
+
+    stochExpr = begin
+        vals = map(stochastic(q)) do x Expr(:(=), x,x) end
+        Expr(:tuple, vals...)
+    end
     
-    
-    unknowns = parameters(p) ∪ arguments(p) ∪ parameters(q) ∪ arguments(q)
-    unkExpr = Expr(:tuple,unknowns...)
     @gensym logimportance
     result = @q function $logimportance(pars)
-        @unpack $(unkExpr) = pars
+        @unpack $kwargsExpr = pars
         $ℓ = 0.0
         $qbody
         $pbody
-        return $ℓ
+        return ($ℓ, $stochExpr)
     end
 
     flatten(result)
 end
 
+
+export sourceParticleImportance
+function sourceParticleImportance(p,q;ℓ=:ℓ)
+    p = canonical(p)
+    q = canonical(q)
+    @gensym N
+    # This determines how to initialize a Particle for a given expression
+    vars(expr) = (bound(p) ∪ bound(q) ∪ stochastic(p) ∪ stochastic(q)) ∩ variables(expr)
+
+    procp(p, st::Follows) = :($ℓ += logpdf($(st.rhs), $(st.x)))
+    procp(p, st::Let)     = convert(Expr, st)
+    procp(p, st::Return)  = nothing
+    procp(p, st::LineNumber) = convert(Expr, st)
+
+    function procq(q, st::Follows)
+        if isempty(vars(st.rhs)) 
+            @q begin
+                $(st.x) = Particles($N, $(st.rhs))
+                $ℓ -= logpdf($(st.rhs), $(st.x))
+            end
+        else
+            @q begin
+                $(st.x) = rand($(st.rhs))
+                $ℓ -= logpdf($(st.rhs), $(st.x))
+            end
+        end
+    end
+    procq(q, st::Let)     = convert(Expr, st)
+    procq(q, st::Return)  = nothing
+    procq(q, st::LineNumber) = convert(Expr, st)
+
+    pbody = buildSource(p, procp) |> striplines
+    qbody = buildSource(q, procq) |> striplines
+
+    kwargs = freeVariables(q) ∪ arguments(p)
+    kwargsExpr = Expr(:tuple,kwargs...)
+
+    stochExpr = begin
+        vals = map(stochastic(q)) do x Expr(:(=), x,x) end
+        Expr(:tuple, vals...)
+    end
+    
+    @gensym particlemportance
+    result = @q function $particlemportance($N, pars)
+        @unpack $kwargsExpr = pars
+        $ℓ = 0.0 * Particles($N, Uniform())
+        $qbody
+        $pbody
+        return ($ℓ, $stochExpr)
+    end
+
+    flatten(result)
+end
+
+
+    
+#     @gensym rand
+    
+#     flatten(@q (
+#         function $rand(args...;kwargs...) 
+#             @unpack $argsExpr = kwargs
+#             # kwargs = Dict(kwargs)
+#             $body
+#             $stochExpr
+#         end
+#     ))
+
+# end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export makeImportanceSampler
 function makeImportanceSampler(p,q)
-    r = makeRand(q)
     fpre = @eval $(sourceImportanceLogWeights(p,q))
 
     function f(;kwargs...) 
