@@ -1,32 +1,31 @@
+using Distributions
 
 export sourceImportanceLogWeights
 function sourceImportanceLogWeights(p,q;ℓ=:ℓ)
-    pbody = postwalk(p.body) do x
-        if @capture(x, v_ ~ dist_)
-            @q begin
-                $ℓ += logpdf($dist, $v)
-            end
-        else x
-        end
-    end
-    qbody = postwalk(q.body) do x
-        if @capture(x, v_ ~ dist_)
-            @q begin
-                $ℓ -= logpdf($dist, $v)
-            end
-        else x
-        end
-    end
+    procp(p, st::Follows) = :($ℓ += logpdf($(st.rhs), $(st.x)))
+    procp(p, st::Let)     = convert(Expr, st)
+    procp(p, st::Return)  = nothing
+    procp(p, st::LineNumber) = convert(Expr, st)
 
+    procq(q, st::Follows) = @q begin
+        $ℓ -= logpdf($(st.rhs), $(st.x))
+    end
+    procq(q, st::Let)     = convert(Expr, st)
+    procq(q, st::Return)  = nothing
+    procq(q, st::LineNumber) = convert(Expr, st)
+
+    pbody = buildSource(p, procp) |> striplines
+    qbody = buildSource(q, procq) |> striplines
+    
+    
     unknowns = parameters(p) ∪ arguments(p) ∪ parameters(q) ∪ arguments(q)
     unkExpr = Expr(:tuple,unknowns...)
     @gensym logimportance
     result = @q function $logimportance(pars)
         @unpack $(unkExpr) = pars
         $ℓ = 0.0
-
-        $pbody
         $qbody
+        $pbody
         return $ℓ
     end
 
