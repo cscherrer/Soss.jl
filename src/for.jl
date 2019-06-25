@@ -3,35 +3,34 @@ import Distributions.logpdf
 using Parameters
 
 export For
-struct For{T, D}
+struct For{D,T,X}
     f # returns a distribution of type D
     θs :: Array{T}
 end
 
 function For(f, θs) 
     T = eltype(θs)
-    D =typeof(f(θs[1]))
-    For{T,D}(f,θs)
+    d = f(θs[1])
+    D = typeof(d)
+    X = eltype(d)
+    For{D,T,X}(f,θs)
 end
 
 export rand
 
-Base.rand(dist::For{T,D} where {T,D}) = map(rand, map(dist.f,dist.θs))
+Base.rand(dist::For{D,T,X} where {D,T,X}) = map(rand, map(dist.f,dist.θs))
 
 # Distributions.logpdf(dist::For, xs) = logpdf.(map(dist.f, dist.θs), xs) |> sum
 
 
 
-function Distributions.logpdf(d::For{T,D},x) where {T,D}
-    f=d.f; θs=d.θs
-    
-    function Δs(θ, x)
-        logpdf(f(θ)::D, x) :: Float64
-    end
+@inline function Distributions.logpdf(d::For{D,T,X},x::Array{X}) where {D,T,X}
+    @unpack (f,θs) = d
 
-    s = Float64(0)
+    s = 0.0
     @inbounds @simd for j in eachindex(x)
-        s += Δs(θs[j], x[j])::Float64
+        θ = θs[j]::T 
+        logpdf(f(θ)::D, x[j]::X)
     end
     s
 end

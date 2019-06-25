@@ -2,13 +2,13 @@ export LogisticBinomial, HalfCauchy, HalfNormal
 import Distributions.logpdf
 using SymPy
 
-struct HalfCauchy
-    scale
+struct HalfCauchy{T}
+    scale::T
 end
 
-HalfCauchy() = HalfCauchy(1)
+HalfCauchy() = HalfCauchy(1.0)
 
-Distributions.logpdf(d::HalfCauchy,x) = log(2) + logpdf(Cauchy(0,d.scale),x)
+Distributions.logpdf(d::HalfCauchy{T} where {T} ,x) = log(2.0) + logpdf(Cauchy(0.0,d.scale),x)
 
 Distributions.pdf(d::HalfCauchy,x) = 2 * pdf(Cauchy(0,d.scale),x)
 
