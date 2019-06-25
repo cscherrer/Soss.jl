@@ -41,3 +41,13 @@ import Base.convert
 
 convert(::Type{Statement}, node :: LineNumberNode) = LineNumber(node)
 
+
+
+convert(::Type{Expr}, st::Follows) = :($(st.x) ~ $(st.rhs))
+convert(::Type{Expr}, st::Let) = :($(st.x) = $(st.rhs))
+convert(::Type{Expr}, st::LineNumber) = st.node
+convert(::Type{Expr}, st::Return) = :(return $(st.rhs))
+
+function convert(::Type{Expr}, sts::Vector{Statement})
+    Expr(:block, [convert(Expr, st) for st in sts]...)
+end
