@@ -163,9 +163,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[DiffEqDiffTools]]
 deps = ["LinearAlgebra", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "19add9fe03568da945997cd7052c3405b84d302f"
+git-tree-sha1 = "c83f4ce45d4b723f9d21b9ea3d314a503fd40def"
 uuid = "01453d9d-ee7c-5054-8395-0335cb756afa"
-version = "0.11.0"
+version = "0.12.0"
 
 [[DiffResults]]
 deps = ["Compat", "StaticArrays"]
@@ -191,9 +191,9 @@ version = "0.20.0"
 
 [[DocStringExtensions]]
 deps = ["LibGit2", "Markdown", "Pkg", "Test"]
-git-tree-sha1 = "4d30e889c9f106a51ffa4791a88ffd4765bf20c3"
+git-tree-sha1 = "0513f1a8991e9d83255e0140aace0d0fc4486600"
 uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
-version = "0.7.0"
+version = "0.8.0"
 
 [[DynamicHMC]]
 deps = ["ArgCheck", "DataStructures", "DocStringExtensions", "LinearAlgebra", "LogDensityProblems", "Parameters", "Random", "Statistics", "StatsFuns", "TransformVariables"]
@@ -209,6 +209,12 @@ version = "1.0.7"
 
 [[FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
+
+[[FillArrays]]
+deps = ["LinearAlgebra", "Random", "SparseArrays", "Test"]
+git-tree-sha1 = "9ab8f76758cbabba8d7f103c51dce7f73fcf8e92"
+uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
+version = "0.6.3"
 
 [[FixedPointNumbers]]
 git-tree-sha1 = "d14a6fa5890ea3a7e5dcab6811114f132fec2b4b"
@@ -232,6 +238,12 @@ deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "InteractiveUtils", 
 git-tree-sha1 = "4c4d727f1b7e0092134fabfab6396b8945c1ea5b"
 uuid = "f6369f11-7733-5829-9624-2563aa707210"
 version = "0.10.3"
+
+[[FunctionWrappers]]
+deps = ["Compat"]
+git-tree-sha1 = "49bf793ebd37db5adaa7ac1eae96c2c97ec86db5"
+uuid = "069b7b12-0de2-55c6-9aab-29f3d0a68a2e"
+version = "1.0.0"
 
 [[Future]]
 deps = ["Random"]
@@ -263,7 +275,9 @@ version = "0.3.0"
 
 [[IRTools]]
 deps = ["InteractiveUtils", "MacroTools", "Test"]
-git-tree-sha1 = "42b54182e1764f908636157353825707c1aab764"
+git-tree-sha1 = "4d0c6647aa89b3678d03967ca11c8a5cdc83d2b5"
+repo-rev = "master"
+repo-url = "https://github.com/MikeInnes/IRTools.jl.git"
 uuid = "7869d1d1-7146-5819-86e3-90919afe41df"
 version = "0.2.1"
 
@@ -355,11 +369,19 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 [[LogDensityProblems]]
 deps = ["ArgCheck", "BenchmarkTools", "DiffResults", "DocStringExtensions", "Parameters", "Random", "Requires", "TransformVariables"]
 git-tree-sha1 = "b36d4f4b32341deb57ed68bb073cc79e21416059"
+repo-rev = "master"
+repo-url = "https://github.com/tpapp/LogDensityProblems.jl.git"
 uuid = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
 version = "0.8.2"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
+
+[[LowLevelParticleFilters]]
+deps = ["Distributions", "Lazy", "LinearAlgebra", "PDMats", "Parameters", "Plots", "Printf", "Random", "StaticArrays", "Statistics", "StatsBase", "Yeppp"]
+git-tree-sha1 = "b33a2d6f706a96c93c532c869775239eff5c39fb"
+uuid = "d9d29d28-c116-5dba-9239-57a5fe23875b"
+version = "0.2.0"
 
 [[LoweredCodeUtils]]
 deps = ["JuliaInterpreter"]
@@ -572,6 +594,12 @@ git-tree-sha1 = "0dee5d8f4d748272fbee9b3710ba9c5558c22ac1"
 uuid = "c5292f4c-5179-55e1-98c5-05642aab7184"
 version = "0.4.2"
 
+[[ReverseDiff]]
+deps = ["DiffResults", "DiffRules", "ForwardDiff", "FunctionWrappers", "LinearAlgebra", "NaNMath", "Random", "SpecialFunctions", "StaticArrays", "Statistics", "Test"]
+git-tree-sha1 = "d44e80d815a1a5abaf1ff1def21bb629cabaffec"
+uuid = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+version = "0.3.1"
+
 [[Revise]]
 deps = ["CodeTracking", "Distributed", "FileWatching", "JuliaInterpreter", "LibGit2", "LoweredCodeUtils", "OrderedCollections", "Pkg", "REPL", "UUIDs", "Unicode"]
 git-tree-sha1 = "09cbf077a36bf58e7d5d2b026bb2af8c92931993"
@@ -769,6 +797,12 @@ git-tree-sha1 = "c9d5aa108588b978bd859554660c8a5c4f2f7669"
 uuid = "81def892-9a0e-5fdd-b105-ffc91e053289"
 version = "1.1.3"
 
+[[Yeppp]]
+deps = ["BinDeps", "Libdl", "LinearAlgebra", "Test"]
+git-tree-sha1 = "3cdc43f9123a3cc8f31a00aae73c63b5b71033af"
+uuid = "6310b701-1812-5374-a82f-9f6f2d54a40a"
+version = "0.4.0"
+
 [[ZipFile]]
 deps = ["BinaryProvider", "Libdl", "Printf"]
 git-tree-sha1 = "580ce62b6c14244916cc28ad54f8a2e2886f843d"
@@ -776,7 +810,9 @@ uuid = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
 version = "0.8.3"
 
 [[Zygote]]
-deps = ["DiffRules", "ForwardDiff", "IRTools", "InteractiveUtils", "LinearAlgebra", "MacroTools", "NNlib", "NaNMath", "Random", "Requires", "SpecialFunctions", "Statistics"]
-git-tree-sha1 = "40aa7d4724b3ab508f6200a885b6e92cc6647f14"
+deps = ["DiffRules", "FillArrays", "ForwardDiff", "IRTools", "InteractiveUtils", "LinearAlgebra", "MacroTools", "NNlib", "NaNMath", "Random", "Requires", "SpecialFunctions", "Statistics"]
+git-tree-sha1 = "d9b6026e85b661c0cebdbbdb0d2df11f419ccfb8"
+repo-rev = "master"
+repo-url = "https://github.com/FluxML/Zygote.jl.git"
 uuid = "e88e6eb3-aa80-5325-afca-941959d7151f"
 version = "0.3.1"
