@@ -63,7 +63,7 @@ function sourceRand(m::Model)
     argsExpr = Expr(:tuple,freeVariables(m)...)
 
     stochExpr = begin
-        vals = map(stochastic(m)) do x Expr(:(=), x,x) end
+        vals = map(variables(m)) do x Expr(:(=), x,x) end
         Expr(:tuple, vals...)
     end
     
