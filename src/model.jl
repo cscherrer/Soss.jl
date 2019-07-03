@@ -29,8 +29,16 @@ macro model(expr :: Expr)
 end
 
 (m::Model)(vs...) = begin
-    args = m.args ∪ vs
+    args = m.args ∪ collect(vs)
     Model(args, m.body) |> condition(args...)
+end
+
+(m::Model)(;kwargs...) = begin
+    m = m |> condition(keys(kwargs)...)
+    for (v,rhs) in pairs(kwargs)
+        pushfirst!(m.body, Let(v, rhs))
+    end
+    m
 end
 
 function Base.show(io::IO, m::Model) 
