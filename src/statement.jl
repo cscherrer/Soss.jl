@@ -23,7 +23,7 @@ end
 
 Statement(x) = convert(Statement, x)
 
-function convert(::Type{Statement}, expr :: Expr)
+function Base.convert(::Type{Statement}, expr :: Expr)
     @match expr begin
         :($x ~ $dist)  => Follows(x, dist)
         :($x = $value) => Let(x, value)
@@ -37,17 +37,16 @@ varName(st :: Return)     = nothing
 varName(st :: LineNumber) = nothing
 varName(::Nothing)        = nothing
 
-import Base.convert 
 
-convert(::Type{Statement}, node :: LineNumberNode) = LineNumber(node)
-
+Base.convert(::Type{Statement}, node :: LineNumberNode) = LineNumber(node)
 
 
-convert(::Type{Expr}, st::Follows) = :($(st.x) ~ $(st.rhs))
-convert(::Type{Expr}, st::Let) = :($(st.x) = $(st.rhs))
-convert(::Type{Expr}, st::LineNumber) = st.node
-convert(::Type{Expr}, st::Return) = :(return $(st.rhs))
 
-function convert(::Type{Expr}, sts::Vector{Statement})
+Base.convert(::Type{Expr}, st::Follows) = :($(st.x) ~ $(st.rhs))
+Base.convert(::Type{Expr}, st::Let) = :($(st.x) = $(st.rhs))
+Base.convert(::Type{Expr}, st::LineNumber) = st.node
+Base.convert(::Type{Expr}, st::Return) = :(return $(st.rhs))
+
+function Base.convert(::Type{Expr}, sts::Vector{Statement})
     Expr(:block, [convert(Expr, st) for st in sts]...)
 end

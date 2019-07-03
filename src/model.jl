@@ -1,4 +1,4 @@
-export Model, convert, @model
+export Model, @model
 using MLStyle
 
 
@@ -38,7 +38,7 @@ function Base.show(io::IO, m::Model)
 end
 
 
-function convert(::Type{Expr}, m::Model)
+function Base.convert(::Type{Expr}, m::Model)
     numArgs = length(m.args)
     args = if numArgs == 1
        m.args[1]
