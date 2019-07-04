@@ -33,6 +33,11 @@ function canonical(expr :: Expr)
             :($rf($(rx...)))
         end
 
+        :(iid($n)($dist)) => begin
+            rn = r(n)
+            rdist = r(dist)
+            :(iid($rn,$rdist)) |> r
+        end
 
         x => x
     end
