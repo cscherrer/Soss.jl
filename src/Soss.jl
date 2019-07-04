@@ -8,6 +8,7 @@ using Reexport: @reexport
 
 import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
 import MLStyle
+@reexport using MonteCarloMeasurements
 
 include("statement.jl")
 include("model.jl")
@@ -25,8 +26,9 @@ include("nuts.jl")
 include("optim.jl")
 include("importance.jl")
 include("canonical.jl")
-include("symbolic.jl")
+# include("symbolic.jl")
 include("sobols.jl")
 include("fromcube.jl")
 include("tocube.jl")
+include("particles.jl")
 end # module
