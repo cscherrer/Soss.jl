@@ -1,33 +1,41 @@
 export LogisticBinomial, HalfCauchy, HalfNormal
 import Distributions.logpdf
-using SymPy
+# using SymPy
 
-struct HalfCauchy{T}
-    scale::T
+struct HalfCauchy{T} <: Distribution{Univariate,Continuous}
+    σ::T
+
+    function HalfCauchy{T}(σ::T) where T
+        new{T}(σ)
+    end
 end
+
+HalfCauchy(σ::T) where {T<:Real} = HalfCauchy{T}(σ)
+HalfCauchy(σ::Integer) = HalfCauchy(Float64(σ))
+HalfCauchy() = HalfCauchy(1.0)
 
 HalfCauchy() = HalfCauchy(1.0)
 
-Distributions.logpdf(d::HalfCauchy{T} where {T} ,x) = log(2.0) + logpdf(Cauchy(0.0,d.scale),x)
+Distributions.logpdf(d::HalfCauchy{T} ,x::Real) where {T}  = log(2.0) + logpdf(Cauchy(0.0,d.σ),x)
 
-Distributions.pdf(d::HalfCauchy,x) = 2 * pdf(Cauchy(0,d.scale),x)
+Distributions.pdf(d::HalfCauchy,x) = 2 * pdf(Cauchy(0,d.σ),x)
 
-Distributions.rand(d::HalfCauchy) = abs(rand(Cauchy(0,d.scale)))
+Distributions.rand(d::HalfCauchy) = abs(rand(Cauchy(0,d.σ)))
 
-Distributions.quantile(d::HalfCauchy, p) = quantile(Cauchy(0, d.scale), (p+1)/2)
+Distributions.quantile(d::HalfCauchy, p) = quantile(Cauchy(0, d.σ), (p+1)/2)
 
 struct HalfNormal
-    scale
+    σ
 end
 
 HalfNormal() = HalfNormal(1)
 
 
-Distributions.logpdf(d::HalfNormal,x) = log(Sym(2)) + logpdf(Normal(0,d.scale),x)
+Distributions.logpdf(d::HalfNormal,x::Real) = log(Sym(2)) + logpdf(Normal(0,d.σ),x)
 
-Distributions.pdf(d::HalfNormal,x) = 2 * pdf(Normal(0,d.scale),x)
+Distributions.pdf(d::HalfNormal,x) = 2 * pdf(Normal(0,d.σ),x)
 
-Distributions.rand(d::HalfNormal) = abs(rand(Normal(0,d.scale)))
+Distributions.rand(d::HalfNormal) = abs(rand(Normal(0,d.σ)))
 
 
 # HalfNormal(s) = Truncated(Normal(0,s),0,Inf)
