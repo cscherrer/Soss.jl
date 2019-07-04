@@ -143,6 +143,10 @@ function dependencies(m::Model)
 
     
     mvars = variables(m)
+    for v in mvars
+        add!(po, v)
+    end
+
     f!(po, st::Let) = 
         for v in mvars ∩ variables(st.rhs)
             add!(po, v, st.x)
@@ -251,6 +255,7 @@ function getTransform(dist :: Symbol)
         :HalfCauchy => asℝ₊
         :HalfNormal => asℝ₊
         :Gamma  => asℝ₊
+        :Exponential => asℝ₊
         :Beta   => as𝕀
         :Uniform => as𝕀
         d              => throw(MethodError(:getTransform, d))
