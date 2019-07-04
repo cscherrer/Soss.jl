@@ -37,7 +37,6 @@ varName(st :: Return)     = nothing
 varName(st :: LineNumber) = nothing
 varName(::Nothing)        = nothing
 
-import Base.convert
 
 Base.convert(::Type{Statement}, node :: LineNumberNode) = LineNumber(node)
 

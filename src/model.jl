@@ -1,4 +1,4 @@
-export Model, convert, @model
+export Model, @model
 using MLStyle
 
 
@@ -29,8 +29,16 @@ macro model(expr :: Expr)
 end
 
 (m::Model)(vs...) = begin
-    args = m.args ∪ vs
+    args = m.args ∪ collect(vs)
     Model(args, m.body) |> condition(args...)
+end
+
+(m::Model)(;kwargs...) = begin
+    m = m |> condition(keys(kwargs)...)
+    for (v,rhs) in pairs(kwargs)
+        pushfirst!(m.body, Let(v, rhs))
+    end
+    m
 end
 
 function Base.show(io::IO, m::Model) 
@@ -38,7 +46,7 @@ function Base.show(io::IO, m::Model)
 end
 
 
-function convert(::Type{Expr}, m::Model)
+function Base.convert(::Type{Expr}, m::Model)
     numArgs = length(m.args)
     args = if numArgs == 1
        m.args[1]
