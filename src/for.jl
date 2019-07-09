@@ -33,7 +33,7 @@ Base.rand(dist::For{T,X,D} where {T,X,D}) = map(rand, map(dist.f,dist.θs))
     s = 0.0
     @inbounds @simd for j in eachindex(x)
         θ = θs[j]::T 
-        logpdf(f(θ)::D, x[j]::X)
+        s += logpdf(f(θ)::D, x[j]::X)
     end
     s
 end
