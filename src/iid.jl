@@ -25,8 +25,8 @@ function Base.iterate(d::iid, state)
     return nothing
 end
 
-Distributions.cdf(iid, x) = cdf.(iid.dist, x)
-Distributions.quantile(iid, x) = quantile.(iid.dist, x)
+# Distributions.cdf(iid, x) = cdf.(iid.dist, x)
+# Distributions.quantile(iid, x) = quantile.(iid.dist, x)
 
 import Base.length
 Base.length(d::iid) = prod(d.size)
