@@ -2,6 +2,21 @@ using MLStyle
 using DataStructures
 using SimplePosets
 
+function variables(expr :: Expr) 
+    leaf(x::Symbol) = begin
+        [x]
+    end
+    leaf(x) = []
+    branch(head, newargs) = begin
+        union(newargs...)
+    end
+    foldall(leaf, branch)(expr)
+end
+
+variables(s::Symbol) = [s]
+variables(x) = []
+
+
 export arguments
 arguments(m) = m.args
 
@@ -21,11 +36,30 @@ bound(st :: LineNumber) = Symbol[]
 
 bound(m :: Model) = union(bound.(m.body)...)
 
+# """
+#     parameters(m::Model)
+
+# A _parameter_ is a stochastic node that is only assigned once
+# """
+export parameters
+parameters(m::Model) = setdiff(
+    stochastic(m), 
+    arguments(m) ∪ bound(m)
+)
+
 export observed
 observed(m::Model) = setdiff(stochastic(m), parameters(m))
 
+
+
+
 export variables
 variables(m :: Model) = arguments(m) ∪ stochastic(m) ∪ bound(m)
+
+export freeVariables
+function freeVariables(m::Model)
+    setdiff(arguments(m), stochastic(m))
+end
 
 export foldall
 function foldall(leaf, branch; kwargs...) 
@@ -51,19 +85,6 @@ function foldall1(leaf, branch; kwargs...)
     return go
 end
 
-function variables(expr :: Expr) 
-    leaf(x::Symbol) = begin
-        [x]
-    end
-    leaf(x) = []
-    branch(head, newargs) = begin
-        union(newargs...)
-    end
-    foldall(leaf, branch)(expr)
-end
-
-variables(s::Symbol) = [s]
-variables(x) = []
 
 
 function condition(vs...) 
@@ -125,16 +146,6 @@ using DataStructures: counter
 # end
 
 
-# """
-#     parameters(m::Model)
-
-# A _parameter_ is a stochastic node that is only assigned once
-# """
-export parameters
-parameters(m::Model) = setdiff(
-    stochastic(m), 
-    arguments(m) ∪ bound(m)
-)
 
 
 export dependencies
@@ -281,10 +292,7 @@ function prior(m :: Model)
     Model([],newbody)
 end
 
-export freeVariables
-function freeVariables(m::Model)
-    setdiff(arguments(m), stochastic(m))
-end
+
 
 # # export priorPredictive
 # # function priorPredictive(m :: Model)
