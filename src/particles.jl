@@ -3,6 +3,9 @@
 
 export sourceParticles
 
+for f in [<=, >=, <, >]
+    register_primitive(f)
+end
 
 export makeParticles
 function makeParticles(m :: Model)
