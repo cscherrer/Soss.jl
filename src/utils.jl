@@ -265,6 +265,7 @@ function getTransform(dist :: Symbol)
         :Cauchy => asℝ
         :HalfCauchy => asℝ₊
         :HalfNormal => asℝ₊
+        :InverseGamma  => asℝ₊
         :Gamma  => asℝ₊
         :Exponential => asℝ₊
         :Beta   => as𝕀
