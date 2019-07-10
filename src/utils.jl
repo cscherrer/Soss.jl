@@ -1,7 +1,7 @@
 using MLStyle
 using DataStructures
 using SimpleGraphs
-using SImplePosets
+using SimplePosets
 
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
@@ -204,6 +204,7 @@ function poset(m::Model)
 
     po
 end
+
 
 
 # # export paramSupport
