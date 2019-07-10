@@ -17,6 +17,13 @@ for f in [<=, >=, <, >]
 end
 # register_primitive(logpdf)
 
+# Kish's effective sample size,
+# $n _ { \mathrm { eff } } = \frac { \left( \sum _ { i = 1 } ^ { n } w _ { i } \right) ^ { 2 } } { \sum _ { i = 1 } ^ { n } w _ { i } ^ { 2 } }$
+
+function n_eff(ℓ)
+    logw = ℓ.particles
+    exp(2 * logsumexp(logw) - logsumexp(2 .* logw))
+end
 
 asmatrix(ps) = Matrix([ps...])'
 
@@ -78,19 +85,13 @@ function self_outer(v)
     reshape(v, :, 1) * reshape(v, 1, :)
 end
 
-function prob_improvement(ℓ,ℓnew)
-    oldsamp = ℓ.particles[rand(DiscreteUniform(1,1000),100)]
-    newsamp = ℓnew.particles[rand(DiscreteUniform(1,1000),100)]
-    mean(newsamp .> oldsamp)
-    # @show maximum(ℓ) - minimum(ℓnew)
-    # # Approximate P(ℓnew-ℓ)>0
-    # old = ℓ 
-    # new = ℓnew 
-    # μ = mean(new) - mean(old)
-    # σ = sqrt(var(old) + var(new))
-    # ccdf(Normal(μ,σ),0.0)
+@inline function visStep(N,logp,q)
+    x = Particles(N,q)
+    ℓ = logp(x) - logpdf(q,x)
+    μ = expect(x,ℓ)
+    Σ = cholesky(Positive, expect(0.5 * self_outer(x-μ),ℓ)) |> PDMat
+    return (x,ℓ,μ,Σ)
 end
-
 
 function runInference(m; kwargs...)
     ℓp_pre = sourceLogdensity(m) |> eval
@@ -121,50 +122,29 @@ function runInference(m; kwargs...)
     q = fit_mle(MvNormal, asmatrix(x))
     x = Particles(N,q)
     ℓ = logp(x) - logpdf(q,x)
-    # ss = suffstats(MvNormal, asmatrix(x),  exp.(ℓ.particles) )
-    # ss.s2 .= cholesky(Positive, ss.s2) |> Matrix
-    # @show ss.s2
-    # μ = expect(x,ℓ)
-    # Σ = expect(0.5 * self_outer(x-μ),ℓ)
-    # q = MvNormal(μ,Σ)
+
 
     plts = []
-    numiters = 100
+    neff = [n_eff(ℓ)]
+    numiters = 1000
     elbo = [expect(ℓ,ℓ)]
     for j in 1:numiters
-        x = Particles(N,q)
-        ℓnew = logp(x) - logpdf(q,x)
-        # if expect(ℓnew, ℓnew) > expect(ℓ,ℓ)
-            # @show ℓ,ℓnew
-            ℓ = ℓnew
-            @show ℓ
-            push!(elbo, expect(ℓ,ℓ))
-            μ = expect(x,ℓ)
-            Σ = cholesky(Positive, expect(0.5 * self_outer(x-μ),ℓ)) |> PDMat
-            
-            η = 0.8 # learning rate
-            μ = η * μ + (1-η) * q.μ
-            Σ = η * Σ + (1-η) * q.Σ
-            q = MvNormal(μ,1.5 * Σ)
-            # ss += suffstats(MvNormal, asmatrix(x),  exp.(ℓ.particles) .+ eps(Float64))
-            # ss.s2 .= cholesky(Positive, ss.s2) |> Matrix
-            # q = fit_mle(MvNormal, ss)
-        # end
+        @time (x,ℓ,μ,Σ) = visStep(N,logp,q)
+        @show ℓ
+        push!(elbo, expect(ℓ,ℓ))
+        push!(neff, n_eff(ℓ))
+        neff[end] > 950 && break
         
-        # mask = ℓ.particles .> quantile(ℓ,0.9)
-        # @show Particles(ℓ.particles[mask])
-        # newss = suffstats(MvNormal, asmatrix(x)[:,mask],  exp.(ℓ.particles[mask]) )#.+ eps(Float64))
-        # newss = suffstats(MvNormal, asmatrix(x),  exp.(ℓ.particles) )#.+ eps(Float64))
-        
-        # ss += newss #logwavg(ss,elbo[end-1], newss,elbo[end])
-        # q = fit_mle(MvNormal, ss)
-        # ss *= 0.5
-        # push!(plts,makeplot(ℓ,θ,kwargs))        
+        η = 0.8 # learning rate
+        μ = η * μ + (1-η) * q.μ
+        Σ = η * Σ + (1-η) * q.Σ
+        q = MvNormal(μ,1.5 * Σ)
     end
+
     x = Particles(N,q)
     θ = t(x)
     ℓ = logp(x) - logpdf(q,x)
-    (θ,q,ℓ,elbo)
+    (θ,q,ℓ,elbo,neff)
 end
 
 
@@ -172,12 +152,12 @@ m = linReg1D
 
 thedata = let
     n = 100
-    x = randn(n)
-    y = 20 .* x .+ randn(n)
+    x = randn(n) .+ 10
+    y = 2 .* x .+ randn(n)
     (x=x,y=y)
 end
 
-(θ,q,ℓ,elbo) = runInference(m; thedata...)
+(θ,q,ℓ,elbo,neff) = runInference(m; thedata...)
 plt = plot(elbo, label="ELBO")
 
 
