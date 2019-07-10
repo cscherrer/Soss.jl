@@ -1,6 +1,7 @@
 using MLStyle
 using DataStructures
-using SimplePosets
+using SimpleGraphs
+using SImplePosets
 
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
@@ -148,11 +149,39 @@ using DataStructures: counter
 
 
 
-export dependencies
-function dependencies(m::Model)
-    po = SimplePoset(Symbol)
+export digraph
+function digraph(m::Model)
+    g = SimpleDigraph{Symbol}()
 
-    
+    mvars = variables(m)
+    for v in mvars
+        add!(g, v)
+    end
+
+    f!(g, st::Let) = 
+        for v in mvars ∩ variables(st.rhs)
+            add!(g, v, st.x)
+        end
+    f!(g, st::Follows) = 
+        for v in mvars ∩ variables(st.rhs)
+            add!(g, v, st.x)
+        end
+    f!(g, st::Return)  = nothing
+    f!(g, st::LineNumber) = nothing
+
+    for st in m.body
+        f!(g, st)
+    end
+
+    g
+end
+
+
+
+export poset
+function poset(m::Model)
+    po = SimplePoset{Symbol}()
+
     mvars = variables(m)
     for v in mvars
         add!(po, v)
@@ -175,7 +204,6 @@ function dependencies(m::Model)
 
     po
 end
-
 
 
 # # export paramSupport
