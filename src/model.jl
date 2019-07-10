@@ -33,12 +33,19 @@ end
     Model(args, m.body) |> condition(args...)
 end
 
+# TODO: THIS IS NOT WORKING YET!!!
 (m::Model)(;kwargs...) = begin
-    m = m |> condition(keys(kwargs)...)
-    for (v,rhs) in pairs(kwargs)
-        pushfirst!(m.body, Let(v, rhs))
+    g = digraph(m)
+    po = poset(m)
+
+    vs = keys(kwargs)
+    for v ∈ vs
+        for x in below(po, v)
+            delete!(g, x, v)
+        end
     end
-    m
+
+    simplify(g) |> SimpleGraphs.components
 end
 
 function Base.show(io::IO, m::Model) 
