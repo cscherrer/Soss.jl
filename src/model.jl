@@ -1,6 +1,8 @@
 export Model, @model
 using MLStyle
 
+using SimpleGraphs
+using SimplePosets
 
 abstract type AbstractModel end
 
@@ -34,11 +36,39 @@ end
 end
 
 (m::Model)(;kwargs...) = begin
-    m = m |> condition(keys(kwargs)...)
-    for (v,rhs) in pairs(kwargs)
-        pushfirst!(m.body, Let(v, rhs))
+    po = poset(m)
+    g = digraph(m)
+
+    vs = keys(kwargs)
+    # Make v ∈ vs no longer depend on other variables
+    for v ∈ vs
+        for x in below(po, v)
+            delete!(g, x, v)
+        end
     end
-    m
+
+    # Find connected components of what's left after removing parents
+    partition = simplify(g) |> SimpleGraphs.components |> collect
+
+    keep = []
+    for v ∈ vs
+        v_component = partition[in.(v, partition)][1]
+        union!(keep, v_component)
+    end
+
+    function proc(m, st::Let)
+        st.x ∈ keep && return st
+        return nothing
+    end 
+    function proc(m, st::Follows)
+        st.x ∈ vs && return Let(st.x, kwargs[st.x])
+        st.x ∈ keep && return st
+        return nothing
+    end
+    proc(m, st) = st
+
+    newbody = buildSource(m, proc)
+    Model(m.args,newbody)
 end
 
 function Base.show(io::IO, m::Model) 
