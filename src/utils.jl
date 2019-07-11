@@ -2,6 +2,13 @@ using MLStyle
 using DataStructures
 using SimplePosets
 
+
+export argtuple
+argtuple(m) = arguments(m) |> astuple
+
+astuple(x) = Expr(:tuple,x...)
+
+
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
         [x]
