@@ -50,7 +50,7 @@ end
     # Find connected components of what's left after removing parents
     partition = simplify(g) |> SimpleGraphs.components |> collect
 
-    keep = []
+    keep = Symbol[]
     for v ∈ vs
         v_component = partition[in.(v, partition)][1]
         union!(keep, v_component)
@@ -66,9 +66,9 @@ end
         return nothing
     end
     proc(m, st) = st
-
+    newargs = keep ∩ setdiff(m.args, vs) 
     newbody = buildSource(m, proc)
-    Model(m.args,newbody)
+    Model(newargs,newbody)
 end
 
 function Base.show(io::IO, m::Model) 
