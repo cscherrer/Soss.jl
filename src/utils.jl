@@ -182,8 +182,9 @@ function digraph(m::Model)
     g
 end
 
+export dependencies
+dependencies = poset
 
-export poset
 function poset(m::Model)
     po = SimplePoset(Symbol)
 
