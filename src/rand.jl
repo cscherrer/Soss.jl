@@ -2,11 +2,6 @@
 
 export sourceRand
 
-export argtuple
-argtuple(m) = arguments(m) |> astuple
-
-astuple(x) = Expr(:tuple,x...)
-
 
 export makeRand
 function makeRand(m :: Model)
