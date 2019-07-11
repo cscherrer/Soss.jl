@@ -83,8 +83,14 @@ function Base.convert(::Type{Expr}, m::Model)
     elseif numArgs > 1
         Expr(:tuple, [x for x in m.args]...)
     end
-    q = @q begin
-        @model $(args) $(convert(Expr, m.body))
+    q = if numArgs == 0
+        @q begin
+            @model $(convert(Expr, m.body))
+        end
+    else
+        @q begin
+            @model $(args) $(convert(Expr, m.body))
+        end
     end
     striplines(q).args[1]
 end
