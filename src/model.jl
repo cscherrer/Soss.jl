@@ -57,6 +57,7 @@ end
     end
 
     function proc(m, st::Let)
+        st.x ∈ vs && return Let(st.x, kwargs[st.x])
         st.x ∈ keep && return st
         return nothing
     end 
