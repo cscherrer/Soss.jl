@@ -1,6 +1,8 @@
 export Model, @model
 using MLStyle
 
+using SimpleGraphs
+using SimplePosets
 
 abstract type AbstractModel end
 
@@ -33,19 +35,45 @@ end
     Model(args, m.body) |> condition(args...)
 end
 
-# TODO: THIS IS NOT WORKING YET!!!
+# TODO: 
+# For v in keys(kwargs),
+# 1. Add v if it's not already in a Statement of the body
+# 2. Topologically sort statements
 (m::Model)(;kwargs...) = begin
-    g = digraph(m)
     po = poset(m)
+    g = digraph(m)
 
     vs = keys(kwargs)
+    # Make v ∈ vs no longer depend on other variables
     for v ∈ vs
         for x in below(po, v)
             delete!(g, x, v)
         end
     end
 
-    simplify(g) |> SimpleGraphs.components
+    # Find connected components of what's left after removing parents
+    partition = simplify(g) |> SimpleGraphs.components |> collect
+
+    keep = Symbol[]
+    for v ∈ vs
+        v_component = partition[in.(v, partition)][1]
+        union!(keep, v_component)
+    end
+
+    function proc(m, st::Let)
+        st.x ∈ vs && return Let(st.x, kwargs[st.x])
+        st.x ∈ keep && return st
+        return nothing
+    end
+    function proc(m, st::Follows)
+        st.x ∈ vs && return Let(st.x, kwargs[st.x])
+        st.x ∈ keep && return st
+        return nothing
+    end
+    proc(m, st) = st
+    newargs = keep ∩ setdiff(m.args, vs) 
+    newbody = buildSource(m, proc)
+    Model(newargs,newbody)
 end
 
 function Base.show(io::IO, m::Model) 
@@ -60,8 +88,14 @@ function Base.convert(::Type{Expr}, m::Model)
     elseif numArgs > 1
         Expr(:tuple, [x for x in m.args]...)
     end
-    q = @q begin
-        @model $(args) $(convert(Expr, m.body))
+    q = if numArgs == 0
+        @q begin
+            @model $(convert(Expr, m.body))
+        end
+    else
+        @q begin
+            @model $(args) $(convert(Expr, m.body))
+        end
     end
     striplines(q).args[1]
 end

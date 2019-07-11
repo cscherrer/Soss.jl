@@ -3,6 +3,13 @@ using DataStructures
 using SimpleGraphs
 using SimplePosets
 
+
+export argtuple
+argtuple(m) = arguments(m) |> astuple
+
+astuple(x) = Expr(:tuple,x...)
+
+
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
         [x]
@@ -148,6 +155,33 @@ using DataStructures: counter
 
 
 
+export digraph
+function digraph(m::Model)
+    g = SimpleDigraph{Symbol}()
+
+    
+    mvars = variables(m)
+    for v in mvars
+        add!(g, v)
+    end
+
+    f!(g, st::Let) = 
+        for v in mvars ∩ variables(st.rhs)
+            add!(g, v, st.x)
+        end
+    f!(g, st::Follows) = 
+        for v in mvars ∩ variables(st.rhs)
+            add!(g, v, st.x)
+        end
+    f!(g, st::Return)  = nothing
+    f!(g, st::LineNumber) = nothing
+
+    for st in m.body
+        f!(g, st)
+    end
+
+    g
+end
 
 export digraph
 function digraph(m::Model)
