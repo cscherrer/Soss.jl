@@ -14,8 +14,6 @@ HalfCauchy(σ::T) where {T<:Real} = HalfCauchy{T}(σ)
 HalfCauchy(σ::Integer) = HalfCauchy(Float64(σ))
 HalfCauchy() = HalfCauchy(1.0)
 
-HalfCauchy() = HalfCauchy(1.0)
-
 Distributions.logpdf(d::HalfCauchy{T} ,x::Real) where {T}  = log(2.0) + logpdf(Cauchy(0.0,d.σ),x)
 
 Distributions.pdf(d::HalfCauchy,x) = 2 * pdf(Cauchy(0,d.σ),x)
