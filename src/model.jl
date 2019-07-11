@@ -35,6 +35,10 @@ end
     Model(args, m.body) |> condition(args...)
 end
 
+# TODO: 
+# For v in keys(kwargs),
+# 1. Add v if it's not already in a Statement of the body
+# 2. Topologically sort statements
 (m::Model)(;kwargs...) = begin
     po = poset(m)
     g = digraph(m)
@@ -60,7 +64,7 @@ end
         st.x ∈ vs && return Let(st.x, kwargs[st.x])
         st.x ∈ keep && return st
         return nothing
-    end 
+    end
     function proc(m, st::Follows)
         st.x ∈ vs && return Let(st.x, kwargs[st.x])
         st.x ∈ keep && return st
