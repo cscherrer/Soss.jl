@@ -59,9 +59,9 @@ version = "0.8.10"
 
 [[BinaryProvider]]
 deps = ["Libdl", "Logging", "SHA"]
-git-tree-sha1 = "8153fd64131cd00a79544bb23788877741f627bb"
+git-tree-sha1 = "c7361ce8a2129f20b0e05a89f7070820cfed6648"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-version = "0.5.5"
+version = "0.5.6"
 
 [[CSTParser]]
 deps = ["Tokenize"]
@@ -483,10 +483,10 @@ uuid = "d9ec5142-1e00-5aa0-9d6a-321866360f50"
 version = "0.9.1"
 
 [[Optim]]
-deps = ["Calculus", "DiffEqDiffTools", "ForwardDiff", "LineSearches", "LinearAlgebra", "NLSolversBase", "NaNMath", "Parameters", "PositiveFactorizations", "Printf", "Random", "SparseArrays", "StatsBase", "Test"]
-git-tree-sha1 = "a626e09c1f7f019b8f3a30a8172c7b82d2f4810b"
+deps = ["Calculus", "DiffEqDiffTools", "FillArrays", "ForwardDiff", "LineSearches", "LinearAlgebra", "NLSolversBase", "NaNMath", "Parameters", "PositiveFactorizations", "Printf", "Random", "SparseArrays", "StatsBase"]
+git-tree-sha1 = "44f21b0f938941d5f9929043847317da8165a95a"
 uuid = "429524aa-4258-5aef-a3af-852621145aeb"
-version = "0.18.1"
+version = "0.19.0"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
@@ -649,10 +649,12 @@ uuid = "992d4aef-0814-514b-bc4d-f2e9a6c4116f"
 version = "0.3.1"
 
 [[SimpleGraphs]]
-deps = ["AbstractLattices", "DataStructures", "IterTools", "LightXML", "LinearAlgebra", "Optim", "Polynomials", "Primes", "Random", "SimplePartitions", "SimpleRandom", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "fc3d2d51625cd87a88da54c0c6a433e8dc64eaa3"
+deps = ["AbstractLattices", "DataStructures", "IterTools", "LightXML", "LinearAlgebra", "Optim", "Pkg", "Polynomials", "Primes", "Random", "SimplePartitions", "SimpleRandom", "SimpleTools", "SparseArrays", "Statistics", "Test"]
+git-tree-sha1 = "3ce7dbd5fc5a19c621e69fe4dca6200bd79363cb"
+repo-rev = "master"
+repo-url = "https://github.com/scheinerman/SimpleGraphs.jl.git"
 uuid = "55797a34-41de-5266-9ec1-32ac4eb504d3"
-version = "0.3.0"
+version = "0.3.0+"
 
 [[SimplePartitions]]
 deps = ["AbstractLattices", "DataStructures", "Permutations", "Test"]
@@ -671,6 +673,12 @@ deps = ["Distributions", "Random", "Test"]
 git-tree-sha1 = "8c182908ea6ec36f6d88505b79bdc8a35493262f"
 uuid = "a6525b86-64cd-54fa-8f65-62fc48bdc0e8"
 version = "0.2.0"
+
+[[SimpleTools]]
+deps = ["Test"]
+git-tree-sha1 = "d3dfe64770fd01e15795efb405402b7d7f57da1e"
+uuid = "4696fa5f-36f0-5b18-99a6-fef83351280f"
+version = "0.3.0"
 
 [[SimpleTraits]]
 deps = ["InteractiveUtils", "MacroTools", "Test"]
@@ -743,9 +751,9 @@ version = "1.0.0"
 
 [[Tables]]
 deps = ["DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "Requires", "TableTraits", "Test"]
-git-tree-sha1 = "c93aafd5c45f850c653ec1c45857ba2151835f95"
+git-tree-sha1 = "b983930602b75a14007c9c72e945b4a7c878c538"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "0.2.7"
+version = "0.2.8"
 
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
