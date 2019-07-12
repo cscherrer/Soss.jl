@@ -299,14 +299,19 @@ function getTransform(dist :: Symbol)
     MLStyle.@match dist begin
         :Normal => asℝ
         :Cauchy => asℝ
+        :Flat => asℝ
         :HalfCauchy => asℝ₊
         :HalfNormal => asℝ₊
+        :HalfFlat => asℝ₊
         :InverseGamma  => asℝ₊
         :Gamma  => asℝ₊
         :Exponential => asℝ₊
         :Beta   => as𝕀
         :Uniform => as𝕀
-        d              => throw(MethodError(:getTransform, d))
+        d =>    begin
+                    println("Error: No transform defined for $d")
+                    throw(MethodError(:getTransform, d))
+                end
     end
 end
 
