@@ -295,6 +295,81 @@ function getTransform(expr :: Expr)
     end
 end
 
+allequal(xs) = all(xs[1] .== xs)
+
+export xform
+xform(::Normal)       = asℝ
+xform(::Cauchy)       = asℝ
+xform(::Flat)         = asℝ
+
+xform(::HalfCauchy)   = asℝ₊
+xform(::HalfNormal)   = asℝ₊
+xform(::HalfFlat)     = asℝ₊
+xform(::InverseGamma) = asℝ₊
+xform(::Gamma)        = asℝ₊
+xform(::Exponential)  = asℝ₊
+
+xform(::Beta)         = as𝕀
+xform(::Uniform)      = as𝕀
+
+
+
+
+function xform(d::For)
+    allequal(d.f.(d.θs)) && return as(Array, xform(d.f(d.θs[1])), size(d.θs)...)
+    
+    # TODO: Implement case of unequal supports
+    @error "xform: Unequal supports not yet supported"
+end
+
+function xform(d::iid)
+    as(Array, xform(d.dist), d.size...)
+end
+
+function xform(m::Model)
+    ctx = Dict{Symbol,Any}()
+    t = Expr(:tuple)
+
+    m = canonical(m)
+    proc(m, st::Let, ctx) = ctx[st.x] = st.rhs
+    function proc(m, st::Follows) 
+        t = getTransform(st.rhs)
+        push!(expr.args,:($(st.x)=$t))
+            = @q begin
+        $(st.x) = rand($(st.rhs))
+        
+    end
+    proc(m, st) = nothing
+
+    body = buildSource(m, proc) |> striplines
+    
+    argsExpr = Expr(:tuple,freeVariables(m)...)
+
+    stochExpr = begin
+        vals = map(variables(m)) do x Expr(:(=), x,x) end
+        Expr(:tuple, vals...)
+    end
+    
+    @gensym rand
+    
+    for st in m.body
+        ex = proc(m, st; kwargs...)
+        isnothing(ex) || push!(q.args, ex)
+    end
+
+    t
+
+    flatten(@q (
+        function $rand(args...;kwargs...) 
+            @unpack $argsExpr = kwargs
+            $body
+            $stochExpr
+        end
+    ))
+
+end
+
+
 function getTransform(dist :: Symbol)
     # @show dist
     MLStyle.@match dist begin
