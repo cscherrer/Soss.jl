@@ -1,5 +1,6 @@
 using MLStyle
 using DataStructures
+using SimpleGraphs
 using SimplePosets
 
 
@@ -7,7 +8,6 @@ export argtuple
 argtuple(m) = arguments(m) |> astuple
 
 astuple(x) = Expr(:tuple,x...)
-
 
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
@@ -182,13 +182,11 @@ function digraph(m::Model)
     g
 end
 
-export dependencies
-dependencies = poset
-
-function poset(m::Model)
-    po = SimplePoset(Symbol)
-
     
+export poset
+function poset(m::Model)
+    po = SimplePoset{Symbol}()
+
     mvars = variables(m)
     for v in mvars
         add!(po, v)
@@ -212,6 +210,9 @@ function poset(m::Model)
     po
 end
 
+
+export dependencies
+dependencies = poset
 
 
 # # export paramSupport
