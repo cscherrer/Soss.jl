@@ -54,7 +54,8 @@ export parts
 
 N = 1000
 
-#Just a little helper function for particles
+# Just a little helper function for particles
+# https://github.com/baggepinnen/MonteCarloMeasurements.jl/issues/22
 parts(x::Normal{P} where {P <: AbstractParticles}) = Particles(length(x.μ), Normal()) * x.σ + x.μ
 parts(x::Sampleable{F,S}) where {F,S} = Particles(N,x)
 parts(x::Integer) = parts(float(x))
