@@ -1,10 +1,43 @@
 export LogisticBinomial, HalfCauchy, HalfNormal
+import Distributions.logpdf
+# using SymPy
 
-HalfCauchy(s) = Truncated(Cauchy(0,s),0,Inf)
-HalfCauchy() = Truncated(Cauchy(0,1.0),0,Inf)
+struct HalfCauchy{T} <: Distribution{Univariate,Continuous}
+    σ::T
 
-HalfNormal(s) = Truncated(Normal(0,s),0,Inf)
-HalfNormal() = Truncated(Normal(0,1.0),0,Inf)
+    function HalfCauchy{T}(σ::T) where T
+        new{T}(σ)
+    end
+end
+
+HalfCauchy(σ::T) where {T<:Real} = HalfCauchy{T}(σ)
+HalfCauchy(σ::Integer) = HalfCauchy(Float64(σ))
+HalfCauchy() = HalfCauchy(1.0)
+
+Distributions.logpdf(d::HalfCauchy{T} ,x::Real) where {T}  = log(2.0) + logpdf(Cauchy(0.0,d.σ),x)
+
+Distributions.pdf(d::HalfCauchy,x) = 2 * pdf(Cauchy(0,d.σ),x)
+
+Distributions.rand(d::HalfCauchy) = abs(rand(Cauchy(0,d.σ)))
+
+Distributions.quantile(d::HalfCauchy, p) = quantile(Cauchy(0, d.σ), (p+1)/2)
+
+struct HalfNormal
+    σ
+end
+
+HalfNormal() = HalfNormal(1)
+
+
+Distributions.logpdf(d::HalfNormal,x::Real) = log(Sym(2)) + logpdf(Normal(0,d.σ),x)
+
+Distributions.pdf(d::HalfNormal,x) = 2 * pdf(Normal(0,d.σ),x)
+
+Distributions.rand(d::HalfNormal) = abs(rand(Normal(0,d.σ)))
+
+
+# HalfNormal(s) = Truncated(Normal(0,s),0,Inf)
+# HalfNormal() = Truncated(Normal(0,1.0),0,Inf)
 
 
 # Binomial distribution, parameterized by logit(p)

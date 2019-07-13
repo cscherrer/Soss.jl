@@ -1,127 +1,259 @@
-import LogDensityProblems: logdensity
-using ResumableFunctions
+using MLStyle
+using DataStructures
+using SimpleGraphs
+using SimplePosets
 
-export arguments, args, stochastic, observed, parameters, supports
-export paramSupport
 
+export argtuple
+argtuple(m) = arguments(m) |> astuple
 
-import MacroTools: striplines, flatten, unresolve, resyntax, @q, @capture
-using StatsFuns
-using DataStructures: counter
+astuple(x) = Expr(:tuple,x...)
 
-function arguments(model::Model)
-    model.args
+function variables(expr :: Expr) 
+    leaf(x::Symbol) = begin
+        [x]
+    end
+    leaf(x) = []
+    branch(head, newargs) = begin
+        union(newargs...)
+    end
+    foldall(leaf, branch)(expr)
 end
+
+variables(s::Symbol) = [s]
+variables(x) = []
+
+
+export arguments
+arguments(m) = m.args
 
 export stochastic
-"A stochastic node is any `v` in a model with `v ~ ...`"
-function stochastic(m::Model) :: Vector{Symbol}
-    nodes = []
-    postwalk(m.body) do x
-        if @capture(x, v_ ~ dist_)
-            union!(nodes, [v])
-        else x
-        end
-    end
-    nodes
-end
+stochastic(st :: Let)        = Symbol[]
+stochastic(st :: Follows)    = Symbol[st.x]
+stochastic(st :: Return)     = Symbol[]
+stochastic(st :: LineNumber) = Symbol[]
 
+stochastic(m :: Model) = union(stochastic.(m.body)...)
 
-"""
-    parameters(m::Model)
+export bound
+bound(st :: Let)        = Symbol[st.x]
+bound(st :: Follows)    = Symbol[]
+bound(st :: Return)     = Symbol[]
+bound(st :: LineNumber) = Symbol[]
 
-A _parameter_ is a stochastic node that is only assigned once
-"""
-function parameters(m::Model)
-    assignmentCount = counter([dep.second for dep in dependencies(m)])
-    filter(stochastic(m)) do v
-        assignmentCount[v] == 1
-    end
-end
+bound(m :: Model) = union(bound.(m.body)...)
 
-export dependencies
-function dependencies(m::Model)
-    Parents = Vector{Symbol}
-    Dep =  Pair{Parents, Symbol}
+# """
+#     parameters(m::Model)
 
-    result = Dep[]
-    for v in m.args
-        push!(result, [] => v)
-    end
-    vars = variables(m)
-    postwalk(m.body) do x
-        if @capture(x,v_~d_) || @capture(x,v_=d_)
-            parents = findsubexprs(d,vars)
-            if isempty(parents)
-                push!(result, [] => v)
-            else
-                push!(result, (parents => v))
-            end
-        else x
-        end
-    end
-    result
-end
+# A _parameter_ is a stochastic node that is only assigned once
+# """
+export parameters
+parameters(m::Model) = setdiff(
+    stochastic(m), 
+    arguments(m) ∪ bound(m)
+)
 
+export observed
 observed(m::Model) = setdiff(stochastic(m), parameters(m))
 
-# export paramSupport
-# function paramSupport(model)
-#     supps = Dict{Symbol, Any}()
-#     postwalk(model.body) do x
-#         if @capture(x, v_ ~ dist_(args__))
-#             if v in parameters(model)
-#                 supps[v] = support(eval(dist))
+
+
+
+export variables
+variables(m :: Model) = arguments(m) ∪ stochastic(m) ∪ bound(m)
+
+export freeVariables
+function freeVariables(m::Model)
+    setdiff(arguments(m), stochastic(m))
+end
+
+export foldall
+function foldall(leaf, branch; kwargs...) 
+    function go(ast)
+        MLStyle.@match ast begin
+            Expr(head, args...) => branch(head, map(go, args); kwargs...)
+            x                   => leaf(x; kwargs...)
+        end
+    end
+
+    return go
+end
+
+export foldall1
+function foldall1(leaf, branch; kwargs...) 
+    function go(ast)
+        MLStyle.@match ast begin
+            Expr(head, arg1, args...) => branch(head, arg1, map(go, args); kwargs...)
+            x                         => leaf(x; kwargs...)
+        end
+    end
+
+    return go
+end
+
+
+
+# function condition(vs...) 
+#     function cond(m)
+#         po = dependencies(m)
+
+#         maybeRemove = Symbol[]
+#         # Bound v ∈ vs no longer depend on other variables
+#         for v ∈ (vs ∩ bound(m))
+#             for x in below(po, v)
+#                 delete!(po, x, v)
+#                 push!(maybeRemove, x)
 #             end
-#         else x
 #         end
+
+#         # Go upward in the poset from the stuff we're keeping
+#         # Keep everything maximal from there, and below
+#         keep = [vs...]
+#         for m in maximals(po)
+#             xs = union([m],below(po,m))
+#             if !isempty(keep ∩ xs)
+#                 union!(keep, xs)
+#             end
+#         end
+
+#         removable = setdiff(maybeRemove, keep)
+
+#         function proc(st::Let)
+#             st.x ∈ vs && return false
+#             st.x ∈ removable && return false
+#             return true
+#         end
+#         function proc(st::Follows) 
+#             st.x ∈ removable && return false
+#             return true
+#         end
+#         proc(st) = true
+
+#         Model(m.args, filter(proc, m.body))
 #     end
-#     return supps
+
 # end
 
-# function xform(R, v, supp)
-#     @assert typeof(supp) == RealInterval
-#     lo = supp.lb
-#     hi = supp.ub
-#     body = begin
-#         if (lo,hi) == (-Inf, Inf)  # no transform needed in this case
-#             quote
-#                 $v = $R
-#             end
-#         elseif (lo,hi) == (0.0, Inf)
-#             quote
-#                 $v = softplus($R)
-#                 ℓ += abs($v - $R)
-#             end
-#         elseif (lo, hi) == (0.0, 1.0)
-#             quote
-#                 $v = logistic($R)
-#                 ℓ += log($v * (1 - $v))
-#             end
-#         else
-#             throw(error("Transform not implemented"))
-#         end
-#     end
-#     return body
+import MacroTools: striplines, @q
+
+# import LogDensityProblems: logdensity
+# using ResumableFunctions
+
+# export arguments, args, stochastic, observed, parameters, supports
+# export paramSupport
+
+
+# import MacroTools: striplines, flatten, unresolve, resyntax, @q, @capture
+# using StatsFuns
+using DataStructures: counter
+
+# function arguments(model::Model)
+#     model.args
 # end
+
+
+
+export digraph
+function digraph(m::Model)
+    g = SimpleDigraph{Symbol}()
+
+    
+    mvars = variables(m)
+    for v in mvars
+        add!(g, v)
+    end
+
+    f!(g, st::Let) = 
+        for v in mvars ∩ variables(st.rhs)
+            add!(g, v, st.x)
+        end
+    f!(g, st::Follows) = 
+        for v in mvars ∩ variables(st.rhs)
+            add!(g, v, st.x)
+        end
+    f!(g, st::Return)  = nothing
+    f!(g, st::LineNumber) = nothing
+
+    for st in m.body
+        f!(g, st)
+    end
+
+    g
+end
+
+    
+export poset
+function poset(m::Model)
+    po = SimplePoset{Symbol}()
+
+    mvars = variables(m)
+    for v in mvars
+        add!(po, v)
+    end
+
+    f!(po, st::Let) = 
+        for v in mvars ∩ variables(st.rhs)
+            add!(po, v, st.x)
+        end
+    f!(po, st::Follows) = 
+        for v in mvars ∩ variables(st.rhs)
+            add!(po, v, st.x)
+        end
+    f!(po, st::Return)  = nothing
+    f!(po, st::LineNumber) = nothing
+
+    for st in m.body
+        f!(po, st)
+    end
+
+    po
+end
+
+
+export dependencies
+dependencies = poset
+
+
+# # export paramSupport
+# # function paramSupport(model)
+# #     supps = Dict{Symbol, Any}()
+# #     postwalk(model.body) do x
+# #         if @capture(x, v_ ~ dist_(args__))
+# #             if v in parameters(model)
+# #                 supps[v] = support(eval(dist))
+# #             end
+# #         else x
+# #         end
+# #     end
+# #     return supps
+# # end
+
+macro preval(x)
+    eval(x) |> esc
+end
+
+macro logdensity(n)
+    @show n
+    :(@preval sourceLogdensity($n))
+end
+
 
 
 export sourceLogdensity
-function sourceLogdensity(model;ℓ=:ℓ)
-    body = postwalk(model.body) do x
-        if @capture(x, v_ ~ dist_)
-            @q begin
-                    $ℓ += logpdf($dist, $v)
-            end
+function sourceLogdensity(m::Model; ℓ=:ℓ)
+    proc(m, st :: Follows)    = :($ℓ += logpdf($(st.rhs), $(st.x)))
+    proc(m, st :: Let)        = :($(st.x) = $(st.rhs))
+    proc(m, st :: Return)     = nothing
+    proc(m, st :: LineNumber) = nothing
+    proc(::Nothing)        = nothing
+    body = buildSource(m, proc)
 
-        else x
-        end
-    end
-
-    unknowns = parameters(model) ∪ arguments(model)
+    unknowns = parameters(m) ∪ arguments(m)
     unkExpr = Expr(:tuple,unknowns...)
     @gensym logdensity
-    result = @q function $logdensity(pars)
+    # result = @q function $logdensity(pars)
+    result = @q function(pars)
         @unpack $(unkExpr) = pars
         $ℓ = 0.0
 
@@ -133,32 +265,29 @@ function sourceLogdensity(model;ℓ=:ℓ)
 end
 
 
-
 # Note: `getTransform` currently assumes supports are not parameter-dependent
 export getTransform
 function getTransform(m :: Model)
+    m = canonical(m)
     expr = Expr(:tuple)
-    postwalk(m.body) do x
-        if @capture(x, v_ ~ dist_)
-            # @show v
-            if v ∈ parameters(m)
-                t = getTransform(dist)
-                push!(expr.args,:($v=$t))
-            else x
-            end
-        else x
+
+    function proc(m, st::Follows; expr=expr)
+        if st.x ∈ parameters(m)
+            t = getTransform(st.rhs)
+            push!(expr.args,:($(st.x)=$t))
         end
     end
+    proc(m,st) = nothing
+    buildSource(m,proc)
     return as(eval(expr))
 end
 
+export getTransform
 function getTransform(expr :: Expr)
     # @show expr
     MLStyle.@match expr begin
-        :($f |> $g)           => getTransform(:($g($f)))
         # :(For($js) do $j $dist) => getTransform(:(For($j -> $dist, $js)))
         :(MixtureModel($d,$(args...))) => getTransform(d)
-        :(iid($n)($dist))     => getTransform(:(iid($n, $dist)))
         :(iid($n, $dist))     => as(Array, getTransform(dist), n)
         :(Dirichlet($k,$a))   => UnitVector(k)
         :($dist($(args...)))  => getTransform(dist)
@@ -166,257 +295,222 @@ function getTransform(expr :: Expr)
     end
 end
 
+allequal(xs) = all(xs[1] .== xs)
+
+export xform
+xform(::Normal)       = asℝ
+xform(::Cauchy)       = asℝ
+xform(::Flat)         = asℝ
+
+xform(::HalfCauchy)   = asℝ₊
+xform(::HalfNormal)   = asℝ₊
+xform(::HalfFlat)     = asℝ₊
+xform(::InverseGamma) = asℝ₊
+xform(::Gamma)        = asℝ₊
+xform(::Exponential)  = asℝ₊
+
+xform(::Beta)         = as𝕀
+xform(::Uniform)      = as𝕀
+
+
+
+
+function xform(d::For)
+    allequal(d.f.(d.θs)) && return as(Array, xform(d.f(d.θs[1])), size(d.θs)...)
+    
+    # TODO: Implement case of unequal supports
+    @error "xform: Unequal supports not yet supported"
+end
+
+function xform(d::iid)
+    as(Array, xform(d.dist), d.size...)
+end
+
+function xform(m::Model)
+    ctx = Dict{Symbol,Any}()
+    t = Expr(:tuple)
+
+    m = canonical(m)
+    proc(m, st::Let, ctx) = ctx[st.x] = st.rhs
+    function proc(m, st::Follows) 
+        t = getTransform(st.rhs)
+        push!(expr.args,:($(st.x)=$t))
+            = @q begin
+        $(st.x) = rand($(st.rhs))
+        
+    end
+    proc(m, st) = nothing
+
+    body = buildSource(m, proc) |> striplines
+    
+    argsExpr = Expr(:tuple,freeVariables(m)...)
+
+    stochExpr = begin
+        vals = map(variables(m)) do x Expr(:(=), x,x) end
+        Expr(:tuple, vals...)
+    end
+    
+    @gensym rand
+    
+    for st in m.body
+        ex = proc(m, st; kwargs...)
+        isnothing(ex) || push!(q.args, ex)
+    end
+
+    t
+
+    flatten(@q (
+        function $rand(args...;kwargs...) 
+            @unpack $argsExpr = kwargs
+            $body
+            $stochExpr
+        end
+    ))
+
+end
+
+
 function getTransform(dist :: Symbol)
     # @show dist
     MLStyle.@match dist begin
         :Normal => asℝ
         :Cauchy => asℝ
+        :Flat => asℝ
         :HalfCauchy => asℝ₊
         :HalfNormal => asℝ₊
+        :HalfFlat => asℝ₊
+        :InverseGamma  => asℝ₊
         :Gamma  => asℝ₊
+        :Exponential => asℝ₊
         :Beta   => as𝕀
         :Uniform => as𝕀
-        d              => throw(MethodError(:getTransform, d))
+        d =>    begin
+                    println("Error: No transform defined for $d")
+                    throw(MethodError(:getTransform, d))
+                end
     end
 end
 
-# const locationScaleDists = [:Normal]
-
-# export uncenter
-# function uncenter(model)
-#     body = postwalk(model.body) do x
-#         if @capture(x, dist_(μ_,σ_)) && dist ∈ locationScaleDists
-#             @q ($dist() >>= (x -> (Delta($σ*x + $μ))))
-#         else x
-#         end
-#     end
-#     Model(model.args, body)
+# export findsubexprs
+# function findsubexprs(expr, vs)
+#     intersect(getSymbols(expr), vs)
 # end
-
-import MacroTools.@capture
-
-export fold
-function fold(leaf, branch; kwargs...) 
-    function go(ast)
-        # @show ast
-        MLStyle.@match ast begin
-            Expr(head, arg1, args...) => branch(head, arg1, map(go, args); kwargs...)
-            x                         => leaf(x; kwargs...)
-        end
-    end
-
-    return go
-end
-
-function foldall(leaf, branch; kwargs...) 
-    function go(ast)
-        # @show ast
-        MLStyle.@match ast begin
-            Expr(head, args...) => branch(head, map(go, args); kwargs...)
-            x                         => leaf(x; kwargs...)
-        end
-    end
-
-    return go
-end
-
-export symbols
-function symbols(expr :: Expr) 
-    leaf(x::Symbol) = begin
-        # @show x
-        [x]
-    end
-    leaf(x) = []
-    branch(head, newargs) = begin
-        # @show newargs
-        union(newargs...)
-    end
-    foldall(leaf, branch)(expr)
-end
-
-symbols(m :: Model) = symbols(m.body)
-symbols(s::Symbol) = [s]
-symbols(x) = []
-
-export findsubexprs
-function findsubexprs(expr, vs)
-    intersect(symbols(expr), vs)
-end
 
 export prior
 function prior(m :: Model)
-    body = postwalk(m.body) do x
-        if @capture(x, v_ ~ dist_)
-            if v ∈ parameters(m)
-                x
-            else Nothing
-            end
-        else x
-        end
+    po = dependencies(m)
+    keep = parameters(m)
+    for v in keep
+        union!(keep, below(po, v))
     end
-    Model(setdiff(arguments(m),observed(m)), body) |> pretty
+    proc(m, st::Follows) = st.x ∈ keep
+    proc(m, st::Let)     = st.x ∈ keep
+    proc(m, st) = true
+    newbody = filter(st -> proc(m,st), m.body)
+    Model([],newbody)
 end
 
-export freeVariables
-function freeVariables(m::Model)
-    setdiff(arguments(m), stochastic(m))
-end
 
-# export priorPredictive
-# function priorPredictive(m :: Model)
+
+# # export priorPredictive
+# # function priorPredictive(m :: Model)
+# #     args = copy(m.args)
+# #     body = postwalk(m.body) do x
+# #         if @capture(x, v_ ~ dist_)
+# #             setdiff!(args, [v])
+# #             x
+# #         elseif @capture(x, v_ ⩪ dist_)
+# #             setdiff!(args, [v])
+# #             @q ($v ~ $dist)
+# #         else x
+# #         end
+# #     end
+# #     Model(args, body)
+# # end
+
+# export likelihood
+# function likelihood(m :: Model)
+#     m = annotate(m)
 #     args = copy(m.args)
 #     body = postwalk(m.body) do x
 #         if @capture(x, v_ ~ dist_)
-#             setdiff!(args, [v])
-#             x
+#             union!(args, [v])
+#             Nothing
 #         elseif @capture(x, v_ ⩪ dist_)
 #             setdiff!(args, [v])
 #             @q ($v ~ $dist)
 #         else x
 #         end
 #     end
-#     Model(args, body)
+#     Model(args, body) |> pretty
 # end
 
-export likelihood
-function likelihood(m :: Model)
-    m = annotate(m)
-    args = copy(m.args)
-    body = postwalk(m.body) do x
-        if @capture(x, v_ ~ dist_)
-            union!(args, [v])
-            Nothing
-        elseif @capture(x, v_ ⩪ dist_)
-            setdiff!(args, [v])
-            @q ($v ~ $dist)
-        else x
-        end
-    end
-    Model(args, body) |> pretty
-end
 
+# export annotate
+# function annotate(m::Model)
+#     newbody = postwalk(m.body) do x
+#         if @capture(x, v_ ~ dist_)
+#             if v ∈ observed(m)
+#                 @q $v ⩪ $dist
+#             else
+#                 x
+#             end
+#         else x
+#         end
+#     end
 
-export annotate
-function annotate(m::Model)
-    newbody = postwalk(m.body) do x
-        if @capture(x, v_ ~ dist_)
-            if v ∈ observed(m)
-                @q $v ⩪ $dist
-            else
-                x
-            end
-        else x
-        end
-    end
-
-    Model(args = m.args, body=newbody, meta = m.meta)
-end
-
-export variables
-function variables(m::Model)
-    vars = copy(m.args)
-    postwalk(m.body) do x
-        if @capture(x, v_ ~ dist_)
-            union!(vars, [Symbol(v)])
-        elseif @capture(x, v_ ⩪ dist_)
-            union!(vars, [Symbol(v)])
-        elseif @capture(x, v_ = dist_)
-            union!(vars, [Symbol(v)])
-        else x
-        end
-    end
-    vars
-end
-
-isNothing(x) = (x == Nothing)
-
-rmNothing(x) = x
-
-function rmNothing(x::Expr)
-  # Do not strip the first argument to a macrocall, which is
-  # required.
-  if x.head == :macrocall && length(x.args) >= 2
-    Expr(x.head, x.args[1:2]..., filter(x->!isNothing(x), x.args[3:end])...)
-  else
-    Expr(x.head, filter(x->!isNothing(x), x.args)...)
-  end
-end
-
-export stripNothing
-stripNothing(ex::Expr) = prewalk(rmNothing, ex)
-stripNothing(m::Model) = Model(m.args, stripNothing(m.body))
-
-export pretty
-pretty = stripNothing ∘ striplines ∘ flatten
-
-export expandinline
-function expandinline(m::Model)
-    body = postwalk(m.body) do x
-        if @capture(x, v_ ~ dist_)
-            if typeof(eval(dist)) == Model
-                Let
-            end
-
-            println(v)
-            println(dist)
-            println(typeof(eval(dist)))
-        else x
-        end
-    end
-    body
-end
-
-export expandSubmodels
-function expandSubmodels(m :: Model)
-    newbody = postwalk(m.body) do x
-        if @capture(x, @model expr__)
-            eval(x)
-        else x
-        end
-    end
-    Model(args=m.args, body=newbody, meta=m.meta)
-end
-
-
-
-function condition(vs...) 
-    function cond(m)
-        stoch = stochastic(m)
-        newbody = postwalk(m.body) do x
-            if @capture(x, v_ ~ dist_)
-                if v ∈ vs && isempty(symbols(dist) ∩ stoch)
-                    Nothing
-                else x
-                end
-            else x
-            end
-        end |> rmNothing
-        Model(m.args, newbody)
-    end
-
-    (cond ∘ cond)
-end
-
-
-
-# fold example usage:
-# ------------------
-# function leafCount(ast)
-#     leaf(x) = 1
-#     expr(head, arg1, newargs) = sum(newargs)
-#     fold(leaf, expr)(ast)
+#     Model(args = m.args, body=newbody, meta = m.meta)
 # end
 
-# leaves = begin
-#     leaf(x) = [x]
-#     expr(head, arg1, newargs) = union(newargs...)
-#     fold(leaf, expr)
+
+# export pretty
+# pretty = stripNothing ∘ striplines ∘ flatten
+
+# export expandSubmodels
+# function expandSubmodels(m :: Model)
+#     newbody = postwalk(m.body) do x
+#         if @capture(x, @model expr__)
+#             eval(x)
+#         else x
+#         end
+#     end
+#     Model(args=m.args, body=newbody, meta=m.meta)
 # end
 
-# ast = :(f(x + 3y))
 
-# leaves(ast)
+export unobserve
+function unobserve(m::Model)
+    Model(freeVariables(m), m.body)
+end
 
-# Example of Tamas Papp's `as` combinator:
-# julia> as((;s=as(Array, as𝕀,4), a=asℝ))(randn(5))
-# (s = [0.545324, 0.281332, 0.418541, 0.485946], a = 2.217762640580984)
+
+# # fold example usage:
+# # ------------------
+# # function leafCount(ast)
+# #     leaf(x) = 1
+# #     expr(head, arg1, newargs) = sum(newargs)
+# #     fold(leaf, expr)(ast)
+# # end
+
+# # leaves = begin
+# #     leaf(x) = [x]
+# #     expr(head, arg1, newargs) = union(newargs...)
+# #     fold(leaf, expr)
+# # end
+
+# # ast = :(f(x + 3y))
+
+# # leaves(ast)
+
+# # Example of Tamas Papp's `as` combinator:
+# # julia> as((;s=as(Array, as𝕀,4), a=asℝ))(randn(5))
+# # (s = [0.545324, 0.281332, 0.418541, 0.485946], a = 2.217762640580984)
+
+function buildSource(m, proc; kwargs...)
+    q = @q begin end
+    for st in m.body
+        ex = proc(m, st; kwargs...)
+        isnothing(ex) || push!(q.args, ex)
+    end
+    q
+end

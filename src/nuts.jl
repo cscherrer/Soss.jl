@@ -15,11 +15,14 @@ end
 
 export nuts
 
+
 function nuts(m :: Model; kwargs...)
     result = NUTS_result{}
     t = getTransform(m)
     fpre = @eval $(sourceLogdensity(m))
+    # fpre = @logdensity m
     f(pars) = Base.invokelatest(fpre, merge(kwargs, pairs(pars)))
+    # f(pars) = invoke(fpre, merge(kwargs, pairs(pars)))
     P = TransformedLogDensity(t, f)
     ∇P = ADgradient(:ForwardDiff, P)
     chain, tuning = NUTS_init_tune_mcmc(∇P, 1000);
