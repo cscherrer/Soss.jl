@@ -265,35 +265,6 @@ function sourceLogdensity(m::Model; ℓ=:ℓ)
 end
 
 
-# Note: `getTransform` currently assumes supports are not parameter-dependent
-export getTransform
-function getTransform(m :: Model)
-    m = canonical(m)
-    expr = Expr(:tuple)
-
-    function proc(m, st::Follows; expr=expr)
-        if st.x ∈ parameters(m)
-            t = getTransform(st.rhs)
-            push!(expr.args,:($(st.x)=$t))
-        end
-    end
-    proc(m,st) = nothing
-    buildSource(m,proc)
-    return as(eval(expr))
-end
-
-export getTransform
-function getTransform(expr :: Expr)
-    # @show expr
-    MLStyle.@match expr begin
-        # :(For($js) do $j $dist) => getTransform(:(For($j -> $dist, $js)))
-        :(MixtureModel($d,$(args...))) => getTransform(d)
-        :(iid($n, $dist))     => as(Array, getTransform(dist), n)
-        :(Dirichlet($k,$a))   => UnitVector(k)
-        :($dist($(args...)))  => getTransform(dist)
-        d                     => throw(MethodError(getTransform, d))
-    end
-end
 
 
 function getTransform(dist :: Symbol)
