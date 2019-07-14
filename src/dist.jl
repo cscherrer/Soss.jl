@@ -22,6 +22,8 @@ Distributions.rand(d::HalfCauchy) = abs(rand(Cauchy(0,d.σ)))
 
 Distributions.quantile(d::HalfCauchy, p) = quantile(Cauchy(0, d.σ), (p+1)/2)
 
+Distributions.support(::HalfCauchy{T} where T) = RealInterval(0.0, Inf)
+
 struct HalfNormal
     σ
 end

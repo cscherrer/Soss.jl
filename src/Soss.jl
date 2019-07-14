@@ -31,4 +31,5 @@ include("sobols.jl")
 include("fromcube.jl")
 include("tocube.jl")
 include("particles.jl")
+include("xform.jl")
 end # module

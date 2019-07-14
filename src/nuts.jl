@@ -18,7 +18,7 @@ export nuts
 
 function nuts(m :: Model; kwargs...)
     result = NUTS_result{}
-    t = getTransform(m)
+    t = xform(m; kwargs...)
     fpre = @eval $(sourceLogdensity(m))
     # fpre = @logdensity m
     f(pars) = Base.invokelatest(fpre, merge(kwargs, pairs(pars)))
@@ -26,6 +26,6 @@ function nuts(m :: Model; kwargs...)
     P = TransformedLogDensity(t, f)
     ∇P = ADgradient(:ForwardDiff, P)
     chain, tuning = NUTS_init_tune_mcmc(∇P, 1000);
-    samples = transform.(Ref(parent(∇P).transformation), get_position.(chain));
+    samples = TransformVariables.transform.(Ref(parent(∇P).transformation), get_position.(chain));
     NUTS_result(chain, t, samples, tuning)
 end
