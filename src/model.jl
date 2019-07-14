@@ -54,9 +54,6 @@ end
 end
 
 
-# TODO: 
-# For v in keys(kwargs),
-# 1. Add v if it's not already in a Statement of the body
 (m::Model)(;kwargs...) = begin
     po = poset(m)
     g = digraph(m)
@@ -79,18 +76,21 @@ end
     end
 
     function proc(m, st::Let)
-        st.x ∈ vs && return Let(st.x, kwargs[st.x])
+        st.x ∈ vs && return nothing
         st.x ∈ keep && return st
         return nothing
     end
     function proc(m, st::Follows)
-        st.x ∈ vs && return Let(st.x, kwargs[st.x])
+        st.x ∈ vs && return nothing
         st.x ∈ keep && return st
         return nothing
     end
     proc(m, st) = st
     newargs = keep ∩ setdiff(m.args, vs) 
     newbody = buildSource(m, proc)
+    for k in keys(kwargs)
+        push!(newbody.args, Let(k, kwargs[k]))
+    end
     Model(newargs,newbody) |> toposort
 end
 
