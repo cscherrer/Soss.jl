@@ -36,8 +36,9 @@ function toposortvars(m::Model)
     [names[v] for v in Graphs.topological_sort_by_dfs(g)]
 end
 
+export(toposort)
 function toposort(m::Model)
-    modelvs = varName.(linReg1D.body)
+    modelvs = varName.(m.body)
     sortedvs = toposortvars(m)
     body = Statement[]
     for v in sortedvs

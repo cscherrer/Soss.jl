@@ -31,14 +31,32 @@ macro model(expr :: Expr)
 end
 
 (m::Model)(vs...) = begin
-    args = m.args ∪ collect(vs)
-    Model(args, m.body) |> condition(args...)
+    vs = collect(vs)
+    vars = variables(m)
+    args = m.args ∪ vs
+
+    po = poset(m)
+    g = digraph(m)
+    
+    function proc(m, st::Let)
+        st.x ∈ vs && return nothing
+        return st
+    end
+    function proc(m, st::Follows)
+        if st.x ∈ vs && isempty(vars ∩ variables(st.rhs))
+            return nothing
+        end
+        return st
+    end
+    proc(m, st) = st
+    newbody = buildSource(m, proc)
+    Model(args,newbody) |> toposort
 end
+
 
 # TODO: 
 # For v in keys(kwargs),
 # 1. Add v if it's not already in a Statement of the body
-# 2. Topologically sort statements
 (m::Model)(;kwargs...) = begin
     po = poset(m)
     g = digraph(m)
@@ -73,12 +91,13 @@ end
     proc(m, st) = st
     newargs = keep ∩ setdiff(m.args, vs) 
     newbody = buildSource(m, proc)
-    Model(newargs,newbody)
+    Model(newargs,newbody) |> toposort
 end
 
 function Base.show(io::IO, m::Model) 
     print(io, convert(Expr, m))
 end
+
 
 
 function Base.convert(::Type{Expr}, m::Model)
