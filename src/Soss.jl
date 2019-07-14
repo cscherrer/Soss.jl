@@ -32,4 +32,5 @@ include("fromcube.jl")
 include("tocube.jl")
 include("particles.jl")
 include("xform.jl")
+include("toposort.jl")
 end # module
