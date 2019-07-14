@@ -1,0 +1,106 @@
+using Reexport
+
+@reexport using DataFrames
+using MLStyle
+using Distributions
+
+export sourceXform
+
+function sourceXform(m::Model)
+    m = canonical(m)
+    pars = parameters(m)
+    @gensym t result
+
+    proc(m, st::Let)        = :($(st.x) = $(st.rhs))
+    proc(m, st::Return)     = :(return $(st.rhs))
+    proc(m, st::LineNumber) = nothing
+    
+    function proc(m, st::Follows)
+        if st.x ∈ pars
+            return @q begin
+                $(st.x) = rand($(st.rhs))
+                $t = xform($(st.rhs))
+
+                $result = merge($result, ($(st.x)=$t,))
+            end
+        else
+            return @q begin
+                $(st.x) = rand($(st.rhs))
+            end
+        end
+    end
+
+    body = buildSource(m, proc) |> striplines
+    
+    argsExpr = Expr(:tuple,freeVariables(m)...)
+
+    
+    @gensym rand
+    
+    flatten(@q (
+        function $rand(args...;kwargs...) 
+            @unpack $argsExpr = kwargs
+            $result = NamedTuple()
+            $body
+            as($result)
+        end
+    ))
+
+end
+
+
+export makeXform
+function makeXform(m :: Model)
+    fpre = @eval $(sourceXform(m))
+    f(;kwargs...) = Base.invokelatest(fpre; kwargs...)
+end
+
+export xform
+xform(m::Model; kwargs...) = makeXform(m)(;kwargs...)
+
+
+
+
+function xform(d)
+    if hasmethod(support, (typeof(d),))
+        return asTransform(support(d)) 
+    end
+end
+
+function asTransform(supp:: RealInterval) 
+    (lb, ub) = (supp.lb, supp.ub)
+
+    (lb, ub) == (-Inf, Inf) && (return asℝ)
+    (lb, ub) == (0.0,  Inf) && (return asℝ₊)
+    (lb, ub) == (0.0,  1.0) && (return as𝕀)
+    error("asTransform($supp) not yet supported")
+end
+
+# export xform
+# xform(::Normal)       = asℝ
+# xform(::Cauchy)       = asℝ
+# xform(::Flat)         = asℝ
+
+# xform(::HalfCauchy)   = asℝ₊
+# xform(::HalfNormal)   = asℝ₊
+# xform(::HalfFlat)     = asℝ₊
+# xform(::InverseGamma) = asℝ₊
+# xform(::Gamma)        = asℝ₊
+# xform(::Exponential)  = asℝ₊
+
+# xform(::Beta)         = as𝕀
+# xform(::Uniform)      = as𝕀
+
+
+
+
+function xform(d::For)
+    allequal(d.f.(d.θs)) && return as(Array, xform(d.f(d.θs[1])), size(d.θs)...)
+    
+    # TODO: Implement case of unequal supports
+    @error "xform: Unequal supports not yet supported"
+end
+
+function xform(d::iid)
+    as(Array, xform(d.dist), d.size...)
+end

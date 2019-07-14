@@ -18,7 +18,7 @@ export nuts
 
 function nuts(m :: Model; kwargs...)
     result = NUTS_result{}
-    t = getTransform(m)
+    t = xform(m; kwargs...)
     fpre = @eval $(sourceLogdensity(m))
     # fpre = @logdensity m
     f(pars) = Base.invokelatest(fpre, merge(kwargs, pairs(pars)))
