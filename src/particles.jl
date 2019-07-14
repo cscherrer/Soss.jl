@@ -4,7 +4,7 @@
 export sourceParticles
 
 for f in [<=, >=, <, >]
-    register_primitive(f)
+    @eval register_primitive($f)
 end
 
 export makeParticles
