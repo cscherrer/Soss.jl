@@ -12,7 +12,7 @@ function sourceXform(m::Model)
     @gensym t result
 
     proc(m, st::Let)        = :($(st.x) = $(st.rhs))
-    proc(m, st::Return)     = :(return $(st.rhs))
+    proc(m, st::Return)     = nothing
     proc(m, st::LineNumber) = nothing
     
     function proc(m, st::Follows)
