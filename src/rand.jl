@@ -14,7 +14,7 @@ rand(m::Model; kwargs...) = makeRand(m)(;kwargs...)
 
 function rand(m::Model, n::Int64; kwargs...)
     r = makeRand(m)
-    [r(;kwargs...) for j in 1:n] |> DataFrame
+    [r(;kwargs...) for j in 1:n] # |> DataFrame
 
 end
 
