@@ -22,6 +22,8 @@ function particles(m::Model, n::Int64; kwargs...)
 
 end
 
+particles(d) = Particles(1000, d)
+
 function sourceParticles(m::Model)
     m = canonical(m)
     proc(m, st::Let)     = :($(st.x) = $(st.rhs))
@@ -56,6 +58,7 @@ N = 1000
 
 # Just a little helper function for particles
 # https://github.com/baggepinnen/MonteCarloMeasurements.jl/issues/22
+parts(m::Model) = particles(m)
 parts(x::Normal{P} where {P <: AbstractParticles}) = Particles(length(x.μ), Normal()) * x.σ + x.μ
 parts(x::Sampleable{F,S}) where {F,S} = Particles(N,x)
 parts(x::Integer) = parts(float(x))
