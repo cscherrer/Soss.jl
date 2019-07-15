@@ -3,9 +3,7 @@
 
 export sourceParticles
 
-for f in [<=, >=, <, >]
-    @eval register_primitive($f)
-end
+foreach(register_primitive, [<=, >=, <, >])
 
 export makeParticles
 function makeParticles(m :: Model)
