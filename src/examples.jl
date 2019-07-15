@@ -33,6 +33,14 @@ normalModel = @model x begin
     x ~ Normal(μ,σ) |> iid(10)
 end
 
+# Is this right?
+export tdist
+tdist = @model ν begin
+    w ~ InverseGamma(ν/2,ν/2)
+    x ~ Normal(0, w^2)
+    return x
+end
+
 export nested
 nested = @model x begin
     μ ~ simpleModel(s = 2.0)
