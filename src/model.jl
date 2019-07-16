@@ -67,7 +67,7 @@ end
     end
 
     # Find connected components of what's left after removing parents
-    partition = simplify(g) |> SimpleGraphs.components |> collect
+    partition = SimpleGraphs.simplify(g) |> SimpleGraphs.components |> collect
 
     keep = Symbol[]
     for v ∈ vs
