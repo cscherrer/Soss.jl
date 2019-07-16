@@ -170,3 +170,9 @@ school8 = @model (y, σ) begin
       Normal(μ + τ * η[j], σ[j])
   end
 end
+
+export funnel
+funnel = @model begin
+    y ~ Normal(0, 3);
+    x ~ Normal(0, exp(y/2))
+end
