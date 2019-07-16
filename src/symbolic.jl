@@ -5,19 +5,21 @@ using MLStyle
 using Lazy
 
 
+log1p(s::Sym) = log(1 + s)
+
 # stats = PyCall.pyimport_conda("sympy.stats", "sympy")
 # import_from(stats)
 
+export sym
 sym(s::Symbol) = SymPy.symbols(s)
 sym(s) = Base.convert(Sym, s)
 function sym(expr::Expr) 
     @match expr begin
         Expr(:call, f, args...) => :($f($(map(sym,args)...)))
-        _                       => 
-            begin
-                @show expr
-                error("sym: Argument type not implemented")
-            end
+        _ => begin
+                 @show expr
+                 error("sym: Argument type not implemented")
+             end
     end
 end
 
@@ -119,7 +121,7 @@ function marginal(ℓ,v)
     f = ℓ.func
     f == sympy.Add || return ℓ
     newargs = filter(t -> sym(v) in t, collect(ℓ.args))
-    sum(newargs)
+    foldl(+,newargs)
 end
 
 marginal(m::Model, v) = marginal(m |> symlogpdf, v)
