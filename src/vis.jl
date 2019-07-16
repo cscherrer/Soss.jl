@@ -12,9 +12,6 @@ using PositiveFactorizations
 using LinearAlgebra
 using PDMats
 
-for f in [<=, >=, <, >]
-    register_primitive(f)
-end
 # register_primitive(logpdf)
 
 # Kish's effective sample size,
@@ -83,9 +80,17 @@ end
 
 function self_outer(v)
     reshape(v, :, 1) * reshape(v, 1, :)
-end
+end 
 
 @inline function visStep(N,logp,q)
+    # halfN = div(N,2)
+    # d = length(q.μ)
+    # z = Particles(N,MvNormal(3,1.0))
+    # for j in eachindex(z)
+    #     z[j].particles[end-halfN+1:end] .= -z[j].particles[1:halfN]
+    # end
+    # x = q.Σ.chol.UL * z + q.μ
+
     x = Particles(N,q)
     ℓ = logp(x) - logpdf(q,x)
     μ = expect(x,ℓ)
@@ -96,7 +101,7 @@ end
 function runInference(m; kwargs...)
     ℓp_pre = sourceLogdensity(m) |> eval
     ℓp(θ) = Base.invokelatest(ℓp_pre, θ) 
-    t = getTransform(m)
+    t = xform(m; kwargs...)
     d = t.dimension
     tnames = propertynames(t.transformations)
 
@@ -118,24 +123,26 @@ function runInference(m; kwargs...)
         mapslices(Particles,xx,dims=2)
         vec(xx)
     end
-    N = 1000
+    N = 10000
     q = fit_mle(MvNormal, asmatrix(x))
+    q = MvNormal(zeros(2,2) + 100*I)
     x = Particles(N,q)
     ℓ = logp(x) - logpdf(q,x)
 
 
     plts = []
     neff = [n_eff(ℓ)]
-    numiters = 1000
-    elbo = [expect(ℓ,ℓ)]
+    numiters = 10
+    elbo = [max(mean(ℓ),expect(ℓ,ℓ))]
     for j in 1:numiters
-        @time (x,ℓ,μ,Σ) = visStep(N,logp,q)
-        @show ℓ
-        push!(elbo, expect(ℓ,ℓ))
+        (x,ℓ,μ,Σ) = visStep(N,logp,q)
+        @inbounds @show j, elbo[end], neff[end]
+        push!(elbo, max(mean(ℓ),expect(ℓ,ℓ)))
         push!(neff, n_eff(ℓ))
-        neff[end] > 950 && break
+        @inbounds neff[end] > 5000 && break
         
-        η = 0.8 # learning rate
+        η = (neff[end] )/(neff[end] +neff[end-1])
+        # η = 0.8 # learning rate
         μ = η * μ + (1-η) * q.μ
         Σ = η * Σ + (1-η) * q.Σ
         q = MvNormal(μ,1.5 * Σ)
@@ -148,24 +155,24 @@ function runInference(m; kwargs...)
 end
 
 
-m = linReg1D
+m = funnel
 
 thedata = let
     n = 100
-    x = randn(n) .+ 10
+    x = randn(n) 
     y = 2 .* x .+ randn(n)
     (x=x,y=y)
 end
 
 (θ,q,ℓ,elbo,neff) = runInference(m; thedata...)
-plt = plot(elbo, label="ELBO")
-
+plot(elbo, label="ELBO")
+plot(neff, label="Effective Sample Size")
 
 θ
 # (α = thedata.α, β = thedata.β)#, σ = thedata.σ)
 
-@unpack α,β,σ = θ
+@unpack x,y = θ
 
-scatter(α.particles,β.particles, alpha=exp(ℓ - maximum(ℓ)).particles)
+scatter(x.particles,y.particles, alpha=exp(ℓ - maximum(ℓ)).particles)
 
 
