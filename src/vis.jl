@@ -83,14 +83,6 @@ function self_outer(v)
 end 
 
 @inline function visStep(N,logp,q)
-    # halfN = div(N,2)
-    # d = length(q.μ)
-    # z = Particles(N,MvNormal(3,1.0))
-    # for j in eachindex(z)
-    #     z[j].particles[end-halfN+1:end] .= -z[j].particles[1:halfN]
-    # end
-    # x = q.Σ.chol.UL * z + q.μ
-
     x = Particles(N,q)
     ℓ = logp(x) - logpdf(q,x)
     μ = expect(x,ℓ)
@@ -123,9 +115,8 @@ function runInference(m; kwargs...)
         mapslices(Particles,xx,dims=2)
         vec(xx)
     end
-    N = 10000
+    N = 1000
     q = fit_mle(MvNormal, asmatrix(x))
-    q = MvNormal(zeros(2,2) + 100*I)
     x = Particles(N,q)
     ℓ = logp(x) - logpdf(q,x)
 
