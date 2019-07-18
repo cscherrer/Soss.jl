@@ -5,7 +5,7 @@ using MLStyle
 using Lazy
 
 
-log1p(s::Sym) = log(1 + s)
+Base.log1p(s::Sym) = log(1 + s)
 
 # stats = PyCall.pyimport_conda("sympy.stats", "sympy")
 # import_from(stats)
@@ -68,6 +68,7 @@ function symlogpdf(d::Expr, x::Symbol)
                 :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
             end
 
+        # :(For($f, $))
         _ => :(logpdf($(sym(d)), $(sym(x))))
     end
 end
@@ -138,3 +139,51 @@ function dmarginal(ℓ, v)
 end
 
 dmarginal(m::Model, v) = dmarginal(m |> symlogpdf, v)
+
+function codegen(s::Sym)
+    @show s
+    s.func == sympy.Add && begin
+        @gensym add
+        ex = @q begin 
+            $add = 0.0
+        end
+        for arg in s.args
+            t = codegen(arg)
+            push!(ex.args, :($add += $t))
+        end
+        push!(ex.args, add)
+        return ex
+    end
+
+    s.func == sympy.Mul && begin
+        @gensym mul
+        ex = @q begin 
+            $mul = 1.0
+        end
+        for arg in s.args
+            t = codegen(arg)
+            push!(ex.args, :($mul *= $t))
+        end
+        push!(ex.args, mul)
+        return ex
+    end
+
+    s.func == -1 && return -1
+
+    # s.func == sympy.Sum && begin
+
+    # end
+
+    s.func == sympy.Symbol && return Symbol(string(s))
+        
+    # s.func == sympy.NegativeOne && begin
+    #     x = codegen(arg)
+    #     return :(-$x)
+    # end
+    
+    s.func == sympy.Float && return N(s)
+    @show s.func
+    error("codegen")
+end
+
+codegen(s::AbstractFloat) = s
