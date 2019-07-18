@@ -140,15 +140,20 @@ end
 
 dmarginal(m::Model, v) = dmarginal(m |> symlogpdf, v)
 
-symfuncs = Dict(
-      sympy.log => log
-    , sympy.Pow => :^
-    , sympy.Abs => abs
-)
+# https://discourse.julialang.org/t/pyobjects-as-keys/26521/2
+const symfuncs = Dict()
+function __init__()
+    merge!(symfuncs, Dict(
+          sympy.log => log
+        , sympy.Pow => :^
+        , sympy.Abs => abs
+        , sympy.Indexed => getindex
+    ))
+end
+
 
 export codegen
 function codegen(s::Sym)
-    @show s
     s.func == sympy.Add && begin
         @gensym add
         ex = @q begin 
@@ -192,12 +197,36 @@ function codegen(s::Sym)
         f = symfuncs[s.func]
         push!(ex.args, :($symfunc = $f($(argnames...))))
         push!(ex.args, symfunc)
-        # @show ex
         return ex
     end
 
+    s.func == sympy.Sum && begin
+        @gensym sum
+        @gensym Δsum
+        @gensym lo 
+        @gensym hi
+        
+        summand = codegen(s.args[1])
+        (ix, ixlo, ixhi) = s.args[2].args
+
+        ex = @q begin
+            $sum = 0.0
+            $lo = $(codegen(ixlo))
+            $hi = $(codegen(ixhi))
+            for $ix = $lo:$hi
+                $Δsum = $summand
+                $sum += $Δsum
+            end
+            $sum
+        end
+
+        return ex
+    end
+    
     s.func == sympy.Symbol && return Symbol(string(s))
         
+    s.func == sympy.IndexedBase && return Symbol(string(s))
+
     SymPy.is_real(s) && begin
         return N(s)
     end
