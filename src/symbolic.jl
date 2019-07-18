@@ -213,7 +213,7 @@ function codegen(s::Sym)
             $sum = 0.0
             $lo = $(codegen(ixlo))
             $hi = $(codegen(ixhi))
-            for $ix = $lo:$hi
+            for $(codegen(ix)) = $lo:$hi
                 $Δsum = $summand
                 $sum += $Δsum
             end
@@ -224,7 +224,7 @@ function codegen(s::Sym)
     end
     
     s.func == sympy.Symbol && return Symbol(string(s))
-        
+    s.func == sympy.Idx && return Symbol(string(s))        
     s.func == sympy.IndexedBase && return Symbol(string(s))
 
     SymPy.is_real(s) && begin
