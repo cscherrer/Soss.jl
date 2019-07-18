@@ -140,6 +140,13 @@ end
 
 dmarginal(m::Model, v) = dmarginal(m |> symlogpdf, v)
 
+symfuncs = Dict(
+      sympy.log => log
+    , sympy.Pow => :^
+    , sympy.Abs => abs
+)
+
+export codegen
 function codegen(s::Sym)
     @show s
     s.func == sympy.Add && begin
@@ -152,8 +159,10 @@ function codegen(s::Sym)
             push!(ex.args, :($add += $t))
         end
         push!(ex.args, add)
+        # @show ex
         return ex
     end
+
 
     s.func == sympy.Mul && begin
         @gensym mul
@@ -168,20 +177,32 @@ function codegen(s::Sym)
         return ex
     end
 
-    s.func == -1 && return -1
-
     # s.func == sympy.Sum && begin
 
     # end
 
+    s.func ∈ keys(symfuncs) && begin
+        @gensym symfunc
+        argnames = gensym.("arg" .* string.(1:length(s.args)))
+        argvals = codegen.(s.args)
+        ex = @q begin end
+        for (k,v) in zip(argnames, argvals)
+            push!(ex.args, :($k = $v))
+        end
+        f = symfuncs[s.func]
+        push!(ex.args, :($symfunc = $f($(argnames...))))
+        push!(ex.args, symfunc)
+        # @show ex
+        return ex
+    end
+
     s.func == sympy.Symbol && return Symbol(string(s))
         
-    # s.func == sympy.NegativeOne && begin
-    #     x = codegen(arg)
-    #     return :(-$x)
-    # end
-    
-    s.func == sympy.Float && return N(s)
+    SymPy.is_real(s) && begin
+        return N(s)
+    end
+
+
     @show s.func
     error("codegen")
 end
