@@ -88,15 +88,23 @@ function expandSums(s::Sym)
 end
 
 function expandSum(s::Sym)
-    println("expandSum")
-    @show s
-    println()
+    # println("expandSum")
+    # @show s
+    # println()
     @assert s.func == sympy.Sum
     sfunc = s.args[1].func
     sargs = s.args[1].args
     limits = s.args[2]
-    if sfunc in [sympy.Add]
+    ix = limits.args[1]
+    if sfunc == sympy.Add
         return sfunc([maybesum(t, limits) for t in sargs]...)
+    elseif sfunc == sympy.Mul
+        factors = sargs
+        constants = [fac for fac in factors if !(ix in fac)]
+        newconst = foldl(*,constants)
+        newfacs = foldl(*,setdiff(factors, constants))
+        newsum = sympy.Sum(newfacs, limits)
+        return newconst * newsum
     else
         return s
     end
@@ -114,9 +122,9 @@ function Base.in(j::Sym, s::Sym)
 end
 
 function maybesum(t::Sym, limits::Sym)
-    println("maybeSum")
-    @show t,limits
-    println()
+    # println("maybeSum")
+    # @show t,limits
+    # println()
     j = limits.args[1]
     thesum = sympy.Sum(t, limits)
     ifelse(j in t, thesum, thesum.doit())
