@@ -88,11 +88,14 @@ function expandSums(s::Sym)
 end
 
 function expandSum(s::Sym)
+    println("expandSum")
+    @show s
+    println()
     @assert s.func == sympy.Sum
     sfunc = s.args[1].func
     sargs = s.args[1].args
     limits = s.args[2]
-    if sfunc in [sympy.Add, sympy.Mul]
+    if sfunc in [sympy.Add]
         return sfunc([maybesum(t, limits) for t in sargs]...)
     else
         return s
@@ -111,6 +114,9 @@ function Base.in(j::Sym, s::Sym)
 end
 
 function maybesum(t::Sym, limits::Sym)
+    println("maybeSum")
+    @show t,limits
+    println()
     j = limits.args[1]
     thesum = sympy.Sum(t, limits)
     ifelse(j in t, thesum, thesum.doit())
@@ -187,6 +193,7 @@ function codegen(s::Sym)
     # end
 
     s.func ∈ keys(symfuncs) && begin
+        # @show s
         @gensym symfunc
         argnames = gensym.("arg" .* string.(1:length(s.args)))
         argvals = codegen.(s.args)
@@ -213,7 +220,7 @@ function codegen(s::Sym)
             $sum = 0.0
             $lo = $(codegen(ixlo))
             $hi = $(codegen(ixhi))
-            for $(codegen(ix)) = $lo:$hi
+            @inbounds @simd for $(codegen(ix)) = $lo:$hi
                 $Δsum = $summand
                 $sum += $Δsum
             end
@@ -227,6 +234,7 @@ function codegen(s::Sym)
     s.func == sympy.Idx && return Symbol(string(s))        
     s.func == sympy.IndexedBase && return Symbol(string(s))
 
+    # @show s
     SymPy.is_real(s) && begin
         return N(s)
     end
@@ -237,3 +245,29 @@ function codegen(s::Sym)
 end
 
 codegen(s::AbstractFloat) = s
+
+# export codegen
+function codegen(m::Model)
+    code = codegen(symlogpdf(m))
+    unknowns = parameters(m) ∪ arguments(m)
+    unkExpr = Expr(:tuple,unknowns...)
+    @gensym logdensity
+    result = @q begin
+        function $logdensity(pars)
+            @unpack $(unkExpr) = pars
+            $code
+        end
+    end
+
+    flatten(result)
+end
+
+# s = symlogpdf(normalModel).args[7].args[3]
+
+# export fexpr
+# fexpr = quote
+#     f = function(μ,σ,x)
+#         a = $(codegen(s))
+#         return a
+#     end
+# end
