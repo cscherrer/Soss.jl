@@ -4,9 +4,6 @@ import PyCall
 using MLStyle
 using Lazy
 
-
-Base.log1p(s::Sym) = log(1 + s)
-
 # stats = PyCall.pyimport_conda("sympy.stats", "sympy")
 # import_from(stats)
 
