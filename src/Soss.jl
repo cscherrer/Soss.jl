@@ -29,7 +29,7 @@ include("symbolic.jl")
 include("sobols.jl")
 include("fromcube.jl")
 include("tocube.jl")
-# include("particles.jl")
+include("particles.jl")
 include("xform.jl")
 include("toposort.jl")
 end # module
