@@ -37,7 +37,8 @@ function symlogpdf(m::Model)
     append!(result.args, exprs)
 
     push!(result.args, :(ℓ))
-    eval(result) |> expandSums
+    result
+    # eval(result) |> expandSums
 end
 
 function symlogpdf(st::Soss.Follows)
@@ -51,6 +52,7 @@ function symlogpdf(st::Soss.Let)
     val = st.rhs
     x = st.x
     :(ctx[$(QuoteNode(x))] = $(sym(val)))
+    # :($x = $(sym(val)))
 end
 
 
@@ -59,13 +61,28 @@ end
 function symlogpdf(d::Expr, x::Symbol)
     @match d begin
         :(iid($n,$dist)) => begin
-                j = symbols(:j, cls=sympy.Idx)
-                dist = sym(dist)
-                x = sympy.IndexedBase(x)
-                :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
-            end
+            j = symbols(:j, cls=sympy.Idx)
+            dist = sym(dist)
+            x = sympy.IndexedBase(x)
+            :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
+        end
 
-        # :(For($f, $))
+        :(For($f, 1:$n)) => begin
+            @match f begin
+                :(($j,) -> $dist) => begin
+                    j = symbols(j, cls=sympy.Idx)
+                    x = sympy.IndexedBase(x)
+                    return :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
+                end
+
+                f => begin
+                    @show f
+                    error("symlogpdf: bad argument")
+                end
+            end
+            
+        end
+
         _ => :(logpdf($(sym(d)), $(sym(x))))
     end
 end
@@ -276,3 +293,4 @@ end
 #         return a
 #     end
 # end
+
