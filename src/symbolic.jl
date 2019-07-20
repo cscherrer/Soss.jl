@@ -4,9 +4,6 @@ import PyCall
 using MLStyle
 using Lazy
 
-
-log1p(s::Sym) = log(1 + s)
-
 # stats = PyCall.pyimport_conda("sympy.stats", "sympy")
 # import_from(stats)
 
@@ -68,6 +65,7 @@ function symlogpdf(d::Expr, x::Symbol)
                 :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
             end
 
+        # :(For($f, $))
         _ => :(logpdf($(sym(d)), $(sym(x))))
     end
 end
@@ -87,12 +85,23 @@ function expandSums(s::Sym)
 end
 
 function expandSum(s::Sym)
+    # println("expandSum")
+    # @show s
+    # println()
     @assert s.func == sympy.Sum
     sfunc = s.args[1].func
     sargs = s.args[1].args
     limits = s.args[2]
-    if sfunc in [sympy.Add, sympy.Mul]
+    ix = limits.args[1]
+    if sfunc == sympy.Add
         return sfunc([maybesum(t, limits) for t in sargs]...)
+    elseif sfunc == sympy.Mul
+        factors = sargs
+        constants = [fac for fac in factors if !(ix in fac)]
+        newconst = foldl(*,constants)
+        newfacs = foldl(*,setdiff(factors, constants))
+        newsum = sympy.Sum(newfacs, limits)
+        return newconst * newsum
     else
         return s
     end
@@ -110,6 +119,9 @@ function Base.in(j::Sym, s::Sym)
 end
 
 function maybesum(t::Sym, limits::Sym)
+    # println("maybeSum")
+    # @show t,limits
+    # println()
     j = limits.args[1]
     thesum = sympy.Sum(t, limits)
     ifelse(j in t, thesum, thesum.doit())
@@ -138,3 +150,129 @@ function dmarginal(ℓ, v)
 end
 
 dmarginal(m::Model, v) = dmarginal(m |> symlogpdf, v)
+
+# https://discourse.julialang.org/t/pyobjects-as-keys/26521/2
+const symfuncs = Dict()
+function __init__()
+    merge!(symfuncs, Dict(
+          sympy.log => log
+        , sympy.Pow => :^
+        , sympy.Abs => abs
+        , sympy.Indexed => getindex
+    ))
+end
+
+
+export codegen
+function codegen(s::Sym)
+    s.func == sympy.Add && begin
+        @gensym add
+        ex = @q begin 
+            $add = 0.0
+        end
+        for arg in s.args
+            t = codegen(arg)
+            push!(ex.args, :($add += $t))
+        end
+        push!(ex.args, add)
+        # @show ex
+        return ex
+    end
+
+
+    s.func == sympy.Mul && begin
+        @gensym mul
+        ex = @q begin 
+            $mul = 1.0
+        end
+        for arg in s.args
+            t = codegen(arg)
+            push!(ex.args, :($mul *= $t))
+        end
+        push!(ex.args, mul)
+        return ex
+    end
+
+    # s.func == sympy.Sum && begin
+
+    # end
+
+    s.func ∈ keys(symfuncs) && begin
+        # @show s
+        @gensym symfunc
+        argnames = gensym.("arg" .* string.(1:length(s.args)))
+        argvals = codegen.(s.args)
+        ex = @q begin end
+        for (k,v) in zip(argnames, argvals)
+            push!(ex.args, :($k = $v))
+        end
+        f = symfuncs[s.func]
+        push!(ex.args, :($symfunc = $f($(argnames...))))
+        push!(ex.args, symfunc)
+        return ex
+    end
+
+    s.func == sympy.Sum && begin
+        @gensym sum
+        @gensym Δsum
+        @gensym lo 
+        @gensym hi
+        
+        summand = codegen(s.args[1])
+        (ix, ixlo, ixhi) = s.args[2].args
+
+        ex = @q begin
+            $sum = 0.0
+            $lo = $(codegen(ixlo))
+            $hi = $(codegen(ixhi))
+            @inbounds @simd for $(codegen(ix)) = $lo:$hi
+                $Δsum = $summand
+                $sum += $Δsum
+            end
+            $sum
+        end
+
+        return ex
+    end
+    
+    s.func == sympy.Symbol && return Symbol(string(s))
+    s.func == sympy.Idx && return Symbol(string(s))        
+    s.func == sympy.IndexedBase && return Symbol(string(s))
+
+    # @show s
+    SymPy.is_real(s) && begin
+        return N(s)
+    end
+
+
+    @show s.func
+    error("codegen")
+end
+
+codegen(s::AbstractFloat) = s
+
+# export codegen
+function codegen(m::Model)
+    code = codegen(symlogpdf(m))
+    unknowns = parameters(m) ∪ arguments(m)
+    unkExpr = Expr(:tuple,unknowns...)
+    @gensym logdensity
+    result = @q begin
+        function $logdensity(pars)
+            @unpack $(unkExpr) = pars
+            $code
+        end
+    end
+
+    flatten(result)
+end
+
+# s = symlogpdf(normalModel).args[7].args[3]
+
+# export fexpr
+# fexpr = quote
+#     f = function(μ,σ,x)
+#         a = $(codegen(s))
+#         return a
+#     end
+# end
