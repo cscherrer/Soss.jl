@@ -393,3 +393,18 @@ function buildSource(m, proc; kwargs...)
     end
     q
 end
+
+# From https://github.com/thautwarm/MLStyle.jl/issues/66
+@active LamExpr(x) begin
+           @match x begin
+               :($a -> begin $(bs...) end) => 
+                 let exprs = filter(x -> !(x isa LineNumberNode), bs)
+                   if length(exprs) == 1
+                     (a, exprs[1])
+                   else
+                     (a, Expr(:block, bs...))
+                     end
+               end
+                _  => nothing
+           end
+       end
