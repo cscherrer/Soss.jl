@@ -69,7 +69,7 @@ function symlogpdf(d::Expr, x::Symbol)
 
         :(For($f, 1:$n)) => begin
             @match f begin
-                :(($j,) -> $dist) => begin
+                LamExpr(j, dist) => begin
                     j = symbols(j, cls=sympy.Idx)
                     x = sympy.IndexedBase(x)
                     return :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
