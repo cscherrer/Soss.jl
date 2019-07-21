@@ -13,6 +13,11 @@ sym(s) = Base.convert(Sym, s)
 function sym(expr::Expr) 
     @match expr begin
         Expr(:call, f, args...) => :($f($(map(sym,args)...)))
+        :($x[$j]) => begin
+            j = symbols(:j, cls=sympy.Idx)
+            x = sympy.IndexedBase(x)
+            return x[j]
+        end
         _ => begin
                  @show expr
                  error("sym: Argument type not implemented")
@@ -37,8 +42,8 @@ function symlogpdf(m::Model)
     append!(result.args, exprs)
 
     push!(result.args, :(ℓ))
-    result
-    # eval(result) |> expandSums
+    # result
+    eval(result) |> expandSums
 end
 
 function symlogpdf(st::Soss.Follows)
@@ -69,11 +74,15 @@ function symlogpdf(d::Expr, x::Symbol)
 
         :(For($f, 1:$n)) => begin
             @match f begin
-                LamExpr(j, dist) => begin
-                    j = symbols(j, cls=sympy.Idx)
-                    x = sympy.IndexedBase(x)
-                    return :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
+                :(($j,) -> begin $lineno; $dist end) => begin
+                            j = symbols(j) # , cls=sympy.Idx)
+                            @show j
+                            dist = sym(dist)
+                            @show dist
+                            x = sympy.IndexedBase(x)
+                            return :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
                 end
+                   
 
                 f => begin
                     @show f
