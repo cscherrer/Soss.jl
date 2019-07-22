@@ -48,10 +48,18 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 SymPy = "24249f21-da20-56a4-8eb1-6a02cf4ae2e6"
 TableTraits = "3783bdb8-4a98-5b6b-af9a-565f29a5fe9c"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TikzGraphs = "b4f28e30-c73f-5eaf-a395-8a9db949a742"
 TikzPictures = "37f6aa50-8035-52d0-81c2-5a1d08754b2d"
 Tokenize = "0796e94c-ce3b-5d07-9a54-7f471281c624"
 Traceur = "37b6cedf-1f77-55f8-9503-c64b63398394"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[compat]
+julia = "^1.0"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
