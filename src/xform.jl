@@ -32,7 +32,7 @@ function sourceXform(m::Model)
 
     body = buildSource(m, proc) |> striplines
     
-    argsExpr = Expr(:tuple,freeVariables(m)...)
+    argsExpr = Expr(:tuple,arguments(m)...)
 
     
     @gensym rand
