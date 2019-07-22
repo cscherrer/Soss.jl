@@ -42,8 +42,9 @@ function toposort(m::Model)
     sortedvs = toposortvars(m)
     body = Statement[]
     for v in sortedvs
-        j = findfirst(isequal(v), modelvs)
-        isnothing(j) || push!(body, m.body[j])
+        for j in findall(isequal(v), modelvs)
+            isnothing(j) || push!(body, m.body[j])
+        end
     end
     Model(m.args, body)
 end
