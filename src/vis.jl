@@ -97,7 +97,8 @@ function runInference(m; kwargs...)
     d = t.dimension
     tnames = propertynames(t.transformations)
 
-    kwargs = collect(pairs(kwargs)) |> namedtuple
+    # make kwargs a NamedTuple
+    kwargs = (;zip(keys(kwargs), values(kwargs))...)
 
     function logp(x::Vector{T} where T)
         prep(θ) = merge(kwargs, θ)
@@ -123,17 +124,17 @@ function runInference(m; kwargs...)
 
     plts = []
     neff = [n_eff(ℓ)]
-    numiters = 10
+    numiters = 100
     elbo = [max(mean(ℓ),expect(ℓ,ℓ))]
     for j in 1:numiters
         (x,ℓ,μ,Σ) = visStep(N,logp,q)
         @inbounds @show j, elbo[end], neff[end]
         push!(elbo, max(mean(ℓ),expect(ℓ,ℓ)))
         push!(neff, n_eff(ℓ))
-        @inbounds neff[end] > 5000 && break
+        @inbounds neff[end] > 950 && break
         
-        η = (neff[end] )/(neff[end] +neff[end-1])
-        # η = 0.8 # learning rate
+        # η = (neff[end] )/(neff[end] +neff[end-1])
+        η = 0.8 # learning rate
         μ = η * μ + (1-η) * q.μ
         Σ = η * Σ + (1-η) * q.Σ
         q = MvNormal(μ,1.5 * Σ)
@@ -146,14 +147,15 @@ function runInference(m; kwargs...)
 end
 
 
-m = funnel
+m = @model x begin
+        μ ~ Cauchy()
+        σ ~ HalfCauchy()
+        N = length(x)
+        x ~ Normal(μ, σ) |> iid(N)
+    end
 
-thedata = let
-    n = 100
-    x = randn(n) 
-    y = 2 .* x .+ randn(n)
-    (x=x,y=y)
-end
+
+thedata = (x=randn(1000),)
 
 (θ,q,ℓ,elbo,neff) = runInference(m; thedata...)
 plot(elbo, label="ELBO")
@@ -162,8 +164,8 @@ plot(neff, label="Effective Sample Size")
 θ
 # (α = thedata.α, β = thedata.β)#, σ = thedata.σ)
 
-@unpack x,y = θ
+@unpack μ,σ = θ
 
-scatter(x.particles,y.particles, alpha=exp(ℓ - maximum(ℓ)).particles)
+scatter(μ.particles,σ.particles, alpha=exp(ℓ - maximum(ℓ)).particles)
 
 
