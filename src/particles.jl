@@ -52,24 +52,23 @@ end
 
 export parts
 
-N = 1000
 
 # Just a little helper function for particles
 # https://github.com/baggepinnen/MonteCarloMeasurements.jl/issues/22
-parts(m::Model) = particles(m)
-parts(x::Normal{P} where {P <: AbstractParticles}) = Particles(length(x.μ), Normal()) * x.σ + x.μ
-parts(x::Sampleable{F,S}) where {F,S} = Particles(N,x)
-parts(x::Integer) = parts(float(x))
-parts(x::Real) = parts(repeat([x],N))
-parts(x::AbstractArray) = Particles(x)
-parts(p::Particles) = p 
-parts(d::For) = map(d.θs) do θ 
+parts(m::Model; N=1000) = particles(m)
+parts(x::Normal{P} where {P <: AbstractParticles}; N=1000) = Particles(length(x.μ), Normal()) * x.σ + x.μ
+parts(x::Sampleable{F,S}; N=1000) where {F,S} = Particles(N,x)
+parts(x::Integer; N=1000) = parts(float(x))
+parts(x::Real; N=1000) = parts(repeat([x],N))
+parts(x::AbstractArray; N=1000) = Particles(x)
+parts(p::Particles; N=1000) = p 
+parts(d::For; N=1000) = map(d.θs) do θ 
     parts(d.f(θ))
 end
 
 
 
-parts(d::iid) = map(1:d.size) do j parts(d.dist) end
+parts(d::iid; N=1000) = map(1:d.size) do j parts(d.dist) end
 # size
 # dist 
 
