@@ -69,10 +69,12 @@ function symlogpdf(d::Expr, x::Symbol)
             j = symbols(:j, cls=sympy.Idx)
             dist = sym(dist)
             x = sympy.IndexedBase(x)
+            n = sym(n)
             :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
         end
 
         :(For($f, 1:$n)) => begin
+            n = sym(n)
             @match f begin
                 :(($j,) -> begin $lineno; $dist end) => begin
                             j = symbols(j) # , cls=sympy.Idx)
