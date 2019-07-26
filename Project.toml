@@ -1,9 +1,10 @@
 name = "Soss"
 uuid = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
-version = "0.1.0"
 author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
+version = "0.1.0"
 
 [deps]
+AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 DataValueInterfaces = "e2d170a0-9d28-54be-80f0-106bbe20a464"
@@ -20,6 +21,7 @@ Lazy = "50d2b5c4-7a5e-59d5-8109-a42b560f39c0"
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
 LogDensityProblems = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
 LowLevelParticleFilters = "d9d29d28-c116-5dba-9239-57a5fe23875b"
+MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
 MCMCDiagnostics = "6e857e4b-079a-58c4-aeab-bc2670384359"
 MLStyle = "d8e11817-5142-5d16-987a-aa16d5891078"
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
@@ -54,6 +56,7 @@ TikzPictures = "37f6aa50-8035-52d0-81c2-5a1d08754b2d"
 Tokenize = "0796e94c-ce3b-5d07-9a54-7f471281c624"
 Traceur = "37b6cedf-1f77-55f8-9503-c64b63398394"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
+Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
