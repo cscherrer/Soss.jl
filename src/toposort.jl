@@ -32,11 +32,13 @@ end
 
 export toposortvars
 function toposortvars(m::Model)
-    (g, _, names) = poset(m).D |> convert_simple
-    [names[v] for v in Graphs.topological_sort_by_dfs(g)]
+    (g, _, names) = poset(unobserve(m)).D |> convert_simple
+    unobs = [names[v] for v in Graphs.topological_sort_by_dfs(g)]
+    obs = observed(m)
+    vcat(unobs, obs)
 end
 
-export(toposort)
+export toposort 
 function toposort(m::Model)
     modelvs = varName.(m.body)
     sortedvs = toposortvars(m)
