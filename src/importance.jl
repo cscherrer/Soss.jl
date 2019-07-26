@@ -123,9 +123,9 @@ end
 
 export makeImportanceSampler
 function makeImportanceSampler(p,q)
-    fpre = @eval $(sourceImportanceLogWeights(p,q))
+    fpre = @eval $(sourceImportanceSampler(p,q))
 
-    function f(;kwargs...) 
+    function f(r;kwargs...) 
         qsample = r(;kwargs...)
         ℓ = Base.invokelatest(fpre, merge(kwargs, pairs(qsample)))
         return (qsample, ℓ)
