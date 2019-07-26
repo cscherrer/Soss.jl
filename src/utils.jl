@@ -229,14 +229,15 @@ dependencies = poset
 # #     return supps
 # # end
 
-macro preval(x)
-    eval(x) |> esc
+
+export makeLogdensity
+function makeLogdensity(m :: Model)
+    fpre = @eval $(sourceLogdensity(m))
+    f(par) = Base.invokelatest(fpre, par)
 end
 
-macro logdensity(n)
-    @show n
-    :(@preval sourceLogdensity($n))
-end
+export logdensity
+logdensity(m::Model, par) = makeLogdensity(m)(par)
 
 
 
@@ -274,6 +275,7 @@ allequal(xs) = all(xs[1] .== xs)
 # function findsubexprs(expr, vs)
 #     intersect(getSymbols(expr), vs)
 # end
+
 
 export prior
 function prior(m :: Model)
