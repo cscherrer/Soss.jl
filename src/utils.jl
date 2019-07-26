@@ -357,9 +357,15 @@ end
 # end
 
 
-export unobserve
-function unobserve(m::Model)
-    Model(freeVariables(m), m.body)
+function unobserve(m::Model; ℓ=:ℓ)
+    function proc(m, st :: Follows) 
+        st.x ∈ observed(m) && return nothing
+        return st
+    end
+    proc(m, st) = st
+    body = buildSource(m, proc)
+
+    Model(freeVariables(m), body)
 end
 
 
