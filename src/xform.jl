@@ -95,7 +95,8 @@ end
 
 
 function xform(d::For)
-    allequal(d.f.(d.θs)) && return as(Array, xform(d.f(d.θs[1])), size(d.θs)...)
+    # allequal(d.f.(d.θs)) && 
+    return as(Array, xform(d.f(d.θs[1])), size(d.θs)...)
     
     # TODO: Implement case of unequal supports
     @error "xform: Unequal supports not yet supported"
