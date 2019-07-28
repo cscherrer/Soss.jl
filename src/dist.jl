@@ -31,12 +31,13 @@ end
 HalfNormal() = HalfNormal(1)
 
 
-Distributions.logpdf(d::HalfNormal,x::Real) = log(Sym(2)) + logpdf(Normal(0,d.σ),x)
+Distributions.logpdf(d::HalfNormal,x::Real) = log(2) + logpdf(Normal(0,d.σ),x)
 
 Distributions.pdf(d::HalfNormal,x) = 2 * pdf(Normal(0,d.σ),x)
 
 Distributions.rand(d::HalfNormal) = abs(rand(Normal(0,d.σ)))
 
+Distributions.support(::HalfNormal) = RealInterval(0.0, Inf)
 
 # HalfNormal(s) = Truncated(Normal(0,s),0,Inf)
 # HalfNormal() = Truncated(Normal(0,1.0),0,Inf)
