@@ -75,11 +75,6 @@ git-tree-sha1 = "f60954495a7afcee4136f78d1d60350abd37a409"
 uuid = "49dc2e85-a5d0-5ad3-a950-438e2897f1b9"
 version = "0.4.1"
 
-[[Cassette]]
-git-tree-sha1 = "09aed2c4093e9ed29b08f6660ad959fcb6847cd1"
-uuid = "7057c7e9-c182-5462-911a-8362d720325c"
-version = "0.2.5"
-
 [[CategoricalArrays]]
 deps = ["Compat", "Future", "JSON", "Missings", "Printf", "Reexport"]
 git-tree-sha1 = "26601961df6afacdd16d67c1eec6cfe75e5ae9ab"
@@ -263,12 +258,6 @@ git-tree-sha1 = "4c4d727f1b7e0092134fabfab6396b8945c1ea5b"
 uuid = "f6369f11-7733-5829-9624-2563aa707210"
 version = "0.10.3"
 
-[[FunctionWrappers]]
-deps = ["Compat"]
-git-tree-sha1 = "49bf793ebd37db5adaa7ac1eae96c2c97ec86db5"
-uuid = "069b7b12-0de2-55c6-9aab-29f3d0a68a2e"
-version = "1.0.0"
-
 [[Future]]
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
@@ -296,12 +285,6 @@ deps = ["DataStructures", "SparseArrays"]
 git-tree-sha1 = "9409e40f53532c45f2478c33531aa7a65ec4e2de"
 uuid = "86223c79-3864-5bf0-83f7-82e725a168b6"
 version = "0.10.3"
-
-[[HeaderREPLs]]
-deps = ["REPL", "Test"]
-git-tree-sha1 = "02a6f6a18aed92f9838212b40ca8eadcc90da25e"
-uuid = "54d51984-71c9-52bd-8df9-6718e63e4153"
-version = "0.3.0"
 
 [[IRTools]]
 deps = ["InteractiveUtils", "MacroTools", "Test"]
@@ -360,12 +343,6 @@ deps = ["Base64", "Logging", "Media", "Profile", "Test"]
 git-tree-sha1 = "4e4a8d43aa7ecec66cadaf311fbd1e5c9d7b9175"
 uuid = "e5e0dc1b-0480-54bc-9374-aad01c23163d"
 version = "0.7.0"
-
-[[LaTeXStrings]]
-deps = ["Compat"]
-git-tree-sha1 = "7ab9b8788cfab2bdde22adf9004bda7ad9954b6c"
-uuid = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
-version = "1.0.3"
 
 [[Lazy]]
 deps = ["Compat", "MacroTools", "Test"]
@@ -611,12 +588,6 @@ uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
-[[Rebugger]]
-deps = ["CodeTracking", "HeaderREPLs", "InteractiveUtils", "JuliaInterpreter", "REPL", "Revise", "UUIDs"]
-git-tree-sha1 = "1810b4692fafb29716e4b9fe0fcf4ede878e5c61"
-uuid = "ee283ea6-eecd-56e3-beb3-83eb4d3c31e9"
-version = "0.3.2"
-
 [[RecipesBase]]
 git-tree-sha1 = "7bdce29bc9b2f5660a6e5e64d64d91ec941f6aa2"
 uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
@@ -639,12 +610,6 @@ deps = ["MacroTools", "Test"]
 git-tree-sha1 = "0dee5d8f4d748272fbee9b3710ba9c5558c22ac1"
 uuid = "c5292f4c-5179-55e1-98c5-05642aab7184"
 version = "0.4.2"
-
-[[ReverseDiff]]
-deps = ["DiffResults", "DiffRules", "ForwardDiff", "FunctionWrappers", "LinearAlgebra", "NaNMath", "Random", "SpecialFunctions", "StaticArrays", "Statistics", "Test"]
-git-tree-sha1 = "d44e80d815a1a5abaf1ff1def21bb629cabaffec"
-uuid = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
-version = "0.3.1"
 
 [[Revise]]
 deps = ["CodeTracking", "Distributed", "FileWatching", "JuliaInterpreter", "LibGit2", "LoweredCodeUtils", "OrderedCollections", "Pkg", "REPL", "UUIDs", "Unicode"]
@@ -711,12 +676,6 @@ deps = ["InteractiveUtils", "MacroTools"]
 git-tree-sha1 = "05bbf4484b975782e5e54bb0750f21f7f2f66171"
 uuid = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
 version = "0.9.0"
-
-[[Sobol]]
-deps = ["Random"]
-git-tree-sha1 = "5573a7dfa088be45601a4d6a3e9841d1ac9a755e"
-uuid = "ed01d8cd-4d21-5b2a-85b4-cc3bdc58bad4"
-version = "1.2.0"
 
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
@@ -787,18 +746,6 @@ version = "0.2.9"
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
-[[TikzGraphs]]
-deps = ["LightGraphs", "Test", "TikzPictures"]
-git-tree-sha1 = "244e76babc8c358c8eb93617bcb6789f5cd8cb8b"
-uuid = "b4f28e30-c73f-5eaf-a395-8a9db949a742"
-version = "1.0.1"
-
-[[TikzPictures]]
-deps = ["LaTeXStrings", "Test"]
-git-tree-sha1 = "01a44f70c9b1d592968538e5de528e079f2418b6"
-uuid = "37f6aa50-8035-52d0-81c2-5a1d08754b2d"
-version = "3.0.5"
-
 [[TimerOutputs]]
 deps = ["Crayons", "Printf", "Test", "Unicode"]
 git-tree-sha1 = "b80671c06f8f8bae08c55d67b5ce292c5ae2660c"
@@ -809,12 +756,6 @@ version = "0.5.0"
 git-tree-sha1 = "c8a8b00ae44a94950814ff77850470711a360225"
 uuid = "0796e94c-ce3b-5d07-9a54-7f471281c624"
 version = "0.5.5"
-
-[[Traceur]]
-deps = ["Cassette", "InteractiveUtils", "Logging", "MacroTools", "Test"]
-git-tree-sha1 = "c007db8fbec24668a7cdf4a878202abb648d568f"
-uuid = "37b6cedf-1f77-55f8-9503-c64b63398394"
-version = "0.3.0"
 
 [[Tracker]]
 deps = ["Adapt", "DiffRules", "ForwardDiff", "LinearAlgebra", "MacroTools", "NNlib", "NaNMath", "Printf", "Random", "Requires", "SpecialFunctions", "Statistics", "Test"]
