@@ -50,6 +50,16 @@ function sourceParticles(m::Model)
 
 end
 
+particles(n :: NUTS_result) = particles(n.samples)
+
+function particles(s::Vector{NamedTuple{vs, T}} where {vs, T})
+    nt = NamedTuple()
+    for v in keys(s[1])
+        nt = merge(nt, [v => Particles(getproperty.(s,v))])
+    end
+    nt
+end
+
 export parts
 
 
@@ -78,5 +88,5 @@ parts(d::iid; N=1000) = map(1:d.size) do j parts(d.dist) end
 # Base.promote(a::Particles{T,N}, b)  where {T,N} = (a,parts(b))
 # Base.promote(a, b::Particles{T,N})  where {T,N} = (parts(a),b)
 
-promote_rule(::Type{A}, ::Type{B}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N}
-promote_rule(::Type{B}, ::Type{A}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N}
+# promote_rule(::Type{A}, ::Type{B}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
+# promote_rule(::Type{B}, ::Type{A}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
