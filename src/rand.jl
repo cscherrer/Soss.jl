@@ -45,3 +45,5 @@ function sourceRand(m::Model)
     ))
 
 end
+
+getrand(f, args...; kwargs...) = rand(f(args...; kwargs...))

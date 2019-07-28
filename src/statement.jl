@@ -10,7 +10,7 @@ end
 
 struct Follows <: Statement
     x :: Symbol
-    rhs 
+    rhs :: RHS
 end
 
 struct Return <: Statement
