@@ -470,19 +470,11 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[LogDensityProblems]]
 deps = ["ArgCheck", "BenchmarkTools", "DiffResults", "DocStringExtensions", "Parameters", "Random", "Requires", "TransformVariables"]
-<<<<<<< Updated upstream
 git-tree-sha1 = "2a97dcb4e23ce0d2ae2d671dc884fb4327a9641d"
 repo-rev = "master"
 repo-url = "https://github.com/tpapp/LogDensityProblems.jl.git"
 uuid = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
 version = "0.8.3"
-=======
-git-tree-sha1 = "b1c15910c01e385b9b3c2f8f29fbb2b4235354a8"
-repo-rev = "master"
-repo-url = "https://github.com/tpapp/LogDensityProblems.jl.git"
-uuid = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
-version = "0.9.0"
->>>>>>> Stashed changes
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -498,15 +490,12 @@ deps = ["JuliaInterpreter"]
 git-tree-sha1 = "4b72bf66daf6fd25e368518069c082545a25541c"
 uuid = "6f1432cf-f94c-5a45-995e-cdbf5db27b0b"
 version = "0.3.6"
-<<<<<<< Updated upstream
 
 [[MCMCChains]]
 deps = ["AxisArrays", "DataFrames", "Distributions", "KernelDensity", "LinearAlgebra", "Plots", "Random", "RecipesBase", "Serialization", "Showoff", "SpecialFunctions", "Statistics", "StatsBase"]
 git-tree-sha1 = "a38ad31a2f43b0db94b993c0a6185d5ef368c1d5"
 uuid = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
 version = "0.3.10"
-=======
->>>>>>> Stashed changes
 
 [[MCMCDiagnostics]]
 deps = ["Random", "Statistics", "StatsBase", "Test"]
