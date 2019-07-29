@@ -99,11 +99,6 @@ git-tree-sha1 = "f60954495a7afcee4136f78d1d60350abd37a409"
 uuid = "49dc2e85-a5d0-5ad3-a950-438e2897f1b9"
 version = "0.4.1"
 
-[[Cassette]]
-git-tree-sha1 = "09aed2c4093e9ed29b08f6660ad959fcb6847cd1"
-uuid = "7057c7e9-c182-5462-911a-8362d720325c"
-version = "0.2.5"
-
 [[CategoricalArrays]]
 deps = ["Compat", "DataAPI", "Future", "JSON", "Missings", "Printf", "Reexport"]
 git-tree-sha1 = "13240cfcc884837fc1aa89b60d500a652bcc3f10"
@@ -224,9 +219,7 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
 deps = ["LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "d7c3f37eacbe14424ab3169af8049effe3915fad"
-repo-rev = "unsafe"
-repo-url = "https://github.com/cscherrer/Distributions.jl"
+git-tree-sha1 = "4ae0ff1a3a556383f7b1b004f5fb964b26ac96c9"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
 version = "0.20.0"
 
@@ -281,10 +274,8 @@ uuid = "b67e1e5a-d13e-5892-ad81-fb75f5903773"
 version = "0.0.3"
 
 [[Flux]]
-deps = ["AbstractTrees", "Adapt", "CodecZlib", "Colors", "DelimitedFiles", "Juno", "LinearAlgebra", "MacroTools", "NNlib", "Pkg", "Printf", "Random", "Reexport", "Requires", "SHA", "Statistics", "StatsBase", "Test", "ZipFile", "Zygote"]
-git-tree-sha1 = "01debcc73af2428239343f5c3c0f8562529e91a0"
-repo-rev = "zygote"
-repo-url = "https://github.com/FluxML/Flux.jl.git"
+deps = ["AbstractTrees", "Adapt", "CodecZlib", "Colors", "DelimitedFiles", "Juno", "LinearAlgebra", "MacroTools", "NNlib", "Pkg", "Printf", "Random", "Reexport", "Requires", "SHA", "Statistics", "StatsBase", "Tracker", "ZipFile"]
+git-tree-sha1 = "08212989c2856f95f90709ea5fd824bd27b34514"
 uuid = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 version = "0.8.3"
 
@@ -293,12 +284,6 @@ deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "InteractiveUtils", 
 git-tree-sha1 = "4c4d727f1b7e0092134fabfab6396b8945c1ea5b"
 uuid = "f6369f11-7733-5829-9624-2563aa707210"
 version = "0.10.3"
-
-[[FunctionWrappers]]
-deps = ["Compat"]
-git-tree-sha1 = "49bf793ebd37db5adaa7ac1eae96c2c97ec86db5"
-uuid = "069b7b12-0de2-55c6-9aab-29f3d0a68a2e"
-version = "1.0.0"
 
 [[Future]]
 deps = ["Random"]
@@ -328,17 +313,9 @@ git-tree-sha1 = "9409e40f53532c45f2478c33531aa7a65ec4e2de"
 uuid = "86223c79-3864-5bf0-83f7-82e725a168b6"
 version = "0.10.3"
 
-[[HeaderREPLs]]
-deps = ["REPL", "Test"]
-git-tree-sha1 = "02a6f6a18aed92f9838212b40ca8eadcc90da25e"
-uuid = "54d51984-71c9-52bd-8df9-6718e63e4153"
-version = "0.3.0"
-
 [[IRTools]]
 deps = ["InteractiveUtils", "MacroTools", "Test"]
 git-tree-sha1 = "a9b1fc7745ae4745a634bbb6d1cb7fd64e37248a"
-repo-rev = "master"
-repo-url = "https://github.com/MikeInnes/IRTools.jl.git"
 uuid = "7869d1d1-7146-5819-86e3-90919afe41df"
 version = "0.2.2"
 
@@ -416,12 +393,6 @@ git-tree-sha1 = "c1048817fe5711f699abc8fabd47b1ac6ba4db04"
 uuid = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
 version = "0.5.1"
 
-[[LaTeXStrings]]
-deps = ["Compat"]
-git-tree-sha1 = "7ab9b8788cfab2bdde22adf9004bda7ad9954b6c"
-uuid = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
-version = "1.0.3"
-
 [[Lazy]]
 deps = ["Compat", "MacroTools", "Test"]
 git-tree-sha1 = "aec38c7e7f255a678af22651c74100e3cd39ea20"
@@ -470,11 +441,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[LogDensityProblems]]
 deps = ["ArgCheck", "BenchmarkTools", "DiffResults", "DocStringExtensions", "Parameters", "Random", "Requires", "TransformVariables"]
-git-tree-sha1 = "2a97dcb4e23ce0d2ae2d671dc884fb4327a9641d"
-repo-rev = "master"
-repo-url = "https://github.com/tpapp/LogDensityProblems.jl.git"
+git-tree-sha1 = "b1c15910c01e385b9b3c2f8f29fbb2b4235354a8"
 uuid = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
-version = "0.8.3"
+version = "0.9.0"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -713,12 +682,6 @@ git-tree-sha1 = "cdbbe0f350581296f3a2e3e7a91b214121934407"
 uuid = "c84ed2f1-dad5-54f0-aa8e-dbefe2724439"
 version = "0.3.1"
 
-[[Rebugger]]
-deps = ["CodeTracking", "HeaderREPLs", "InteractiveUtils", "JuliaInterpreter", "REPL", "Revise", "UUIDs"]
-git-tree-sha1 = "1810b4692fafb29716e4b9fe0fcf4ede878e5c61"
-uuid = "ee283ea6-eecd-56e3-beb3-83eb4d3c31e9"
-version = "0.3.2"
-
 [[RecipesBase]]
 git-tree-sha1 = "7bdce29bc9b2f5660a6e5e64d64d91ec941f6aa2"
 uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
@@ -741,12 +704,6 @@ deps = ["MacroTools", "Test"]
 git-tree-sha1 = "0dee5d8f4d748272fbee9b3710ba9c5558c22ac1"
 uuid = "c5292f4c-5179-55e1-98c5-05642aab7184"
 version = "0.4.2"
-
-[[ReverseDiff]]
-deps = ["DiffResults", "DiffRules", "ForwardDiff", "FunctionWrappers", "LinearAlgebra", "NaNMath", "Random", "SpecialFunctions", "StaticArrays", "Statistics", "Test"]
-git-tree-sha1 = "d44e80d815a1a5abaf1ff1def21bb629cabaffec"
-uuid = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
-version = "0.3.1"
 
 [[Revise]]
 deps = ["CodeTracking", "Distributed", "FileWatching", "JuliaInterpreter", "LibGit2", "LoweredCodeUtils", "OrderedCollections", "Pkg", "REPL", "UUIDs", "Unicode"]
@@ -777,12 +734,10 @@ uuid = "992d4aef-0814-514b-bc4d-f2e9a6c4116f"
 version = "0.3.1"
 
 [[SimpleGraphs]]
-deps = ["AbstractLattices", "DataStructures", "IterTools", "LightXML", "LinearAlgebra", "Optim", "Pkg", "Polynomials", "Primes", "Random", "SimplePartitions", "SimpleRandom", "SimpleTools", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "3ce7dbd5fc5a19c621e69fe4dca6200bd79363cb"
-repo-rev = "master"
-repo-url = "https://github.com/scheinerman/SimpleGraphs.jl.git"
+deps = ["AbstractLattices", "DataStructures", "IterTools", "LightXML", "LinearAlgebra", "Optim", "Polynomials", "Primes", "Random", "SimplePartitions", "SimpleRandom", "SparseArrays", "Statistics", "Test"]
+git-tree-sha1 = "fc3d2d51625cd87a88da54c0c6a433e8dc64eaa3"
 uuid = "55797a34-41de-5266-9ec1-32ac4eb504d3"
-version = "0.3.0+"
+version = "0.3.0"
 
 [[SimplePartitions]]
 deps = ["AbstractLattices", "DataStructures", "Permutations", "Test"]
@@ -802,23 +757,11 @@ git-tree-sha1 = "8c182908ea6ec36f6d88505b79bdc8a35493262f"
 uuid = "a6525b86-64cd-54fa-8f65-62fc48bdc0e8"
 version = "0.2.0"
 
-[[SimpleTools]]
-deps = ["Test"]
-git-tree-sha1 = "d3dfe64770fd01e15795efb405402b7d7f57da1e"
-uuid = "4696fa5f-36f0-5b18-99a6-fef83351280f"
-version = "0.3.0"
-
 [[SimpleTraits]]
 deps = ["InteractiveUtils", "MacroTools"]
 git-tree-sha1 = "05bbf4484b975782e5e54bb0750f21f7f2f66171"
 uuid = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
 version = "0.9.0"
-
-[[Sobol]]
-deps = ["Random"]
-git-tree-sha1 = "5573a7dfa088be45601a4d6a3e9841d1ac9a755e"
-uuid = "ed01d8cd-4d21-5b2a-85b4-cc3bdc58bad4"
-version = "1.2.0"
 
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
@@ -867,9 +810,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
 [[SymPy]]
 deps = ["LinearAlgebra", "PyCall", "RecipesBase", "SpecialFunctions"]
-git-tree-sha1 = "163e788cd76244a72ca5235e22b49102cc1e1bd8"
-repo-rev = "allreals"
-repo-url = "https://github.com/cscherrer/SymPy.jl"
+git-tree-sha1 = "0bca6c3dc6543d8049ba3e693311201a393c687e"
 uuid = "24249f21-da20-56a4-8eb1-6a02cf4ae2e6"
 version = "1.0.5"
 
@@ -889,18 +830,6 @@ version = "0.2.10"
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
-[[TikzGraphs]]
-deps = ["LightGraphs", "Test", "TikzPictures"]
-git-tree-sha1 = "244e76babc8c358c8eb93617bcb6789f5cd8cb8b"
-uuid = "b4f28e30-c73f-5eaf-a395-8a9db949a742"
-version = "1.0.1"
-
-[[TikzPictures]]
-deps = ["LaTeXStrings", "Test"]
-git-tree-sha1 = "01a44f70c9b1d592968538e5de528e079f2418b6"
-uuid = "37f6aa50-8035-52d0-81c2-5a1d08754b2d"
-version = "3.0.5"
-
 [[TimerOutputs]]
 deps = ["Crayons", "Printf", "Test", "Unicode"]
 git-tree-sha1 = "b80671c06f8f8bae08c55d67b5ce292c5ae2660c"
@@ -911,12 +840,6 @@ version = "0.5.0"
 git-tree-sha1 = "c8a8b00ae44a94950814ff77850470711a360225"
 uuid = "0796e94c-ce3b-5d07-9a54-7f471281c624"
 version = "0.5.5"
-
-[[Traceur]]
-deps = ["Cassette", "InteractiveUtils", "Logging", "MacroTools", "Test"]
-git-tree-sha1 = "c007db8fbec24668a7cdf4a878202abb648d568f"
-uuid = "37b6cedf-1f77-55f8-9503-c64b63398394"
-version = "0.3.0"
 
 [[Tracker]]
 deps = ["Adapt", "DiffRules", "ForwardDiff", "LinearAlgebra", "MacroTools", "NNlib", "NaNMath", "Printf", "Random", "Requires", "SpecialFunctions", "Statistics", "Test"]
@@ -939,8 +862,6 @@ version = "0.3.3"
 [[Turing]]
 deps = ["AdvancedHMC", "Bijectors", "BinaryProvider", "Distributions", "ForwardDiff", "Libtask", "LinearAlgebra", "MCMCChains", "MacroTools", "Markdown", "PDMats", "ProgressMeter", "Random", "Reexport", "Requires", "SpecialFunctions", "Statistics", "StatsFuns", "Tracker", "Zygote"]
 git-tree-sha1 = "6570a9fdb9903d8f3b8a69ab2395b6e05c56fc48"
-repo-rev = "master"
-repo-url = "https://github.com/TuringLang/Turing.jl.git"
 uuid = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 version = "0.6.22"
 
@@ -982,9 +903,7 @@ uuid = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
 version = "0.8.3"
 
 [[Zygote]]
-deps = ["DiffRules", "FFTW", "FillArrays", "ForwardDiff", "IRTools", "InteractiveUtils", "LinearAlgebra", "MacroTools", "NNlib", "NaNMath", "Random", "Requires", "SpecialFunctions", "Statistics"]
-git-tree-sha1 = "4d3970b9916dcf84afe98234001d19f8ce8c95b5"
-repo-rev = "master"
-repo-url = "https://github.com/FluxML/Zygote.jl.git"
+deps = ["DiffRules", "FillArrays", "ForwardDiff", "IRTools", "InteractiveUtils", "LinearAlgebra", "MacroTools", "NNlib", "NaNMath", "Random", "Requires", "SpecialFunctions", "Statistics"]
+git-tree-sha1 = "520d65c5e5554473863d738bde053f5f6769d3be"
 uuid = "e88e6eb3-aa80-5325-afca-941959d7151f"
 version = "0.3.2"
