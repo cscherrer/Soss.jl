@@ -25,10 +25,10 @@ uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
 version = "1.0.0"
 
 [[AdvancedHMC]]
-deps = ["ArgCheck", "InplaceOps", "LazyArrays", "LinearAlgebra", "Parameters", "ProgressMeter", "Random", "Statistics", "StatsBase"]
-git-tree-sha1 = "c8fa90ee42ccab3c998e086c4ee82e229eb2f948"
+deps = ["ArgCheck", "InplaceOps", "LazyArrays", "LinearAlgebra", "Parameters", "ProgressMeter", "Random", "Statistics", "StatsBase", "StatsFuns"]
+git-tree-sha1 = "f12a172f2972fa0c2e69505396b77b59e50681a2"
 uuid = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
-version = "0.2.1"
+version = "0.2.2"
 
 [[ArgCheck]]
 deps = ["Random"]
@@ -231,15 +231,15 @@ version = "0.8.0"
 
 [[DynamicHMC]]
 deps = ["ArgCheck", "DataStructures", "DocStringExtensions", "LinearAlgebra", "LogDensityProblems", "Parameters", "Random", "Statistics", "StatsFuns", "TransformVariables"]
-git-tree-sha1 = "b1a272a63eebb2b58f5e370f243991244a52aa28"
+git-tree-sha1 = "0354daa83afd704976de89ab03862bbeb8f7c0fe"
 uuid = "bbc10e6e-7c05-544b-b16e-64fede858acb"
-version = "1.0.5"
+version = "1.0.6"
 
 [[FFMPEG]]
 deps = ["BinaryProvider", "Libdl"]
-git-tree-sha1 = "5fbb3092252b78c6082a5cce2316c60a6152fbc9"
+git-tree-sha1 = "1dd2128ff10894081f30931b355dc892d1352de9"
 uuid = "c87230d0-a227-11e9-1b43-d7ebe4e7570a"
-version = "0.2.1"
+version = "0.2.2"
 
 [[FFTW]]
 deps = ["AbstractFFTs", "BinaryProvider", "Conda", "Libdl", "LinearAlgebra", "Reexport", "Test"]
@@ -441,9 +441,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[LogDensityProblems]]
 deps = ["ArgCheck", "BenchmarkTools", "DiffResults", "DocStringExtensions", "Parameters", "Random", "Requires", "TransformVariables"]
-git-tree-sha1 = "b1c15910c01e385b9b3c2f8f29fbb2b4235354a8"
+git-tree-sha1 = "2a97dcb4e23ce0d2ae2d671dc884fb4327a9641d"
 uuid = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
-version = "0.9.0"
+version = "0.8.3"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -462,9 +462,9 @@ version = "0.3.6"
 
 [[MCMCChains]]
 deps = ["AxisArrays", "DataFrames", "Distributions", "KernelDensity", "LinearAlgebra", "Plots", "Random", "RecipesBase", "Serialization", "Showoff", "SpecialFunctions", "Statistics", "StatsBase"]
-git-tree-sha1 = "a38ad31a2f43b0db94b993c0a6185d5ef368c1d5"
+git-tree-sha1 = "0f103eec2477f5900fe6ebb291b84ca596e1b33a"
 uuid = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
-version = "0.3.10"
+version = "0.3.11"
 
 [[MCMCDiagnostics]]
 deps = ["Random", "Statistics", "StatsBase", "Test"]
@@ -508,9 +508,9 @@ version = "0.5.0"
 
 [[MetaGraphs]]
 deps = ["JLD2", "LightGraphs"]
-git-tree-sha1 = "4adf54adeadc332d85dc15473a34cfe660748b56"
+git-tree-sha1 = "c6a4c88304e1ecef6fc372f12d3b8e427e128c1a"
 uuid = "626554b9-1ddb-594c-aa3c-2596fe9399a5"
-version = "0.6.2"
+version = "0.6.3"
 
 [[Missings]]
 deps = ["SparseArrays", "Test"]
