@@ -254,7 +254,7 @@ function sourceLogdensity(m::Model; ℓ=:ℓ)
     unkExpr = Expr(:tuple,unknowns...)
     @gensym logdensity
     # result = @q function $logdensity(pars)
-    result = @q function(pars)
+    result = @q function logdensity(pars)
         @unpack $(unkExpr) = pars
         $ℓ = 0.0
 
