@@ -36,13 +36,16 @@ end
 inferencebarrier(@nospecialize(x)) = Ref{Any}(x)[]
 
 
+
 function nuts(m :: Model; kwargs...)
+
+    sourceLogdensity(m) |> eval
+
+    invokefrozen(logdensity, Float64,merge(kwargs, pairs(pars)))
     result = NUTS_result{}
     t = xform(m; kwargs...)
-    fpre = @eval $(sourceLogdensity(m))
-    # fpre = @logdensity m
-    f(pars) = invokefrozen(fpre, Float64, merge(kwargs, pairs(pars)))
-    # f(pars) = invoke(fpre, merge(kwargs, pairs(pars)))
+    
+    f(pars) = logdensity(merge(kwargs, pairs(pars)))
     P = TransformedLogDensity(t, f)
     ∇P = ADgradient(:ForwardDiff, P)
     chain, tuning = NUTS_init_tune_mcmc(∇P, 1000);

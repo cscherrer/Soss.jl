@@ -254,7 +254,7 @@ function sourceLogdensity(m::Model; ℓ=:ℓ)
     unkExpr = Expr(:tuple,unknowns...)
     @gensym logdensity
     # result = @q function $logdensity(pars)
-    result = @q function(pars)
+    result = @q function logdensity(pars)
         @unpack $(unkExpr) = pars
         $ℓ = 0.0
 
@@ -416,3 +416,21 @@ end
                 _  => nothing
            end
        end
+
+
+ @inline function invokefrozen(f, rt, args...; kwargs...)
+    if isempty(kwargs)
+        return _invokefrozen(f, rt, args)
+    end
+    # We use a closure (`inner`) to handle kwargs.
+    inner() = f(rt, args...; kwargs...)
+    _invokefrozen(inner)
+end
+    
+@inline @generated function _invokefrozen(f, ::Type{rt}, args...) where rt
+    tupargs = Expr(:tuple,(a==Nothing ? Int : a for a in args)...)
+    quote
+        _f = $(Expr(:cfunction, Base.CFunction, :f, rt, :((Core.svec)($((a==Nothing ? Int : a for a in args)...))), :(:ccall)))
+        return ccall(_f.ptr,rt,$tupargs,$((:(getindex(args,$i) === nothing ? 0 : getindex(args,$i)) for i in 1:length(args))...))
+    end
+end
