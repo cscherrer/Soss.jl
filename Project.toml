@@ -50,7 +50,6 @@ Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
-ZygoteRules = "700de1a5-db45-46bc-99cf-38207098b444"
 
 [compat]
 DynamicHMC = "^1.0.5"
