@@ -1,7 +1,7 @@
 name = "Soss"
 uuid = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
 author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -50,6 +50,7 @@ Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+ZygoteRules = "700de1a5-db45-46bc-99cf-38207098b444"
 
 [compat]
 DynamicHMC = "^1.0.5"
