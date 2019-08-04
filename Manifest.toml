@@ -209,9 +209,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[DiffEqDiffTools]]
 deps = ["ArrayInterface", "LinearAlgebra", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "6729be791bdf4c520fa7e7ad1a164567698c3594"
+git-tree-sha1 = "d6582a0e9e26a6453a4c03f2837b1049f7007a3f"
 uuid = "01453d9d-ee7c-5054-8395-0335cb756afa"
-version = "1.1.0"
+version = "1.2.0"
 
 [[DiffResults]]
 deps = ["Compat", "StaticArrays"]
@@ -231,9 +231,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
 deps = ["LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "4ae0ff1a3a556383f7b1b004f5fb964b26ac96c9"
+git-tree-sha1 = "baaf9e165ba8a2d11fb4fb3511782ee070ee3694"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.20.0"
+version = "0.21.1"
 
 [[DocStringExtensions]]
 deps = ["LibGit2", "Markdown", "Pkg", "Test"]
@@ -533,10 +533,10 @@ version = "0.4.1"
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[MonteCarloMeasurements]]
-deps = ["Distributed", "Distributions", "GenericLinearAlgebra", "Lazy", "LinearAlgebra", "MacroTools", "Random", "RecipesBase", "Requires", "StaticArrays", "Statistics", "StatsBase", "Test"]
-git-tree-sha1 = "c639898de626f1c439f59db214ac2a264beeff9d"
+deps = ["Distributed", "Distributions", "GenericLinearAlgebra", "Lazy", "LinearAlgebra", "MacroTools", "Random", "RecipesBase", "StaticArrays", "Statistics", "StatsBase", "Test"]
+git-tree-sha1 = "e959e99f2a642ed3b5509b67df389023cb51b016"
 uuid = "0987c9cc-fe09-11e8-30f0-b96dd679fdca"
-version = "0.3.4"
+version = "0.2.0"
 
 [[NLSolversBase]]
 deps = ["Calculus", "DiffEqDiffTools", "DiffResults", "Distributed", "ForwardDiff"]
@@ -810,10 +810,10 @@ deps = ["LinearAlgebra", "SparseArrays"]
 uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [[StatsBase]]
-deps = ["DataStructures", "LinearAlgebra", "Missings", "Printf", "Random", "SortingAlgorithms", "SparseArrays", "Statistics"]
-git-tree-sha1 = "8a0f4b09c7426478ab677245ab2b0b68552143c7"
+deps = ["DataAPI", "DataStructures", "LinearAlgebra", "Missings", "Printf", "Random", "SortingAlgorithms", "SparseArrays", "Statistics"]
+git-tree-sha1 = "c53e809e63fe5cf5de13632090bc3520649c9950"
 uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-version = "0.30.0"
+version = "0.32.0"
 
 [[StatsFuns]]
 deps = ["Rmath", "SpecialFunctions", "Test"]
@@ -822,7 +822,7 @@ uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "0.8.0"
 
 [[SuiteSparse]]
-deps = ["Libdl", "LinearAlgebra", "SparseArrays"]
+deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
 uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
 [[SymPy]]

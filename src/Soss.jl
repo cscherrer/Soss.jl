@@ -32,4 +32,5 @@ include("symbolic.jl")
 include("particles.jl")
 include("xform.jl")
 include("toposort.jl")
+include("advancedhmc.jl")
 end # module
