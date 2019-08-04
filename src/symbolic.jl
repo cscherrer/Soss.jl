@@ -1,8 +1,11 @@
 using MacroTools: @q
-using SymPy
 import PyCall
 using MLStyle
 using Lazy
+
+import SymPy
+using SymPy: Sym, sympy, symbols
+
 
 # stats = PyCall.pyimport_conda("sympy.stats", "sympy")
 # import_from(stats)
@@ -29,7 +32,8 @@ export symlogpdf
 function symlogpdf(m::Model)
     result = @q begin
         ctx = Dict()
-        ℓ = zero(Sym)
+
+        ℓ = zero(Soss.Sym)
     end
 
     exprs = @as x m begin
@@ -39,11 +43,17 @@ function symlogpdf(m::Model)
         symlogpdf.(x)
     end
 
+
     append!(result.args, exprs)
 
-    push!(result.args, :(ℓ))
+    
     # result
-    eval(result) |> expandSums
+
+    push!(result.args, :(ctx,ℓ))
+
+    result
+
+    # expandSums(ℓ)
 end
 
 function symlogpdf(st::Soss.Follows)
@@ -56,8 +66,8 @@ end
 function symlogpdf(st::Soss.Let)
     val = st.rhs
     x = st.x
-    :(ctx[$(QuoteNode(x))] = $(sym(val)))
-    # :($x = $(sym(val)))
+    :(ctx[$(QuoteNode(x))] = Expr(:$, $val))
+    # :($x = $val)
 end
 
 
@@ -70,7 +80,7 @@ function symlogpdf(d::Expr, x::Symbol)
             dist = sym(dist)
             x = sympy.IndexedBase(x)
             n = sym(n)
-            :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
+            :(Soss.sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
         end
 
         :(For($f, 1:$n)) => begin
@@ -78,11 +88,11 @@ function symlogpdf(d::Expr, x::Symbol)
             @match f begin
                 :(($j,) -> begin $lineno; $dist end) => begin
                             j = symbols(j) # , cls=sympy.Idx)
-                            @show j
+                            # @show j
                             dist = sym(dist)
-                            @show dist
+                            # @show dist
                             x = sympy.IndexedBase(x)
-                            return :(sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
+                            return :(Soss.sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
                 end
                    
 
@@ -269,7 +279,7 @@ function codegen(s::Sym)
 
     # @show s
     SymPy.is_real(s) && begin
-        return N(s)
+        return SymPy.N(s)
     end
 
 
