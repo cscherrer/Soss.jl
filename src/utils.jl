@@ -2,7 +2,11 @@ using MLStyle
 using DataStructures
 using SimpleGraphs
 using SimplePosets
+using NamedTupleTools
 
+function select(nt::NamedTuple, ks)
+    namedtuple(ks)((nt[k] for k in ks)...)
+end
 
 export argtuple
 argtuple(m) = arguments(m) |> astuple
@@ -236,6 +240,11 @@ function makeLogdensity(m :: Model)
     f(par) = invokefrozen(fpre, Real, par)
 end
 
+function makeLogdensity(m :: Model, data)
+    fpre = sourceLogdensity(m, data) |> eval
+    f(par) = invokefrozen(fpre, Real, par)
+end
+
 
 export logdensity
 logdensity(m::Model, par) = makeLogdensity(m)(par)
@@ -265,6 +274,34 @@ function sourceLogdensity(m::Model; ℓ=:ℓ, fname = gensym(:logdensity))
     flatten(result)
 end
 
+
+
+function sourceLogdensity(m::Model, data; ℓ=:ℓ, fname = gensym(:logdensity))
+    proc(m, st :: Follows)    = :($ℓ += logpdf($(st.rhs), $(st.x)))
+    proc(m, st :: Let)        = :($(st.x) = $(st.rhs))
+    proc(m, st :: Return)     = nothing
+    proc(m, st :: LineNumber) = nothing
+    proc(::Nothing)        = nothing
+    body = buildSource(m, proc)
+
+
+    unknowns = arguments(m) ∪ parameters(m) 
+    @show unknowns
+    partype = typeof(select(rand(m; data...), unknowns)) |> realtypes
+    @show partype
+
+    unkExpr = Expr(:tuple,unknowns...)
+    @gensym logdensity
+    result = @q function $fname(pars:: $partype)
+        @unpack $(unkExpr) = pars
+        $ℓ = 0.0
+
+        $body
+        return $ℓ
+    end
+
+    flatten(result)
+end
 
 
 

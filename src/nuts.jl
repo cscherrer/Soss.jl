@@ -20,7 +20,7 @@ function nuts(m :: Model; kwargs...)
     ℓ = makeLogdensity(m)
 
     result = NUTS_result{}
-    t = xform(m; data...)
+    t = xform(m; kwargs...)
     P = TransformedLogDensity(t, ℓ)
     ∇P = ADgradient(:ForwardDiff, P)
     chain, tuning = NUTS_init_tune_mcmc(∇P, 1000);
@@ -31,7 +31,7 @@ end
 
 
 function nuts(m :: Model, data :: NamedTuple; kwargs...)
-    f1 = makeLogdensity(m)
+    f1 = makeLogdensity(m, data)
     ℓ(pars) = f1(merge(data,pars))
 
     result = NUTS_result{}
