@@ -3,7 +3,9 @@
 
 export sourceParticles
 
-foreach(register_primitive, [<=, >=, <, >])
+foreach([<=, >=, <, >]) do cmp
+    MonteCarloMeasurements.register_primitive(cmp, eval)
+end
 
 export makeParticles
 function makeParticles(m :: Model)
