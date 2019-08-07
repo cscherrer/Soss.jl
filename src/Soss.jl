@@ -34,4 +34,5 @@ include("xform.jl")
 include("toposort.jl")
 include("advancedhmc.jl")
 include("plots.jl")
+include("rejection.jl")
 end # module

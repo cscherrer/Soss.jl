@@ -5,6 +5,7 @@ version = "0.2.0"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CodeTracking = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
