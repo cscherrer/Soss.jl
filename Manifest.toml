@@ -534,9 +534,11 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[MonteCarloMeasurements]]
 deps = ["Distributed", "Distributions", "GenericLinearAlgebra", "Lazy", "LinearAlgebra", "MacroTools", "Random", "RecipesBase", "Requires", "StaticArrays", "Statistics", "StatsBase", "Test"]
-git-tree-sha1 = "c639898de626f1c439f59db214ac2a264beeff9d"
+git-tree-sha1 = "9c042fb769b68e501fa60a2293d97f24c31b9239"
+repo-rev = "master"
+repo-url = "https://github.com/baggepinnen/MonteCarloMeasurements.jl.git"
 uuid = "0987c9cc-fe09-11e8-30f0-b96dd679fdca"
-version = "0.3.4"
+version = "0.4.0"
 
 [[NLSolversBase]]
 deps = ["Calculus", "DiffEqDiffTools", "DiffResults", "Distributed", "ForwardDiff"]
