@@ -83,9 +83,9 @@ version = "0.4.2"
 
 [[Bijectors]]
 deps = ["Distributions", "LinearAlgebra", "MappedArrays", "Reexport", "Requires", "StatsFuns"]
-git-tree-sha1 = "8b3920a2fbd1fbb316fd8b6dd71f757f5d929e77"
+git-tree-sha1 = "a7b92f64aec38c016bdc0fceb134ecd3c39a24ad"
 uuid = "76274a88-744f-5084-9051-94815aaf08c4"
-version = "0.3.1"
+version = "0.3.2"
 
 [[BinDeps]]
 deps = ["Compat", "Libdl", "SHA", "URIParser"]
@@ -178,9 +178,9 @@ uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
 version = "4.0.0"
 
 [[DataAPI]]
-git-tree-sha1 = "891a09f4f90361a28d0391c104a65c0202e22624"
+git-tree-sha1 = "8903f0219d3472543fc4b2f5ebaf675a07f817c0"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
-version = "1.0.0"
+version = "1.0.1"
 
 [[DataFrames]]
 deps = ["CategoricalArrays", "Compat", "DataAPI", "InvertedIndices", "IteratorInterfaceExtensions", "Missings", "PooledArrays", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
@@ -400,9 +400,9 @@ version = "0.6.1"
 
 [[Juno]]
 deps = ["Base64", "Logging", "Media", "Profile", "Test"]
-git-tree-sha1 = "4e4a8d43aa7ecec66cadaf311fbd1e5c9d7b9175"
+git-tree-sha1 = "8426e073b1676acba2aea7a4a81d7a3af97a14fe"
 uuid = "e5e0dc1b-0480-54bc-9374-aad01c23163d"
-version = "0.7.0"
+version = "0.7.1"
 
 [[KernelDensity]]
 deps = ["Distributions", "FFTW", "Interpolations", "Optim", "StatsBase", "Test"]
@@ -557,9 +557,11 @@ uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
 version = "0.3.2"
 
 [[NamedTupleTools]]
-git-tree-sha1 = "61c2964145aaf641744212e29f45a72f357cfd88"
+git-tree-sha1 = "bef6d6a1c84f45a3d824a23917f84eabfa4b5f8c"
+repo-rev = "master"
+repo-url = "https://github.com/JeffreySarnoff/NamedTupleTools.jl.git"
 uuid = "d9ec5142-1e00-5aa0-9d6a-321866360f50"
-version = "0.9.1"
+version = "0.10.0"
 
 [[OffsetArrays]]
 git-tree-sha1 = "1af2f79c7eaac3e019a0de41ef63335ff26a0a57"

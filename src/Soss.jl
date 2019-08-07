@@ -33,4 +33,5 @@ include("particles.jl")
 include("xform.jl")
 include("toposort.jl")
 include("advancedhmc.jl")
+include("rejection.jl")
 end # module
