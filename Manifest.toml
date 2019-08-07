@@ -714,12 +714,6 @@ git-tree-sha1 = "f6fbf4ba64d295e146e49e021207993b6b48c7d1"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "0.5.2"
 
-[[ResumableFunctions]]
-deps = ["MacroTools", "Test"]
-git-tree-sha1 = "0dee5d8f4d748272fbee9b3710ba9c5558c22ac1"
-uuid = "c5292f4c-5179-55e1-98c5-05642aab7184"
-version = "0.4.2"
-
 [[Revise]]
 deps = ["CodeTracking", "Distributed", "FileWatching", "JuliaInterpreter", "LibGit2", "LoweredCodeUtils", "OrderedCollections", "Pkg", "REPL", "UUIDs", "Unicode"]
 git-tree-sha1 = "09cbf077a36bf58e7d5d2b026bb2af8c92931993"
