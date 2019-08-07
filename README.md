@@ -51,3 +51,31 @@ julia> linReg1D = @model (x, y) begin
 end
 ```
 
+Let’s make some fake data:
+
+```julia
+julia> x = randn(100);
+julia> y = 3 .* x .+ randn(100);
+```
+
+```julia
+julia> nuts(linReg1D, (x=x, y=y)) |> particle
+s
+MCMC, adapting ϵ (75 steps)
+7.7e-5 s/step ...done
+MCMC, adapting ϵ (25 steps)
+0.00011 s/step ...done
+MCMC, adapting ϵ (50 steps)
+0.00011 s/step ...done
+MCMC, adapting ϵ (100 steps)
+0.00017 s/step ...done
+MCMC, adapting ϵ (200 steps)
+0.00011 s/step ...done
+MCMC, adapting ϵ (400 steps)
+0.0001 s/step ...done
+MCMC, adapting ϵ (50 steps)
+0.00013 s/step ...done
+MCMC (1000 steps)
+0.00012 s/step ...done
+(α = -0.0269 ± 0.097, β = 2.91 ± 0.1, σ = 0.994 ± 0.069)
+```
