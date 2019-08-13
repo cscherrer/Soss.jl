@@ -98,8 +98,6 @@ function Base.show(io::IO, m::Model)
     print(io, convert(Expr, m))
 end
 
-
-
 function Base.convert(::Type{Expr}, m::Model)
     numArgs = length(m.args)
     args = if numArgs == 1
