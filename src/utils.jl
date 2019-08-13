@@ -254,8 +254,14 @@ function sourceLogdensity(m::Model; ℓ=:ℓ, fname = gensym(:logdensity))
     unknowns = parameters(m) ∪ arguments(m)
     unkExpr = Expr(:tuple,unknowns...)
     @gensym logdensity
+
+    unpack = @q begin end
+    for p in unknowns
+        push!(unpack.args, :($p = pars.$p))
+    end
+
     result = @q function $fname(pars)
-        @unpack $(unkExpr) = pars
+        $unpack
         $ℓ = 0.0
 
         $body
