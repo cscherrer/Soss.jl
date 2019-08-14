@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/cscherrer/JuliaConSubmission.jl
+	branch = master
+	commit = e62c76701fa42821e6a3bb52ae9c3e7bf7a7b347
+	parent = 7bc8fe2a35d6cd180aecb79476e8443c4e324fa9
+	cmdver = 0.3.1

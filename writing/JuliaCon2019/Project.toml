@@ -1,0 +1,10 @@
+name = "JuliaConSubmission"
+uuid = "9e7ba3f5-c271-5482-9827-08f1e97120b6"
+authors = ["Mathieu Besançon <mathieu.besancon@gmail.com>"]
+version = "0.1.0"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
