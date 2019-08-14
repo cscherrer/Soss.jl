@@ -8,6 +8,7 @@ export argtuple
 argtuple(m) = arguments(m) |> astuple
 
 astuple(x) = Expr(:tuple,x...)
+astuple(x::Symbol) = Expr(:tuple,x)
 
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
