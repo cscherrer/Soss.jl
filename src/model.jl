@@ -6,9 +6,35 @@ using SimplePosets
 
 abstract type AbstractModel end
 
+Context{T} = NamedTuple{S, NTuple{N,T}} where {S,N}
+
 struct Model <: AbstractModel
-    args :: Vector{Symbol}
-    body :: Vector{Statement}
+    args  :: Vector{Symbol}
+    val   :: NamedTuple
+    dist  :: Context{Union{Symbol, Expr}} 
+    retn  :: Union{Nothing, Expr}
+    data  :: NamedTuple
+end
+
+const emptyModel = Model([], NamedTuple(), NamedTuple(), nothing, NamedTuple())
+
+function Base.merge(m1::Model, m2::Model) 
+    val = merge(m1.val, m2.val)
+    args = setdiff(union(m1.args, m2.args), keys(val))
+    dist = merge(m1.dist, m2.dist)
+    retn = something(m2.retn, m1.retn) # m2 first so it gets priority
+    data = merge(m1.data, m2.data)
+end
+
+function Model(expr :: Expr)
+    @match expr begin
+        :($k = $v)   => Model([], namedtuple(k)(v), NamedTuple(), nothing, NamedTuple())
+        :($k ~ $v)   => Model([], NamedTuple(), namedtuple(k)(v), nothing, NamedTuple())
+        :(return :v) => Model([], NamedTuple(), NamedTuple(), v, NamedTuple())
+        :(begin $body end) => foldl(merge, Model.(body))
+        
+        x            => @error "Bad argument to Model(::Expr)"
+    end
 end
 
 function Model(vs :: Vector{Symbol}, expr :: Expr)
