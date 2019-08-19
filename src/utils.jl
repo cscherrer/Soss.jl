@@ -4,7 +4,6 @@ using SimpleGraphs
 using SimplePosets
 
 # like `something`, but doesn't throw an error
-# TODO: Move this to utils
 maybesomething() = nothing
 maybesomething(x::Nothing, y...) = maybesomething(y...)
 maybesomething(x::Some, y...) = x.value
