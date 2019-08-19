@@ -3,11 +3,21 @@ using DataStructures
 using SimpleGraphs
 using SimplePosets
 
+# like `something`, but doesn't throw an error
+# TODO: Move this to utils
+maybesomething() = nothing
+maybesomething(x::Nothing, y...) = maybesomething(y...)
+maybesomething(x::Some, y...) = x.value
+maybesomething(x::Any, y...) = x
+
 
 export argtuple
 argtuple(m) = arguments(m) |> astuple
 
 astuple(x) = Expr(:tuple,x...)
+
+export variables
+variables(m::Model) = m.args ∪ keys(m.val) ∪ keys(m.dist)
 
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
@@ -28,20 +38,10 @@ export arguments
 arguments(m) = m.args
 
 export stochastic
-stochastic(st :: Let)        = Symbol[]
-stochastic(st :: Follows)    = Symbol[st.x]
-stochastic(st :: Return)     = Symbol[]
-stochastic(st :: LineNumber) = Symbol[]
-
-stochastic(m :: Model) = union(stochastic.(m.body)...)
+stochastic(m::Model) = keys(m.dist)
 
 export bound
-bound(st :: Let)        = Symbol[st.x]
-bound(st :: Follows)    = Symbol[]
-bound(st :: Return)     = Symbol[]
-bound(st :: LineNumber) = Symbol[]
-
-bound(m :: Model) = union(bound.(m.body)...)
+bound(m::Model) = keys(m.val)
 
 # """
 #     parameters(m::Model)
@@ -60,8 +60,6 @@ observed(m::Model) = setdiff(stochastic(m), parameters(m))
 
 
 
-export variables
-variables(m :: Model) = arguments(m) ∪ stochastic(m) ∪ bound(m)
 
 export freeVariables
 function freeVariables(m::Model)
@@ -154,33 +152,31 @@ using DataStructures: counter
 
 
 
+
 export digraph
 function digraph(m::Model)
-    g = SimpleDigraph{Symbol}()
+    po = SimpleDigraph{Symbol}()
 
-    
     mvars = variables(m)
     for v in mvars
-        add!(g, v)
+        add!(po, v)
     end
 
-    f!(g, st::Let) = 
-        for v in mvars ∩ variables(st.rhs)
-            add!(g, v, st.x)
+    for (v, expr) in pairs(m.val)
+        for p in variables(expr) ∩ variables(m)
+            add!(po, p, v)
         end
-    f!(g, st::Follows) = 
-        for v in mvars ∩ variables(st.rhs)
-            add!(g, v, st.x)
-        end
-    f!(g, st::Return)  = nothing
-    f!(g, st::LineNumber) = nothing
-
-    for st in m.body
-        f!(g, st)
     end
 
-    g
+    for (v, expr) in pairs(m.dist)
+        for p in variables(expr) ∩ variables(m)
+            add!(po, p, v)
+        end
+    end
+
+    po
 end
+
 
     
 export poset
@@ -192,27 +188,24 @@ function poset(m::Model)
         add!(po, v)
     end
 
-    f!(po, st::Let) = 
-        for v in mvars ∩ variables(st.rhs)
-            add!(po, v, st.x)
+    for (v, expr) in pairs(m.val)
+        for p in variables(expr) ∩ variables(m)
+            add!(po, p, v)
         end
-    f!(po, st::Follows) = 
-        for v in mvars ∩ variables(st.rhs)
-            add!(po, v, st.x)
-        end
-    f!(po, st::Return)  = nothing
-    f!(po, st::LineNumber) = nothing
+    end
 
-    for st in m.body
-        f!(po, st)
+    for (v, expr) in pairs(m.dist)
+        for p in variables(expr) ∩ variables(m)
+            add!(po, p, v)
+        end
     end
 
     po
 end
 
 
-export dependencies
-dependencies = poset
+# export dependencies
+# dependencies = poset
 
 
 # # export paramSupport
@@ -244,9 +237,8 @@ logdensity(m::Model, par) = makeLogdensity(m)(par)
 
 export sourceLogdensity
 function sourceLogdensity(m::Model; ℓ=:ℓ, fname = gensym(:logdensity))
-    proc(m, st :: Follows)    = :($ℓ += logpdf($(st.rhs), $(st.x)))
-    proc(m, st :: Let)        = :($(st.x) = $(st.rhs))
-    proc(m, st :: Return)     = nothing
+    proc(m, st :: Observe)    = :($ℓ += logpdf($(st.rhs), $(st.x)))
+    proc(m, st :: Assign)        = :($(st.x) = $(st.rhs))
     proc(m, st :: LineNumber) = nothing
     proc(::Nothing)        = nothing
     body = buildSource(m, proc)
@@ -277,98 +269,19 @@ allequal(xs) = all(xs[1] .== xs)
 # end
 
 
-export prior
-function prior(m :: Model)
-    po = dependencies(m)
-    keep = parameters(m)
-    for v in keep
-        union!(keep, below(po, v))
-    end
-    proc(m, st::Follows) = st.x ∈ keep
-    proc(m, st::Let)     = st.x ∈ keep
-    proc(m, st) = true
-    newbody = filter(st -> proc(m,st), m.body)
-    Model([],newbody)
-end
-
-
-
-# # export priorPredictive
-# # function priorPredictive(m :: Model)
-# #     args = copy(m.args)
-# #     body = postwalk(m.body) do x
-# #         if @capture(x, v_ ~ dist_)
-# #             setdiff!(args, [v])
-# #             x
-# #         elseif @capture(x, v_ ⩪ dist_)
-# #             setdiff!(args, [v])
-# #             @q ($v ~ $dist)
-# #         else x
-# #         end
-# #     end
-# #     Model(args, body)
-# # end
-
-# export likelihood
-# function likelihood(m :: Model)
-#     m = annotate(m)
-#     args = copy(m.args)
-#     body = postwalk(m.body) do x
-#         if @capture(x, v_ ~ dist_)
-#             union!(args, [v])
-#             Nothing
-#         elseif @capture(x, v_ ⩪ dist_)
-#             setdiff!(args, [v])
-#             @q ($v ~ $dist)
-#         else x
-#         end
+# export prior
+# function prior(m :: Model)
+#     po = dependencies(m)
+#     keep = parameters(m)
+#     for v in keep
+#         union!(keep, below(po, v))
 #     end
-#     Model(args, body) |> pretty
+#     proc(m, st::Follows) = st.x ∈ keep
+#     proc(m, st::Let)     = st.x ∈ keep
+#     proc(m, st) = true
+#     newbody = filter(st -> proc(m,st), m.body)
+#     Model([],newbody)
 # end
-
-
-# export annotate
-# function annotate(m::Model)
-#     newbody = postwalk(m.body) do x
-#         if @capture(x, v_ ~ dist_)
-#             if v ∈ observed(m)
-#                 @q $v ⩪ $dist
-#             else
-#                 x
-#             end
-#         else x
-#         end
-#     end
-
-#     Model(args = m.args, body=newbody, meta = m.meta)
-# end
-
-
-# export pretty
-# pretty = stripNothing ∘ striplines ∘ flatten
-
-# export expandSubmodels
-# function expandSubmodels(m :: Model)
-#     newbody = postwalk(m.body) do x
-#         if @capture(x, @model expr__)
-#             eval(x)
-#         else x
-#         end
-#     end
-#     Model(args=m.args, body=newbody, meta=m.meta)
-# end
-
-
-function unobserve(m::Model; ℓ=:ℓ)
-    function proc(m, st :: Follows) 
-        st.x ∈ observed(m) && return nothing
-        return st
-    end
-    proc(m, st) = st
-    body = buildSource(m, proc)
-
-    Model(freeVariables(m), body)
-end
 
 
 # # fold example usage:
@@ -418,35 +331,17 @@ end
        end
 
 
-# @inline function invokefrozen(f, rt, args...)
-#     return _invokefrozen(f, rt, args)
-# end
+function Base.get(m::Model, k::Symbol)
+    result = []
 
-
-# From Chris Rackauckas: https://github.com/JuliaLang/julia/pull/32737
-@inline @generated function _invokefrozen(f, ::Type{rt}, args...) where rt
-    tupargs = Expr(:tuple,(a==Nothing ? Int : a for a in args)...)
-    quote
-        _f = $(Expr(:cfunction, Base.CFunction, :f, rt, :((Core.svec)($((a==Nothing ? Int : a for a in args)...))), :(:ccall)))
-        return ccall(_f.ptr,rt,$tupargs,$((:(getindex(args,$i) === nothing ? 0 : getindex(args,$i)) for i in 1:length(args))...))
+    if k ∈ keys(m.val) 
+        push!(result, Assign(k,getproperty(m.val, k)))
+    elseif k ∈ keys(m.dist)
+        if k ∈ keys(m.data)
+            push!(result, Observe(k,getproperty(m.dist, k)))
+        else
+            push!(result, Sample(k,getproperty(m.dist, k)))
+        end
     end
+    return result
 end
-
-# @cscherrer's modification of `invokelatest` does better on kwargs
-export invokefrozen
-@inline function invokefrozen(f, rt, args...; kwargs...)
-    g(kwargs, args...) = f(args...; kwargs...)
-    kwargs = (;kwargs...)
-    _invokefrozen(g, rt, (;kwargs...), args...)
-end
-
-@inline function invokefrozen(f, rt, args...)
-    _invokefrozen(f, rt, args...)
-end
-
-
-# using BenchmarkTools
-# f(;kwargs...) = kwargs[:a] + kwargs[:b]
-
-# @btime invokefrozen(f, Int; a=3,b=4)  # 3.466 ns (0 allocations: 0 bytes)
-# @btime f(;a=3,b=4)                    # 1.152 ns (0 allocations: 0 bytes)
