@@ -1,6 +1,7 @@
 export Model, @model
 using MLStyle
 
+using MacroTools: @q, striplines
 using SimpleGraphs
 using SimplePosets
 
@@ -71,22 +72,34 @@ end
 (m::Model)(;kwargs...) = merge(m, Model([], NamedTuple(), NamedTuple(), nothing, (;kwargs...)))
 
 
-# function Base.convert(::Type{Expr}, m::Model)
-#     numArgs = length(m.args)
-#     args = if numArgs == 1
-#        m.args[1]
-#     elseif numArgs > 1
-#         Expr(:tuple, [x for x in m.args]...)
-#     end
-#     q = if numArgs == 0
-#         @q begin
-#             @model $(convert(Expr, m.body))
-#         end
-#     else
-#         @q begin
-#             @model $(args) $(convert(Expr, m.body))
-#         end
-#     end
-#     striplines(q).args[1]
-# end
+function Base.convert(::Type{Expr}, m::Model)
+    numArgs = length(m.args)
+    args = if numArgs == 1
+       m.args[1]
+    elseif numArgs > 1
+        Expr(:tuple, [x for x in m.args]...)
+    end
 
+    body = @q begin end
+
+    for v ∈ setdiff(toposortvars(m), arguments(m))
+        push!(body.args, Expr(m,v))
+    end
+
+
+    q = if numArgs == 0
+        @q begin
+            @model $body
+        end
+    else
+        @q begin
+            @model $(args) $body
+        end
+    end
+
+
+    striplines(q).args[1]
+end
+
+# For pretty-printing in the REPL
+show(io::IO, m :: Model) = convert(Expr, m) |> println
