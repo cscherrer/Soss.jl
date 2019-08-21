@@ -59,12 +59,12 @@ function canonical(expr :: Expr)
 end
 
 function canonical(m :: Model)
-    @as x m begin
-        convert.(Expr, x.body)
-        canonical.(x)
-        convert.(Statement, x)
-        Model(m.args, x)
-    end
+    args = m.args :: Vector{Symbol}
+    val  = map(canonical, m.val) 
+    dist = map(canonical, m.dist) 
+    retn = m.retn  
+    data = m.data
+    Model(args, val, dist, retn, data)
 end    
 
 ex1 = :(map(1:10) do x x^2 end)
