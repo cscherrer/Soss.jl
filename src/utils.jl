@@ -192,7 +192,8 @@ logdensity(m::Model, par) = makeLogdensity(m)(par)
 
 export sourceLogdensity
 function sourceLogdensity(m::Model; ℓ=:ℓ, fname = gensym(:logdensity))
-    proc(m, st :: Observe)    = :($ℓ += logpdf($(st.rhs), $(st.x)))
+    proc(m, st :: Observe)    = :($ℓ += logpdf($(st.rhs), data.$(st.x)))
+    proc(m, st :: Sample)    = :($ℓ += logpdf($(st.rhs), $(st.x)))
     proc(m, st :: Assign)        = :($(st.x) = $(st.rhs))
     proc(m, st :: LineNumber) = nothing
     proc(::Nothing)        = nothing
@@ -269,7 +270,7 @@ allequal(xs) = all(xs[1] .== xs)
 
 function buildSource(m, proc; kwargs...)
     q = @q begin end
-    for st in m.body
+    for st in map(v -> Statement(m,v), toposortvars(m))
         ex = proc(m, st; kwargs...)
         isnothing(ex) || push!(q.args, ex)
     end
