@@ -11,11 +11,11 @@ function sourceXform(m::Model)
     pars = parameters(m)
     @gensym t result
 
-    proc(m, st::Let)        = :($(st.x) = $(st.rhs))
+    proc(m, st::Assign)        = :($(st.x) = $(st.rhs))
     proc(m, st::Return)     = nothing
     proc(m, st::LineNumber) = nothing
     
-    function proc(m, st::Follows)
+    function proc(m, st::Sample)
         if st.x ∈ pars
             return @q begin
                 $(st.x) = rand($(st.rhs))
