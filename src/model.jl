@@ -102,4 +102,4 @@ function Base.convert(::Type{Expr}, m::Model)
 end
 
 # For pretty-printing in the REPL
-show(io::IO, m :: Model) = convert(Expr, m) |> println
+Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
