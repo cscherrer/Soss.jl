@@ -91,47 +91,6 @@ end
 
 
 
-# function condition(vs...) 
-#     function cond(m)
-#         po = dependencies(m)
-
-#         maybeRemove = Symbol[]
-#         # Bound v ∈ vs no longer depend on other variables
-#         for v ∈ (vs ∩ bound(m))
-#             for x in below(po, v)
-#                 delete!(po, x, v)
-#                 push!(maybeRemove, x)
-#             end
-#         end
-
-#         # Go upward in the poset from the stuff we're keeping
-#         # Keep everything maximal from there, and below
-#         keep = [vs...]
-#         for m in maximals(po)
-#             xs = union([m],below(po,m))
-#             if !isempty(keep ∩ xs)
-#                 union!(keep, xs)
-#             end
-#         end
-
-#         removable = setdiff(maybeRemove, keep)
-
-#         function proc(st::Let)
-#             st.x ∈ vs && return false
-#             st.x ∈ removable && return false
-#             return true
-#         end
-#         function proc(st::Follows) 
-#             st.x ∈ removable && return false
-#             return true
-#         end
-#         proc(st) = true
-
-#         Model(m.args, filter(proc, m.body))
-#     end
-
-# end
-
 import MacroTools: striplines, @q
 
 # import LogDensityProblems: logdensity
