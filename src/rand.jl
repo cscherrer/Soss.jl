@@ -5,12 +5,12 @@ export sourceRand
 
 export makeRand
 function makeRand(m :: Model)
-    fpre = sourceRand(m)
-    f(;kwargs...) = Base.invokelatest(fpre; kwargs...)
+    ast = sourceRand(m)
+    FuncRand{expr2typelevel(ast)}()
 end
 
 export rand
-rand(m::Model; kwargs...) = makeRand(m)(;kwargs...)
+rand(m::Model) = makeRand(m)()
 
 function rand(m::Model, n::Int64; kwargs...)
     r = makeRand(m)
@@ -20,14 +20,15 @@ end
 
 struct FuncRand{AST} end
 
-@generated function (::FuncRand{AST})(args...; kwargs...) where AST
+@generated function (::FuncRand{AST})() where AST
     interpret(AST)
 end
 
 function sourceRand(m::Model)
     m = canonical(m)
-    proc(m, st::Let)     = :($(st.x) = $(st.rhs))
-    proc(m, st::Follows) = :($(st.x) = rand($(st.rhs)))
+    proc(m, st::Assign)     = :($(st.x) = $(st.rhs))
+    proc(m, st::Sample) = :($(st.x) = rand($(st.rhs)))
+    proc(m, st::Observe) = :($(st.x) = rand($(st.rhs)))
     proc(m, st::Return)  = :(return $(st.rhs))
     proc(m, st::LineNumber) = nothing
 
@@ -42,12 +43,11 @@ function sourceRand(m::Model)
 
     ast = flatten(@q (
         begin
-            @unpack $argsExpr = kwargs
             $body
             $stochExpr
         end
     ))
 
-    FuncRand{expr2typelevel(ast)}()
+    
 
 end

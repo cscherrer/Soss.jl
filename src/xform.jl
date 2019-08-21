@@ -14,6 +14,7 @@ function sourceXform(m::Model)
     proc(m, st::Assign)        = :($(st.x) = $(st.rhs))
     proc(m, st::Return)     = nothing
     proc(m, st::LineNumber) = nothing
+    proc(m, st::Observe)    = :($(st.x) = $(m.data))
     
     function proc(m, st::Sample)
         if st.x ∈ pars

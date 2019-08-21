@@ -192,7 +192,7 @@ logdensity(m::Model, par) = makeLogdensity(m)(par)
 
 export sourceLogdensity
 function sourceLogdensity(m::Model; ℓ=:ℓ, fname = gensym(:logdensity))
-    proc(m, st :: Observe)    = :($ℓ += logpdf($(st.rhs), data.$(st.x)))
+    proc(m, st :: Observe)    = :($ℓ += logpdf($(st.rhs), $(m.data.x)))
     proc(m, st :: Sample)    = :($ℓ += logpdf($(st.rhs), $(st.x)))
     proc(m, st :: Assign)        = :($(st.x) = $(st.rhs))
     proc(m, st :: LineNumber) = nothing
