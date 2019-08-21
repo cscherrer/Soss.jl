@@ -47,18 +47,14 @@ bound(m::Model) = keys(m.val)
 
 # A _parameter_ is a stochastic node that is only assigned once
 # """
+export observed
+observed(m::Model) = keys(m.data)
+
 export parameters
 parameters(m::Model) = setdiff(
     stochastic(m), 
     observed(m)
 )
-
-export observed
-observed(m::Model) = setdiff(stochastic(m), parameters(m))
-
-
-
-
 
 export freeVariables
 function freeVariables(m::Model)
