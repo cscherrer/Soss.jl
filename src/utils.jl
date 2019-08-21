@@ -50,7 +50,7 @@ bound(m::Model) = keys(m.val)
 export parameters
 parameters(m::Model) = setdiff(
     stochastic(m), 
-    arguments(m) ∪ bound(m)
+    observed(m)
 )
 
 export observed
