@@ -14,6 +14,7 @@ export argtuple
 argtuple(m) = arguments(m) |> astuple
 
 astuple(x) = Expr(:tuple,x...)
+astuple(x::Symbol) = Expr(:tuple,x)
 
 export variables
 variables(m::Model) = m.args ∪ keys(m.val) ∪ keys(m.dist)
@@ -200,8 +201,14 @@ function sourceLogdensity(m::Model; ℓ=:ℓ, fname = gensym(:logdensity))
     unknowns = parameters(m) ∪ arguments(m)
     unkExpr = Expr(:tuple,unknowns...)
     @gensym logdensity
+
+    unpack = @q begin end
+    for p in unknowns
+        push!(unpack.args, :($p = pars.$p))
+    end
+
     result = @q function $fname(pars)
-        @unpack $(unkExpr) = pars
+        $unpack
         $ℓ = 0.0
 
         $body
@@ -298,4 +305,85 @@ function Base.get(m::Model, k::Symbol)
         end
     end
     return result
+end
+
+# @cscherrer's modification of `invokelatest` does better on kwargs
+export invokefrozen
+@inline function invokefrozen(f, rt, args...; kwargs...)
+    g(kwargs, args...) = f(args...; kwargs...)
+    kwargs = (;kwargs...)
+    _invokefrozen(g, rt, (;kwargs...), args...)
+end
+
+@inline function invokefrozen(f, rt, args...)
+    _invokefrozen(f, rt, args...)
+end
+
+
+# using BenchmarkTools
+# f(;kwargs...) = kwargs[:a] + kwargs[:b]
+
+# @btime invokefrozen(f, Int; a=3,b=4)  # 3.466 ns (0 allocations: 0 bytes)
+# @btime f(;a=3,b=4)                    # 1.152 ns (0 allocations: 0 bytes)
+
+
+abstract type TypeLevel end
+struct TLCons{Hd, Tl} <: TypeLevel end
+struct TLNil <: TypeLevel end
+struct TLVal{Val} <: TypeLevel end
+struct TLSExp{Fn, Args} <: TypeLevel end
+
+function typelevellist(l)
+    foldr(l, init=TLNil) do each, prev
+        TLCons{each, prev}
+    end
+end
+
+function expr2typelevel(x)
+    r = expr2typelevel
+    @match x begin
+        Expr(hd, tl...) =>
+            let hd = r(hd),
+                tl = map(r, tl) |> typelevellist,
+                f = TLVal{Expr},
+                args = TLCons{hd, tl}
+            TLSExp{f, args}
+            end
+        ln :: LineNumberNode =>
+            let f = TLVal{LineNumberNode},
+               args = [
+                    r(ln.line),
+                    r(ln.file)
+                ] |> typelevellist
+            TLSExp{f, args}
+            end
+        x::QuoteNode =>
+            let f = TLVal{QuoteNode},
+                args = [r(x.value)] |> typelevellist
+
+            TLSExp{f, args}
+            end
+        a => TLVal{a}
+    end
+end
+
+
+function interpret(t::Type{TLNil})
+    []
+end
+
+function interpret(t::Type{TLVal{Val}}) where Val
+    Val
+end
+
+function interpret(t::Type{TLCons{Hd, Tl}}) where {Hd, Tl}
+    tl = interpret(Tl)
+    @assert tl isa Vector
+    [interpret(Hd), tl...]
+end
+
+function interpret(t::Type{TLSExp{Fn, Args}}) where {Fn, Args}
+    args = interpret(Args)
+    @assert args isa Vector
+    interpret(Fn)(args...)
 end

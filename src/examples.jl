@@ -74,18 +74,16 @@ mix = @model (K,α) begin
 end
 
 export linReg1D
-linReg1D = @model (x,y) begin
-    # Priors chosen following Gelman(2008)
-    α ~ Cauchy(0,10)
-    β ~ Cauchy(0,2.5)
-    σ ~ HalfCauchy(3)
 
-    ŷ = α .+ β .* x
-    N = length(x)
-    y ~ For(1:N) do n
-        Normal(ŷ[n], σ)
+linReg1D_local(ŷ, σ) = n -> Normal(ŷ[n])
+linReg1D = @model (x, y) begin
+        α ~ Cauchy(0, 10)
+        β ~ Cauchy(0, 2.5)
+        σ ~ HalfCauchy(3)
+        ŷ = α .+ β .* x
+        N = length(x)
+        y ~ For(linReg1D_local(ŷ, σ), 1:N)
     end
-end
 
 
 # From OpenBUGS and section 6 of Gelfand et al.
