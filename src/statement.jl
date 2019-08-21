@@ -21,6 +21,10 @@ struct LineNumber <: Statement
     node :: LineNumberNode
 end
 
+struct Return <: Statement
+    rhs :: Union{Symbol, Expr}
+end
+
 Statement(x) = convert(Statement, x)
 
 function Statement(m::Model, x::Symbol)
@@ -41,6 +45,7 @@ end
 varName(st :: Sample)     = st.x
 varName(st :: Observe)    = st.x
 varName(st :: Assign)     = st.x
+varName(st :: Return)     = nothing
 varName(st :: LineNumber) = nothing
 varName(::Nothing)        = nothing
 
@@ -50,6 +55,7 @@ Base.convert(::Type{Statement}, node :: LineNumberNode) = LineNumber(node)
 Base.convert(::Type{Expr}, st::Sample)     = :($(st.x) ~ $(st.rhs))
 Base.convert(::Type{Expr}, st::Observe)    = :($(st.x) ⩪ $(st.rhs))
 Base.convert(::Type{Expr}, st::Assign)     = :($(st.x) = $(st.rhs))
+Base.convert(::Type{Expr}, st::Return)     = :(return $(st.rhs))
 Base.convert(::Type{Expr}, st::LineNumber) = st.node
 
 function Base.convert(::Type{Expr}, sts::Vector{Statement})
