@@ -307,19 +307,6 @@ function Base.get(m::Model, k::Symbol)
     return result
 end
 
-# @cscherrer's modification of `invokelatest` does better on kwargs
-export invokefrozen
-@inline function invokefrozen(f, rt, args...; kwargs...)
-    g(kwargs, args...) = f(args...; kwargs...)
-    kwargs = (;kwargs...)
-    _invokefrozen(g, rt, (;kwargs...), args...)
-end
-
-@inline function invokefrozen(f, rt, args...)
-    _invokefrozen(f, rt, args...)
-end
-
-
 # using BenchmarkTools
 # f(;kwargs...) = kwargs[:a] + kwargs[:b]
 
