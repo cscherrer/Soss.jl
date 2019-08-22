@@ -26,8 +26,9 @@ particles(d) = Particles(1000, d)
 
 function sourceParticles(m::Model)
     m = canonical(m)
-    proc(m, st::Let)     = :($(st.x) = $(st.rhs))
-    proc(m, st::Follows) = :($(st.x) = parts($(st.rhs)))
+    proc(m, st::Assign)     = :($(st.x) = $(st.rhs))
+    proc(m, st::Sample) = :($(st.x) = parts($(st.rhs)))
+    proc(m, st::Observe) = :($(st.x) = parts($(st.rhs)))
     proc(m, st::Return)  = :(return $(st.rhs))
     proc(m, st::LineNumber) = nothing
 
@@ -43,8 +44,7 @@ function sourceParticles(m::Model)
     @gensym particles
     
     flatten(@q (
-        function $particles(args...;kwargs...) 
-            @unpack $argsExpr = kwargs
+        function $particles(args...) 
             $body
             $stochExpr
         end
