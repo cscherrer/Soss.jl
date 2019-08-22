@@ -28,7 +28,8 @@ Base.rand(dist::For) = map(rand, map(dist.f,dist.θs))
 
 
 @inline function Distributions.logpdf(d::For,x::AbstractArray)
-    @unpack (f,θs) = d
+    f = d.f
+    θs = d.θs
 
     s = 0.0
     @inbounds @simd for j in eachindex(x)
