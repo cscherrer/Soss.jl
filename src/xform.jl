@@ -14,20 +14,14 @@ function sourceXform(m::Model)
     proc(m, st::Assign)        = :($(st.x) = $(st.rhs))
     proc(m, st::Return)     = nothing
     proc(m, st::LineNumber) = nothing
-    proc(m, st::Observe)    = :($(st.x) = $(m.data))
+    proc(m, st::Observe)    = :($(st.x) = rand($(st.rhs)))
     
     function proc(m, st::Sample)
-        if st.x ∈ pars
-            return @q begin
+        @q begin
                 $(st.x) = rand($(st.rhs))
                 $t = xform($(st.rhs))
 
                 $result = merge($result, ($(st.x)=$t,))
-            end
-        else
-            return @q begin
-                $(st.x) = rand($(st.rhs))
-            end
         end
     end
 
@@ -39,8 +33,7 @@ function sourceXform(m::Model)
     @gensym rand
     
     flatten(@q (
-        function $rand(args...;kwargs...) 
-            @unpack $argsExpr = kwargs
+        function $rand(args...) 
             $result = NamedTuple()
             $body
             as($result)
@@ -53,11 +46,11 @@ end
 export makeXform
 function makeXform(m :: Model)
     fpre = @eval $(sourceXform(m))
-    f(;kwargs...) = Base.invokelatest(fpre; kwargs...)
+    f(;kwargs...) = Base.invokelatest(fpre)
 end
 
 export xform
-xform(m::Model; kwargs...) = makeXform(m)(;kwargs...)
+xform(m::Model) = makeXform(m)()
 
 
 
