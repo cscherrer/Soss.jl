@@ -1,53 +1,45 @@
 @reexport using DataFrames
 
-export sourceRand
-
-
-export makeRand
-function makeRand(m :: Model)
-    ast = sourceRand(m)
-    FuncRand{expr2typelevel(ast)}()
-end
+using GG
 
 export rand
-rand(m::Model) = makeRand(m)()
+# @generated function rand(m::Model{T} where T)
+#     @match m begin
+#         ::Type{Model{T}} where {T}  => begin
+#             m2 = interpret(T)
+#             r = Model(m2) |> sourceRand
+#             # @show r 
+#             r
+#         end
+#     end
+# end
 
-function rand(m::Model, n::Int64; kwargs...)
-    r = makeRand(m)
-    [r(;kwargs...) for j in 1:n] # |> DataFrame
-
+@generated function rand(m::Model{T} where T) 
+    r = m.parameters[1] |> interpret |> Model |> sourceRand
+    @show r 
+    r
 end
 
-struct FuncRand{AST} end
-
-@generated function (::FuncRand{AST})() where AST
-    interpret(AST)
-end
-
-function sourceRand(m::Model)
+export sourceRand
+function sourceRand(m::Model{T} where T)
     m = canonical(m)
-    proc(m, st::Assign)     = :($(st.x) = $(st.rhs))
-    proc(m, st::Sample) = :($(st.x) = rand($(st.rhs)))
+    proc(m, st::Assign)  = :($(st.x) = $(st.rhs))
+    proc(m, st::Sample)  = :($(st.x) = rand($(st.rhs)))
     proc(m, st::Observe) = :($(st.x) = rand($(st.rhs)))
     proc(m, st::Return)  = :(return $(st.rhs))
     proc(m, st::LineNumber) = nothing
-
-    body = buildSource(m, proc) |> striplines
-
-    argsExpr = Expr(:tuple,freeVariables(m)...)
 
     stochExpr = begin
         vals = map(variables(m)) do x Expr(:(=), x,x) end
         Expr(:tuple, vals...)
     end
 
-    ast = flatten(@q (
-        begin
-            $body
-            $stochExpr
-        end
-    ))
-
+    wrap(kernel) = @q begin
+        # @show Base.@locals
+        # @show @__MODULE__
+        $kernel
+        $stochExpr
+    end
     
-
+    buildSource(m, :rand, proc, wrap) |> flatten
 end

@@ -76,13 +76,13 @@ function sourceParticleImportance(p,q;ℓ=:ℓ)
     kwargs = freeVariables(q) ∪ arguments(p)
     kwargsExpr = Expr(:tuple,kwargs...)
 
-    stochExpr = begin
+    stochExpr = begin 
         vals = map(stochastic(q)) do x Expr(:(=), x,x) end
         Expr(:tuple, vals...)
     end
     
-    @gensym particlemportance
-    result = @q function $particlemportance($N, pars)
+    @gensym particleImportance
+    result = @q function $particleImportance($N, pars)
         @unpack $kwargsExpr = pars
         $ℓ = 0.0 * Particles($N, Uniform())
         $qbody

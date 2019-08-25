@@ -28,10 +28,10 @@ end
 Statement(x) = convert(Statement, x)
 
 function Statement(m::Model, x::Symbol)
-    x ∈ keys(m.val) && return Assign(x,m.val[x])
-    if x ∈ keys(m.dist) 
-        x ∈ keys(m.data) && return Observe(x, m.dist[x])
-        return Sample(x,m.dist[x])
+    x ∈ keys(m.vals) && return Assign(x,m.vals[x])
+    if x ∈ keys(m.dists) 
+        x ∈ keys(m.data) && return Observe(x, m.dists[x])
+        return Sample(x,m.dists[x])
     end
 end
 

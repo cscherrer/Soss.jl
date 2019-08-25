@@ -61,11 +61,11 @@ end
 
 function canonical(m :: Model)
     args = m.args :: Vector{Symbol}
-    val  = map(canonical, m.val) 
-    dist = map(canonical, m.dist) 
+    vals  = map(canonical, m.vals) 
+    dists = map(canonical, m.dists) 
     retn = m.retn  
     data = m.data
-    Model(args, val, dist, retn, data)
+    Model(args, vals, dists, retn, data)
 end    
 
 ex1 = :(map(1:10) do x x^2 end)

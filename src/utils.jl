@@ -3,6 +3,8 @@ using DataStructures
 using SimpleGraphs
 using SimplePosets
 
+expr(x) = :(identity($x))
+
 # like `something`, but doesn't throw an error
 maybesomething() = nothing
 maybesomething(x::Nothing, y...) = maybesomething(y...)
@@ -17,7 +19,7 @@ astuple(x) = Expr(:tuple,x...)
 astuple(x::Symbol) = Expr(:tuple,x)
 
 export variables
-variables(m::Model) = m.args ∪ keys(m.val) ∪ keys(m.dist)
+variables(m::Model) = m.args ∪ keys(m.vals) ∪ keys(m.dists)
 
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
@@ -38,10 +40,10 @@ export arguments
 arguments(m) = m.args
 
 export stochastic
-stochastic(m::Model) = keys(m.dist)
+stochastic(m::Model) = keys(m.dists)
 
 export bound
-bound(m::Model) = keys(m.val)
+bound(m::Model) = keys(m.vals)
 
 # """
 #     parameters(m::Model)
@@ -108,121 +110,6 @@ using DataStructures: counter
 
 
 
-export digraph
-function digraph(m::Model)
-    po = SimpleDigraph{Symbol}()
-
-    mvars = variables(m)
-    for v in mvars
-        add!(po, v)
-    end
-
-    for (v, expr) in pairs(m.val)
-        for p in variables(expr) ∩ variables(m)
-            add!(po, p, v)
-        end
-    end
-
-    for (v, expr) in pairs(m.dist)
-        for p in variables(expr) ∩ variables(m)
-            add!(po, p, v)
-        end
-    end
-
-    po
-end
-
-
-    
-export poset
-function poset(m::Model)
-    po = SimplePoset{Symbol}()
-
-    mvars = variables(m)
-    for v in mvars
-        add!(po, v)
-    end
-
-    for (v, expr) in pairs(m.val)
-        for p in variables(expr) ∩ variables(m)
-            add!(po, p, v)
-        end
-    end
-
-    for (v, expr) in pairs(m.dist)
-        for p in variables(expr) ∩ variables(m)
-            add!(po, p, v)
-        end
-    end
-
-    po
-end
-
-
-# export dependencies
-# dependencies = poset
-
-
-# # export paramSupport
-# # function paramSupport(model)
-# #     supps = Dict{Symbol, Any}()
-# #     postwalk(model.body) do x
-# #         if @capture(x, v_ ~ dist_(args__))
-# #             if v in parameters(model)
-# #                 supps[v] = support(eval(dist))
-# #             end
-# #         else x
-# #         end
-# #     end
-# #     return supps
-# # end
-
-
-export makeLogdensity
-function makeLogdensity(m :: Model)
-    fpre = sourceLogdensity(m) |> eval
-    f(par) = invokefrozen(fpre, Real, par)
-end
-
-
-export logdensity
-logdensity(m::Model, par) = makeLogdensity(m)(par)
-
-
-
-export sourceLogdensity
-function sourceLogdensity(m::Model; ℓ=:ℓ, fname = gensym(:logdensity))
-    proc(m, st :: Observe)    = :($ℓ += logpdf($(st.rhs), $(m.data.x)))
-    proc(m, st :: Sample)    = :($ℓ += logpdf($(st.rhs), $(st.x)))
-    proc(m, st :: Assign)        = :($(st.x) = $(st.rhs))
-    proc(m, st :: LineNumber) = nothing
-    proc(::Nothing)        = nothing
-    body = buildSource(m, proc)
-
-    unknowns = parameters(m) ∪ arguments(m)
-    unkExpr = Expr(:tuple,unknowns...)
-    @gensym logdensity
-
-    unpack = @q begin end
-    for p in unknowns
-        push!(unpack.args, :($p = pars.$p))
-    end
-
-    result = @q function $fname(pars)
-        $unpack
-        $ℓ = 0.0
-
-        $body
-        return $ℓ
-    end
-
-    flatten(result)
-end
-
-
-
-
-
 allequal(xs) = all(xs[1] .== xs)
 
 # export findsubexprs
@@ -268,13 +155,24 @@ allequal(xs) = all(xs[1] .== xs)
 # # julia> as((;s=as(Array, as𝕀,4), a=asℝ))(randn(5))
 # # (s = [0.545324, 0.281332, 0.418541, 0.485946], a = 2.217762640580984)
 
-function buildSource(m, proc; kwargs...)
-    q = @q begin end
+function buildSource(m, basename, proc, wrap=identity; kwargs...)
+
+    kernel = @q begin end
+
     for st in map(v -> Statement(m,v), toposortvars(m))
         ex = proc(m, st; kwargs...)
-        isnothing(ex) || push!(q.args, ex)
+        isnothing(ex) || push!(kernel.args, ex)
     end
-    q
+
+    args = argtuple(m)
+
+    body = @q begin
+        function $basename($args; kwargs...)
+            $(wrap(kernel))
+        end
+    end
+
+    flatten(body)
 end
 
 # From https://github.com/thautwarm/MLStyle.jl/issues/66
@@ -293,20 +191,7 @@ end
        end
 
 
-function Base.get(m::Model, k::Symbol)
-    result = []
 
-    if k ∈ keys(m.val) 
-        push!(result, Assign(k,getproperty(m.val, k)))
-    elseif k ∈ keys(m.dist)
-        if k ∈ keys(m.data)
-            push!(result, Observe(k,getproperty(m.dist, k)))
-        else
-            push!(result, Sample(k,getproperty(m.dist, k)))
-        end
-    end
-    return result
-end
 
 # using BenchmarkTools
 # f(;kwargs...) = kwargs[:a] + kwargs[:b]
@@ -315,63 +200,7 @@ end
 # @btime f(;a=3,b=4)                    # 1.152 ns (0 allocations: 0 bytes)
 
 
-abstract type TypeLevel end
-struct TLCons{Hd, Tl} <: TypeLevel end
-struct TLNil <: TypeLevel end
-struct TLVal{Val} <: TypeLevel end
-struct TLSExp{Fn, Args} <: TypeLevel end
-
-function typelevellist(l)
-    foldr(l, init=TLNil) do each, prev
-        TLCons{each, prev}
-    end
-end
-
-function expr2typelevel(x)
-    r = expr2typelevel
-    @match x begin
-        Expr(hd, tl...) =>
-            let hd = r(hd),
-                tl = map(r, tl) |> typelevellist,
-                f = TLVal{Expr},
-                args = TLCons{hd, tl}
-            TLSExp{f, args}
-            end
-        ln :: LineNumberNode =>
-            let f = TLVal{LineNumberNode},
-               args = [
-                    r(ln.line),
-                    r(ln.file)
-                ] |> typelevellist
-            TLSExp{f, args}
-            end
-        x::QuoteNode =>
-            let f = TLVal{QuoteNode},
-                args = [r(x.value)] |> typelevellist
-
-            TLSExp{f, args}
-            end
-        a => TLVal{a}
-    end
-end
-
-
-function interpret(t::Type{TLNil})
-    []
-end
-
-function interpret(t::Type{TLVal{Val}}) where Val
-    Val
-end
-
-function interpret(t::Type{TLCons{Hd, Tl}}) where {Hd, Tl}
-    tl = interpret(Tl)
-    @assert tl isa Vector
-    [interpret(Hd), tl...]
-end
-
-function interpret(t::Type{TLSExp{Fn, Args}}) where {Fn, Args}
-    args = interpret(Args)
-    @assert args isa Vector
-    interpret(Fn)(args...)
-end
+# @isdefined
+# Base.@locals
+# @__MODULE__
+# names
