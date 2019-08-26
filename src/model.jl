@@ -23,6 +23,8 @@ function Model(args, vals, dists, retn, data)
     Model{T}(args, vals, dists, retn, data)
 end
 
+type2model(T) = modeltype(T) |> interpret |> Model
+
 const emptyModel = let T = :(@model begin end) |> expr2typelevel
     Model{T}([], NamedTuple(), NamedTuple(), nothing, NamedTuple())
 end

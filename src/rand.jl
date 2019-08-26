@@ -2,8 +2,7 @@ using GG
 
 export rand
 @generated function rand(m::Model{T} where T) 
-    m = modeltype(m) |> interpret |> Model
-    sourceRand(m)
+    type2model(m) |> sourceRand
 end
 
 export sourceRand
