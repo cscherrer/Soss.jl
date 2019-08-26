@@ -50,11 +50,11 @@ function Model(expr :: Expr)
         :($k ~ $v)   => Model([], NamedTuple(), namedtuple(k)([v]), nothing, NamedTuple())
         :(return :v) => Model([], NamedTuple(), NamedTuple(), v, NamedTuple())
         Expr(:block, body...) => foldl(merge, Model.(body))
-        :(@model $lnn begin $b end) => Model(b)
-        # Expr(:macrocall, :(@model), lnn, args...) => Model(args...)
+        :(@model $lnn $body) => Model(body)
+        :(@model $lnn $args $body) => Model(Vector{Symbol}(args.args), body)
+
         x => begin
-            @show x
-            @error "Bad argument to Model(::Expr)"
+            @error "Bad argument to Model(::Expr)" expr=x
         end
     end
 end
