@@ -155,7 +155,7 @@ allequal(xs) = all(xs[1] .== xs)
 # # julia> as((;s=as(Array, as𝕀,4), a=asℝ))(randn(5))
 # # (s = [0.545324, 0.281332, 0.418541, 0.485946], a = 2.217762640580984)
 
-function buildSource(m, basename, proc, wrap=identity; kwargs...)
+function buildSource(m, proc, wrap=identity; kwargs...)
 
     kernel = @q begin end
 
@@ -164,15 +164,16 @@ function buildSource(m, basename, proc, wrap=identity; kwargs...)
         isnothing(ex) || push!(kernel.args, ex)
     end
 
-    args = argtuple(m)
+    # args = argtuple(m)
 
-    body = @q begin
-        function $basename($args; kwargs...)
-            $(wrap(kernel))
-        end
-    end
+    # body = @q begin
+    #     function $basename($args; kwargs...)
+    #         $(wrap(kernel))
+    #     end
+    # end
 
-    flatten(body)
+    wrap(kernel) |> flatten
+    # flatten(body)
 end
 
 # From https://github.com/thautwarm/MLStyle.jl/issues/66

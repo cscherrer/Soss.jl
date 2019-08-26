@@ -1,21 +1,9 @@
-@reexport using DataFrames
-
 using GG
 
 export rand
-# @generated function rand(m::Model{T} where T)
-#     @match m begin
-#         ::Type{Model{T}} where {T}  => begin
-#             m2 = interpret(T)
-#             r = Model(m2) |> sourceRand
-#             # @show r 
-#             r
-#         end
-#     end
-# end
-
 @generated function rand(m::Model{T} where T) 
-    modeltype(m) |> interpret |> Model |> sourceRand
+    m = modeltype(m) |> interpret |> Model
+    sourceRand(m)
 end
 
 export sourceRand
@@ -28,16 +16,14 @@ function sourceRand(m::Model{T} where T)
     proc(m, st::LineNumber) = nothing
 
     stochExpr = begin
-        vals = map(variables(m)) do x Expr(:(=), x,x) end
+        vals = map(x -> Expr(:(=), x,x),variables(m)) 
         Expr(:tuple, vals...)
     end
 
     wrap(kernel) = @q begin
-        # @show Base.@locals
-        # @show @__MODULE__
         $kernel
         $stochExpr
     end
     
-    buildSource(m, :rand, proc, wrap) |> flatten
+    buildSource(m, proc, wrap) |> flatten
 end
