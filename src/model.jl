@@ -6,10 +6,10 @@ using SimpleGraphs
 using SimplePosets
 using GG
 
-abstract type AbstractModel end
+abstract type AbstractModel{T} end
+modeltype(::Type{<:AbstractModel{T}}) where {T} = T
 
-
-struct Model{T}
+struct Model{T} <: AbstractModel{T}
     args  :: Vector{Symbol}
     vals   :: NamedTuple
     dists  :: NamedTuple

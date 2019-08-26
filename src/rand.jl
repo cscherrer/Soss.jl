@@ -15,9 +15,7 @@ export rand
 # end
 
 @generated function rand(m::Model{T} where T) 
-    r = m.parameters[1] |> interpret |> Model |> sourceRand
-    @show r 
-    r
+    modeltype(m) |> interpret |> Model |> sourceRand
 end
 
 export sourceRand
