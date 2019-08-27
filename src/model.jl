@@ -27,7 +27,7 @@ datatype(::Type{Model{A,B,D}}) where {A,B,D} = D
 function Model(args, vals, dists, retn, data)
     @info "Model" args, data
     A = NamedTuple{Tuple(args)}
-    D = typeof(data) |> getprototype
+    D = data |> getprototype
     m = Model{A,Any,D}(args, vals, dists, retn, data)
     B = convert(Expr, m).args[end] |> expr2typelevel
     Model{A,B,D}(args, vals, dists, retn, data)

@@ -4,7 +4,7 @@ nt = NamedTuple{(),Tuple{}}
 
 export rand
 
-rand(m) = _rand(m,nt,nt)
+rand(m) = _rand(m,NamedTuple(),NamedTuple())
 
 @generated function _rand(_m::Model{A,B,D}, _args::A, _data::D) where {A,B,D} 
     type2model(_m) |> sourceRand
