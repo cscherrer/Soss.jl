@@ -205,3 +205,7 @@ end
 # Base.@locals
 # @__MODULE__
 # names
+
+getprototype(::Type{NamedTuple{(),Tuple{}}}) = NamedTuple()
+getprototype(::Type{NamedTuple{N,T} where {T <: Tuple} }) where {N}= NamedTuple{N}
+getprototype(::NamedTuple{N,T} where {T<: Tuple} ) where {N} = NamedTuple{N}

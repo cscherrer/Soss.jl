@@ -1,21 +1,26 @@
 using GG
 
+nt = NamedTuple{(),Tuple{}}
+
 export rand
-@generated function rand(m::Model{T} where T) 
-    type2model(m) |> sourceRand
+
+rand(m) = _rand(m,nt,nt)
+
+@generated function _rand(_m::Model{A,B,D}, _args::A, _data::D) where {A,B,D} 
+    type2model(_m) |> sourceRand
 end
 
 export sourceRand
-function sourceRand(m::Model{T} where T)
-    m = canonical(m)
-    proc(m, st::Assign)  = :($(st.x) = $(st.rhs))
-    proc(m, st::Sample)  = :($(st.x) = rand($(st.rhs)))
-    proc(m, st::Observe) = :($(st.x) = rand($(st.rhs)))
-    proc(m, st::Return)  = :(return $(st.rhs))
-    proc(m, st::LineNumber) = nothing
+function sourceRand(m::Model{A,B,D}) where {A,B,D}
+    _m = canonical(m)
+    proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
+    proc(_m, st::Sample)  = :($(st.x) = rand($(st.rhs)))
+    proc(_m, st::Observe) = :($(st.x) = rand($(st.rhs)))
+    proc(_m, st::Return)  = :(return $(st.rhs))
+    proc(_m, st::LineNumber) = nothing
 
     stochExpr = begin
-        vals = map(x -> Expr(:(=), x,x),variables(m)) 
+        vals = map(x -> Expr(:(=), x,x),variables(_m)) 
         Expr(:tuple, vals...)
     end
 
@@ -24,5 +29,5 @@ function sourceRand(m::Model{T} where T)
         $stochExpr
     end
     
-    buildSource(m, proc, wrap) |> flatten
+    buildSource(_m, proc, wrap) |> flatten
 end

@@ -6,27 +6,45 @@ using SimpleGraphs
 using SimplePosets
 using GG
 
-abstract type AbstractModel{T} end
-modeltype(::Type{<:AbstractModel{T}}) where {T} = T
-
-struct Model{T} <: AbstractModel{T}
+struct Model{A,B,D} 
     args  :: Vector{Symbol}
-    vals   :: NamedTuple
-    dists  :: NamedTuple
+    vals  :: NamedTuple
+    dists :: NamedTuple
     retn  :: Union{Nothing, Expr}
     data  :: NamedTuple
 end
 
+argstype(::Model{A,B,D}) where {A,B,D} = A
+bodytype(::Model{A,B,D}) where {A,B,D} = B
+datatype(::Model{A,B,D}) where {A,B,D} = D
+
+argstype(::Type{Model{A,B,D}}) where {A,B,D} = A
+bodytype(::Type{Model{A,B,D}}) where {A,B,D} = B
+datatype(::Type{Model{A,B,D}}) where {A,B,D} = D
+
+
+
 function Model(args, vals, dists, retn, data)
-    m = Model{Any}(args, vals, dists, retn, data)
-    T = convert(Expr, m) |> expr2typelevel
-    Model{T}(args, vals, dists, retn, data)
+    @info "Model" args, data
+    A = NamedTuple{Tuple(args)}
+    D = typeof(data) |> getprototype
+    m = Model{A,Any,D}(args, vals, dists, retn, data)
+    B = convert(Expr, m).args[end] |> expr2typelevel
+    Model{A,B,D}(args, vals, dists, retn, data)
 end
 
-type2model(T) = modeltype(T) |> interpret |> Model
+function type2model(M::Type{Model{A,B,D}}) where {A,B,D}
+    args = fieldnames(A) |> collect
+    @info "type2model" args
+    body = interpret(B)
+    Model{A,B,D}(args, body)
+end
 
-const emptyModel = let T = :(@model begin end) |> expr2typelevel
-    Model{T}([], NamedTuple(), NamedTuple(), nothing, NamedTuple())
+const emptyModel = 
+    let A = NamedTuple{(),Tuple{}}
+        D = NamedTuple{(),Tuple{}}                    
+        B = (@q begin end) |> expr2typelevel
+    Model{A,B,D}([], NamedTuple(), NamedTuple(), nothing, NamedTuple())
 end
 
 
@@ -36,6 +54,7 @@ function Base.merge(m1::Model, m2::Model)
     dists = merge(m1.dists, m2.dists)
     retn = maybesomething(m2.retn, m1.retn) # m2 first so it gets priority
     data = merge(m1.data, m2.data)
+    @info "merge" args, data
 
   
     Model(args, vals, dists, retn, data)
@@ -45,13 +64,14 @@ Base.merge(m::Model, ::Nothing) = m
 
 
 function Model(expr :: Expr)
+    nt = NamedTuple()
     @match expr begin
-        :($k = $v)   => Model([], namedtuple(k)([v]), NamedTuple(), nothing, NamedTuple())
-        :($k ~ $v)   => Model([], NamedTuple(), namedtuple(k)([v]), nothing, NamedTuple())
-        :(return :v) => Model([], NamedTuple(), NamedTuple(), v, NamedTuple())
+        :($k = $v)   => Model([], namedtuple(k)([v]), nt, nothing, nt)
+        :($k ~ $v)   => Model([], nt, namedtuple(k)([v]), nothing, nt)
+        :(return :v) => Model([], nt, nt, v, nt)
         Expr(:block, body...) => foldl(merge, Model.(body))
         :(@model $lnn $body) => Model(body)
-        :(@model $lnn $args $body) => Model(Vector{Symbol}(args.args), body)
+        :(@model $lnn $args $body) => Model(args.args, body)
 
         x => begin
             @error "Bad argument to Model(::Expr)" expr=x
@@ -59,13 +79,23 @@ function Model(expr :: Expr)
     end
 end
 
-function Model(args::Vector{Symbol}, expr::Expr)
+function Model(args :: Vector{Symbol}, expr::Expr)
     m1 = Model(args, NamedTuple(), NamedTuple(), nothing, NamedTuple())
     m2 = Model(expr)
     merge(m1, m2)
 end
 
 Model(::LineNumberNode) = emptyModel
+
+toargs(vs :: Vector{Symbol}) = Tuple(vs)
+toargs(vs :: NTuple{N,Symbol} where {N}) = vs
+
+function Model(vs::Expr,expr::Expr) 
+    @assert vs.head == :tuple
+    @assert expr.head == :block
+    Model(Vector{Symbol}(vs.args), expr)
+end
+
 
 macro model(vs::Expr,expr::Expr)
     @assert vs.head == :tuple
@@ -82,7 +112,7 @@ macro model(expr :: Expr)
 end
 
 
-(m::Model)(;kwargs...) = merge(m, Model([], NamedTuple(), NamedTuple(), nothing, (;kwargs...)))
+(m::Model)(;kwargs...) = merge(m, Model(NamedTuple(), NamedTuple(), NamedTuple(), nothing, (;kwargs...)))
 
 
 function Base.convert(::Type{Expr}, m::Model{T} where T)
