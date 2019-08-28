@@ -121,7 +121,6 @@ macro model(expr :: Expr)
 end
 
 
-# (m::Model)(;kwargs...) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing,  ;kwargs...)))
 
 
 function Base.convert(::Type{Expr}, m::Model{T} where T)
@@ -157,13 +156,13 @@ end
 function Base.get(m::Model, k::Symbol)
     result = []
 
-    if k ∈ keys(m.val) 
-        push!(result, Assign(k,getproperty(m.val, k)))
-    elseif k ∈ keys(m.dist)
+    if k ∈ keys(m.vals) 
+        push!(result, Assign(k,getproperty(m.vals, k)))
+    elseif k ∈ keys(m.dists)
         if k ∈ keys(m.data)
-            push!(result, Observe(k,getproperty(m.dist, k)))
+            push!(result, Observe(k,getproperty(m.dists, k)))
         else
-            push!(result, Sample(k,getproperty(m.dist, k)))
+            push!(result, Sample(k,getproperty(m.dists, k)))
         end
     end
     return result
@@ -171,3 +170,8 @@ end
 
 # For pretty-printing in the REPL
 Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
+
+# (m::Model)(;kwargs...) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing,  ;kwargs...)))
+export observe
+observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
+observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))

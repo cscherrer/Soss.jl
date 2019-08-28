@@ -30,7 +30,7 @@ Statement(x) = convert(Statement, x)
 function Statement(m::Model, x::Symbol)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
     if x ∈ keys(m.dists) 
-        x ∈ keys(m.data) && return Observe(x, m.dists[x])
+        x ∈ m.data && return Observe(x, m.dists[x])
         return Sample(x,m.dists[x])
     end
 end
