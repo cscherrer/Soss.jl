@@ -6,8 +6,25 @@ export rand
 
 rand(m) = _rand(m,NamedTuple(),NamedTuple())
 
+function loadparams(args, data)
+    loader = @q begin
+    end
+
+    for (k,v) in pairs(args)
+        push!(loader.args, :($k = _args.$k))
+    end
+    for (k,v) in pairs(data)
+        push!(loader.args, :($k = _data.$k))
+    end
+
+    src -> (@q begin
+        $loader
+        $src
+    end) |> flatten
+end
+
 @generated function _rand(_m::Model{A,B,D}, _args::A, _data::D) where {A,B,D} 
-    type2model(_m) |> sourceRand
+    type2model(_m) |> sourceRand |> loadparams(_args, _data)
 end
 
 export sourceRand
