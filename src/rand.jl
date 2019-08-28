@@ -2,11 +2,14 @@ using GG
 
 export rand
 
-rand(m) = _rand(m,NamedTuple(),NamedTuple())
+EmptyNTtype = NamedTuple{(),T} where T<:Tuple
 
+function rand(m::Model{EmptyNTtype, B, D}) where {B,D}
+    return rand(m,NamedTuple())    
+end
 
-@generated function _rand(_m::Model{A,B,D}, _args::A, _data::D) where {A,B,D} 
-    type2model(_m) |> sourceRand |> loadvals(_args, _data)
+@generated function rand(_m::Model{A,B,D}, _args::A) where {A,B,D} 
+    type2model(_m) |> sourceRand |> loadvals(_args, NamedTuple())
 end
 
 export sourceRand
