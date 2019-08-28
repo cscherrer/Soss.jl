@@ -1,41 +1,27 @@
 
-export makeLogdensity
-function makeLogdensity(m :: Model)
-    fpre = sourceLogdensity(m) |> eval
-    f(par) = invokefrozen(fpre, Real, par)
+export logdensity
+
+@generated function logdensity(_m::Model{A,B,D}, _args::A, _data::D, _pars) where {A,B,D} 
+    s = type2model(_m) |> sourceLogdensity |> loadvals(_args, _data, _pars)
+    @info s
+    s
 end
 
 
-export logdensity
-logdensity(m::Model, par) = makeLogdensity(m)(par)
-
-
-
 export sourceLogdensity
-function sourceLogdensity(m::Model; ℓ=:ℓ, fname = gensym(:logdensity))
-    proc(m, st :: Observe)    = :($ℓ += logpdf($(st.rhs), $(m.data.x)))
-    proc(m, st :: Sample)     = :($ℓ += logpdf($(st.rhs), $(st.x)))
-    proc(m, st :: Assign)     = :($(st.x) = $(st.rhs))
-    proc(m, st :: LineNumber) = nothing
-    proc(::Nothing) = nothing
-
-    unknowns = parameters(m) ∪ arguments(m)
-    unkExpr = Expr(:tuple,unknowns...)
-
-    unpack = @q begin end
-    for p in unknowns
-        push!(unpack.args, :($p = pars.$p))
-    end
+function sourceLogdensity(_m::Model)
+    proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
+    proc(_m, st :: Sample)     = :(_ℓ += logpdf($(st.rhs), $(st.x)))
+    proc(_m, st :: Observe)    = :(_ℓ += logpdf($(st.rhs), $(st.x)))
+    proc(_m, st :: Return)     = nothing
+    proc(_m, st :: LineNumber) = nothing
 
     wrap(kernel) = @q begin
-        function $fname(pars)
-            $unpack
-            $ℓ = 0.0
-            $kernel
-            return $ℓ
-        end
+        _ℓ = 0.0
+        $kernel
+        return _ℓ
     end
     
-    buildSource(m, :logdensity, proc, wrap) 
+    buildSource(_m, proc, wrap) |> flatten
 end
 

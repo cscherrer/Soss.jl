@@ -26,6 +26,35 @@ function loadvals(argstype, datatype)
     end) |> flatten
 end
 
+function loadvals(argstype, datatype, parstype)
+    args = getntkeys(argstype)
+    @info args
+    data = getntkeys(datatype)
+    pars = getntkeys(parstype)
+
+    loader = @q begin
+
+    end
+
+    for k in args
+        push!(loader.args, :($k = _args.$k))
+    end
+    for k in data
+        push!(loader.args, :($k = _data.$k))
+    end
+
+    for k in pars
+        push!(loader.args, :($k = _pars.$k))
+    end
+
+    src -> (@q begin
+        $loader
+        $src
+    end) |> flatten
+end
+
+
+getntkeys(::NamedTuple{A,B}) where {A,B} = A 
 getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A 
 
 @generated function _rand(_m::Model{A,B,D}, _args::A, _data::D) where {A,B,D} 
