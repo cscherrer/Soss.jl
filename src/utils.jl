@@ -209,3 +209,52 @@ end
 # getprototype(::Type{NamedTuple{(),Tuple{}}}) = NamedTuple()
 getprototype(::Type{NamedTuple{N,T} where {T <: Tuple} } ) where {N} = NamedTuple{N}
 getprototype(::NamedTuple{N,T} where {T<: Tuple} ) where N = NamedTuple{N}
+
+function loadvals(argstype, datatype)
+    args = getntkeys(argstype)
+    data = getntkeys(datatype)
+    loader = @q begin
+    end
+
+    for k in args
+        push!(loader.args, :($k = _args.$k))
+    end
+    for k in data
+        push!(loader.args, :($k = _data.$k))
+    end
+
+    src -> (@q begin
+        $loader
+        $src
+    end) |> flatten
+end
+
+function loadvals(argstype, datatype, parstype)
+    args = getntkeys(argstype)
+    data = getntkeys(datatype)
+    pars = getntkeys(parstype)
+
+    loader = @q begin
+
+    end
+
+    for k in args
+        push!(loader.args, :($k = _args.$k))
+    end
+    for k in data
+        push!(loader.args, :($k = _data.$k))
+    end
+
+    for k in pars
+        push!(loader.args, :($k = _pars.$k))
+    end
+
+    src -> (@q begin
+        $loader
+        $src
+    end) |> flatten
+end
+
+
+getntkeys(::NamedTuple{A,B}) where {A,B} = A 
+getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A 

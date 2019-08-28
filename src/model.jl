@@ -35,9 +35,7 @@ end
 function type2model(M::Type{Model{A,B,D}}) where {A,B,D}
     args = [fieldnames(A)...]
     data = [fieldnames(D)...]
-    @info "type2model" args
     body = interpret(B)
-    @info body
     Model(convert(Vector{Symbol},args), body)
 end
 
