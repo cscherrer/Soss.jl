@@ -4,53 +4,48 @@ using Reexport
 using MLStyle
 using Distributions
 
+EmptyNTtype = NamedTuple{(),T} where T<:Tuple
+
+
+export xform
+
+function rand(m::Model{EmptyNTtype, B, D}) where {B,D}
+    return xform(m,NamedTuple())    
+end
+
+@generated function xform(_m::Model{A,B,D}, _args::A) where {A,B,D} 
+    type2model(_m) |> sourceXform |> loadvals(_args, NamedTuple())
+end
+
 export sourceXform
 
-function sourceXform(m::Model)
-    m = canonical(m)
-    pars = parameters(m)
-    @gensym t result
+function sourceXform(m::Model{A,B,D}) where {A,B,D}
+    _m = canonical(m)
 
-    proc(m, st::Assign)        = :($(st.x) = $(st.rhs))
-    proc(m, st::Return)     = nothing
-    proc(m, st::LineNumber) = nothing
-    proc(m, st::Observe)    = :($(st.x) = rand($(st.rhs)))
+    proc(_m, st::Assign)        = :($(st.x) = $(st.rhs))
+    proc(_m, st::Return)     = nothing
+    proc(_m, st::LineNumber) = nothing
+    proc(_m, st::Observe)    = :($(st.x) = rand($(st.rhs)))
     
-    function proc(m, st::Sample)
+    function proc(_m, st::Sample)
         @q begin
                 $(st.x) = rand($(st.rhs))
-                $t = xform($(st.rhs))
+                _t = xform($(st.rhs))
 
-                $result = merge($result, ($(st.x)=$t,))
+                _result = merge(_result, ($(st.x)=_t,))
         end
     end
 
-    body = buildSource(m, proc) |> striplines
-    
-    argsExpr = Expr(:tuple,arguments(m)...)
+    wrap(kernel) = @q begin
+        _result = NamedTuple()
+        $kernel
+        as(_result)
+    end
 
-    
-    @gensym rand
-    
-    flatten(@q (
-        function $rand(args...) 
-            $result = NamedTuple()
-            $body
-            as($result)
-        end
-    ))
+    buildSource(m, proc, wrap) |> flatten
+
 
 end
-
-
-export makeXform
-function makeXform(m :: Model)
-    fpre = @eval $(sourceXform(m))
-    f(;kwargs...) = Base.invokelatest(fpre)
-end
-
-export xform
-xform(m::Model) = makeXform(m)()
 
 
 

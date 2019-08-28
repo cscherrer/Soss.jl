@@ -14,7 +14,7 @@ export advhmc
 
 function advhmc(m :: Model, args, data; kwargs...)
     ℓ(pars) = logdensity(m, args, data, pars)
-    t = xform(m)
+    t = xform(m,args)
 
     function f(x) 
         (θ, logjac) = transform_and_logjac(t,x)

@@ -17,11 +17,11 @@ end
 export nuts
 
 import Flux
-function nuts(m :: Model, args, data)
+function nuts(m :: Model{A,B,D}, args, data) where {A,B,D}
     ℓ(pars) = logdensity(m, args, data, pars)
 
     result = NUTS_result{}
-    t = xform(m)
+    t = xform(m,args)
     P = TransformedLogDensity(t, ℓ)
     ∇P = ADgradient(:Flux, P)
     chain, tuning = NUTS_init_tune_mcmc(∇P, 1000);
