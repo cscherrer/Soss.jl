@@ -79,7 +79,13 @@ function Model(expr :: Expr)
     end
 end
 
-function Model(args :: Vector{Symbol}, expr::Expr)
+function Model(vs::Expr,expr::Expr)
+    @assert vs.head == :tuple
+    @assert expr.head == :block
+    Model(Vector{Symbol}(vs.args), expr)
+end
+
+function Model(args::Vector{Symbol}, expr::Expr)
     m1 = Model(args, NamedTuple(), NamedTuple(), nothing, NamedTuple())
     m2 = Model(expr)
     merge(m1, m2)
