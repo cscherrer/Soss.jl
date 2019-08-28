@@ -6,14 +6,17 @@ export rand
 
 rand(m) = _rand(m,NamedTuple(),NamedTuple())
 
-function loadparams(args, data)
+function loadvals(argstype, datatype)
+    args = getntkeys(argstype)
+    @info args
+    data = getntkeys(datatype)
     loader = @q begin
     end
 
-    for (k,v) in pairs(args)
+    for k in args
         push!(loader.args, :($k = _args.$k))
     end
-    for (k,v) in pairs(data)
+    for k in data
         push!(loader.args, :($k = _data.$k))
     end
 
@@ -23,8 +26,12 @@ function loadparams(args, data)
     end) |> flatten
 end
 
+getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A 
+
 @generated function _rand(_m::Model{A,B,D}, _args::A, _data::D) where {A,B,D} 
-    type2model(_m) |> sourceRand |> loadparams(_args, _data)
+    s = type2model(_m) |> sourceRand |> loadvals(_args, _data)
+    @info s
+    s
 end
 
 export sourceRand
