@@ -12,16 +12,9 @@ using AdvancedHMC
 export advhmc
 
 
-function advhmc(m :: Model; kwargs...)
-    advhmc(m, NamedTuple(); kwargs...)
-end
-
-function advhmc(m :: Model, data :: NamedTuple; kwargs...)
-    logdens = makeLogdensity(m)
-    ℓ(pars) = logdens(merge(data,pars))
-
-    t = xform(m; data...)
-
+function advhmc(m :: Model, args, data; kwargs...)
+    ℓ(pars) = logdensity(m, args, data, pars)
+    t = xform(m)
 
     function f(x) 
         (θ, logjac) = transform_and_logjac(t,x)
