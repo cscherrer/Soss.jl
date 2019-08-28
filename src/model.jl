@@ -11,7 +11,7 @@ struct Model{A,B,D}
     vals  :: NamedTuple
     dists :: NamedTuple
     retn  :: Union{Nothing, Expr}
-    data  :: NamedTuple
+    data  :: Vector{Symbol}
 end
 
 argstype(::Model{A,B,D}) where {A,B,D} = A
@@ -25,26 +25,27 @@ datatype(::Type{Model{A,B,D}}) where {A,B,D} = D
 
 
 function Model(args, vals, dists, retn, data)
-    @info "Model" args, data
     A = NamedTuple{Tuple(args)}
-    D = data |> getprototype
+    D = NamedTuple{Tuple(data)}
     m = Model{A,Any,D}(args, vals, dists, retn, data)
     B = convert(Expr, m).args[end] |> expr2typelevel
     Model{A,B,D}(args, vals, dists, retn, data)
 end
 
 function type2model(M::Type{Model{A,B,D}}) where {A,B,D}
-    args = fieldnames(A) |> collect
+    args = [fieldnames(A)...]
+    data = [fieldnames(D)...]
     @info "type2model" args
     body = interpret(B)
-    Model{A,B,D}(args, body)
+    @info body
+    Model(convert(Vector{Symbol},args), body)
 end
 
 const emptyModel = 
     let A = NamedTuple{(),Tuple{}}
         D = NamedTuple{(),Tuple{}}                    
         B = (@q begin end) |> expr2typelevel
-    Model{A,B,D}([], NamedTuple(), NamedTuple(), nothing, NamedTuple())
+    Model{A,B,D}([], NamedTuple(), NamedTuple(), nothing, Symbol[])
 end
 
 
@@ -53,9 +54,7 @@ function Base.merge(m1::Model, m2::Model)
     args = setdiff(union(m1.args, m2.args), keys(vals))
     dists = merge(m1.dists, m2.dists)
     retn = maybesomething(m2.retn, m1.retn) # m2 first so it gets priority
-    data = merge(m1.data, m2.data)
-    @info "merge" args, data
-
+    data = union(m1.data, m2.data)
   
     Model(args, vals, dists, retn, data)
 end
@@ -66,9 +65,9 @@ Base.merge(m::Model, ::Nothing) = m
 function Model(expr :: Expr)
     nt = NamedTuple()
     @match expr begin
-        :($k = $v)   => Model([], namedtuple(k)([v]), nt, nothing, nt)
-        :($k ~ $v)   => Model([], nt, namedtuple(k)([v]), nothing, nt)
-        :(return :v) => Model([], nt, nt, v, nt)
+        :($k = $v)   => Model(Symbol[], namedtuple(k)([v]), nt, nothing, Symbol[])
+        :($k ~ $v)   => Model(Symbol[], nt, namedtuple(k)([v]), nothing, Symbol[])
+        :(return :v) => Model(Symbol[], nt, nt, v, Symbol[])
         Expr(:block, body...) => foldl(merge, Model.(body))
         :(@model $lnn $body) => Model(body)
         :(@model $lnn $args $body) => Model(args.args, body)
@@ -85,8 +84,14 @@ function Model(vs::Expr,expr::Expr)
     Model(Vector{Symbol}(vs.args), expr)
 end
 
+function Model{A,B,D}(args::Vector{Symbol}, expr::Expr) where {A,B,D}
+    m1 = Model{A,B,D}(args, NamedTuple(), NamedTuple(), nothing, Symbol[])
+    m2 = Model{A,B,D}(expr)
+    merge(m1, m2)
+end
+
 function Model(args::Vector{Symbol}, expr::Expr)
-    m1 = Model(args, NamedTuple(), NamedTuple(), nothing, NamedTuple())
+    m1 = Model(args, NamedTuple(), NamedTuple(), nothing, Symbol[])
     m2 = Model(expr)
     merge(m1, m2)
 end
@@ -118,7 +123,7 @@ macro model(expr :: Expr)
 end
 
 
-(m::Model)(;kwargs...) = merge(m, Model(NamedTuple(), NamedTuple(), NamedTuple(), nothing, (;kwargs...)))
+# (m::Model)(;kwargs...) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing,  ;kwargs...)))
 
 
 function Base.convert(::Type{Expr}, m::Model{T} where T)
