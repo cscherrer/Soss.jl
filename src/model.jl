@@ -65,6 +65,7 @@ function Model(expr :: Expr)
     @match expr begin
         :($k = $v)   => Model(Symbol[], namedtuple(k)([v]), nt, nothing, Symbol[])
         :($k ~ $v)   => Model(Symbol[], nt, namedtuple(k)([v]), nothing, Symbol[])
+        :($k ⩪ $v)   => Model(Symbol[], nt, namedtuple(k)([v]), nothing, Symbol[k])
         :(return :v) => Model(Symbol[], nt, nt, v, Symbol[])
         Expr(:block, body...) => foldl(merge, Model.(body))
         :(@model $lnn $body) => Model(body)

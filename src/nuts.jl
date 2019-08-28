@@ -17,8 +17,8 @@ end
 export nuts
 
 import Flux
-function nuts(m :: Model; kwargs...)
-    ℓ = makeLogdensity(m)
+function nuts(m :: Model, args, data)
+    ℓ(pars) = logdensity(m, args, data, pars)
 
     result = NUTS_result{}
     t = xform(m)
