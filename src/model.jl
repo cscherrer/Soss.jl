@@ -100,11 +100,6 @@ Model(::LineNumberNode) = emptyModel
 toargs(vs :: Vector{Symbol}) = Tuple(vs)
 toargs(vs :: NTuple{N,Symbol} where {N}) = vs
 
-function Model(vs::Expr,expr::Expr) 
-    @assert vs.head == :tuple
-    @assert expr.head == :block
-    Model(Vector{Symbol}(vs.args), expr)
-end
 
 
 macro model(vs::Expr,expr::Expr)
