@@ -9,7 +9,7 @@ EmptyNTtype = NamedTuple{(),T} where T<:Tuple
 
 export xform
 
-function rand(m::Model{EmptyNTtype, B, D}) where {B,D}
+function xform(m::Model{EmptyNTtype, B, D}) where {B,D}
     return xform(m,NamedTuple())    
 end
 
