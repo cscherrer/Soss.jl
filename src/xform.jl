@@ -42,7 +42,7 @@ function sourceXform(m::Model{A,B,D}) where {A,B,D}
         as(_result)
     end
 
-    buildSource(m, proc, wrap) |> flatten
+    buildSource(_m, proc, wrap) |> flatten
 
 
 end
