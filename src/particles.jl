@@ -52,7 +52,7 @@ function sourceParticles(m::Model)
 
 end
 
-particles(n :: NUTS_result) = particles(n.samples)
+# particles(n :: NUTS_result) = particles(n.samples)
 
 function particles(s::Vector{NamedTuple{vs, T}} where {vs, T})
     nt = NamedTuple()

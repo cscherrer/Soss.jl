@@ -47,14 +47,14 @@ StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 SymPy = "24249f21-da20-56a4-8eb1-6a02cf4ae2e6"
 TableTraits = "3783bdb8-4a98-5b6b-af9a-565f29a5fe9c"
 Tokenize = "0796e94c-ce3b-5d07-9a54-7f471281c624"
+Traceur = "37b6cedf-1f77-55f8-9503-c64b63398394"
 Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
-DynamicHMC = "^1.0.5"
-LogDensityProblems = "^0.8.3"
+DynamicHMC = "^2.0"
 MonteCarloMeasurements = ">=0.3.5"
 julia = "^1.0"
 
