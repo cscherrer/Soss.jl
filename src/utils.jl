@@ -259,6 +259,8 @@ end
 getntkeys(::NamedTuple{A,B}) where {A,B} = A 
 getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A 
 
+
+# These macros quickly define additional methods for when you get tired of typing `NamedTuple()`
 macro tuple3args(f)
     quote
         $f(m::Model, (), data) = $f(m::Model, NamedTuple(), data)
