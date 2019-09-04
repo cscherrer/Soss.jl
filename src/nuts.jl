@@ -18,6 +18,7 @@ export nuts
 
 import Flux
 function nuts(m :: Model{A,B,D}, args, data) where {A,B,D}
+    rng = MersenneTwister()
     ℓ(pars) = logdensity(m, args, data, pars)
 
     t = xform(m,args)

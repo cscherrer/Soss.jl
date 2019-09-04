@@ -21,14 +21,11 @@ function sourceRand(m::Model{A,B,D}) where {A,B,D}
     proc(_m, st::Return)  = :(return $(st.rhs))
     proc(_m, st::LineNumber) = nothing
 
-    stochExpr = begin
-        vals = map(x -> Expr(:(=), x,x),variables(_m)) 
-        Expr(:tuple, vals...)
-    end
+    vals = map(x -> Expr(:(=), x,x),variables(_m)) 
 
     wrap(kernel) = @q begin
         $kernel
-        $stochExpr
+        $(Expr(:tuple, vals...))
     end
     
     buildSource(_m, proc, wrap) |> flatten

@@ -47,3 +47,11 @@ end
 #         x => For(f, js)
 #     end
 # end
+using Transducers
+using Transducers: @next, complete
+function Transducers.__foldl__(rf, val, d::For)
+    for θ in d.θs
+        val = @next(rf, val, f(θ))
+    end
+    return complete(rf, val)
+end
