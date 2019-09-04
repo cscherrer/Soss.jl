@@ -266,3 +266,9 @@ macro tuple3args(f)
         $f(m::Model, (), ())   = $f(m::Model, NamedTuple(), NamedTuple())
     end
 end
+
+macro tuple2args(f)
+    quote
+        $f(m::Model, ()) = $f(m::Model, NamedTuple())
+    end
+end
