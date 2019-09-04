@@ -22,7 +22,7 @@ function nuts(m :: Model{A,B,D}, args, data) where {A,B,D}
 
     t = xform(m,args)
     P = TransformedLogDensity(t, ℓ)
-    ∇P = ADgradient(:Flux, P)
+    ∇P = ADgradient(Val(:Flux), P)
     results = mcmc_with_warmup(MersenneTwister(), ∇P, 1000);
     samples = TransformVariables.transform.(parent(∇P).transformation, results.chain)
     # ... here you may want to return: samples, results.chain, results.tree_statistics,
