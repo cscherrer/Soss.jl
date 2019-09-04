@@ -258,3 +258,11 @@ end
 
 getntkeys(::NamedTuple{A,B}) where {A,B} = A 
 getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A 
+
+macro tuple3args(f)
+    quote
+        $f(m::Model, (), data) = $f(m::Model, NamedTuple(), data)
+        $f(m::Model, args, ()) = $f(m::Model, args, NamedTuple())
+        $f(m::Model, (), ())   = $f(m::Model, NamedTuple(), NamedTuple())
+    end
+end
