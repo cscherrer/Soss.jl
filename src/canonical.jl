@@ -35,19 +35,19 @@ function canonical(expr :: Expr)
         end
 
         # TODO: This was intended to work around the closure issues by rewriting it as a local fucntion with all values passed explicitly as arguments. Doesn't seem to work, at least not yet
-        :($x -> begin $lnn; $fbody end) => begin
-            vs = setdiff(variables(fbody), variables(x))
-            @gensym f
-            pars = astuple(variables(x))
-            pars = :($(Expr(:parameters)))
-            for v in vs
-                pushfirst!(pars.args, :($v=$v))
-            end
-            quote
-                $f($pars) = $fbody
-                $f
-            end
-        end |> r
+        # :($x -> begin $lnn; $fbody end) => begin
+        #     vs = setdiff(variables(fbody), variables(x))
+        #     @gensym f
+        #     pars = astuple(variables(x))
+        #     pars = :($(Expr(:parameters)))
+        #     for v in vs
+        #         pushfirst!(pars.args, :($v=$v))
+        #     end
+        #     quote
+        #         $f($pars) = $fbody
+        #         $f
+        #     end
+        # end |> r
 
         x => x
     end
