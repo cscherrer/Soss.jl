@@ -9,23 +9,23 @@ EmptyNTtype = NamedTuple{(),T} where T<:Tuple
 
 export xform
 
-function xform(m::Model{EmptyNTtype, B, D}) where {B,D}
-    return xform(m,NamedTuple())    
-end
+# function xform(m::Model{EmptyNTtype, B}) where {B}
+#     return xform(m,NamedTuple())    
+# end
 
-@generated function xform(_m::Model{A,B,D}, _args::A) where {A,B,D} 
+@generated function xform(_m::Model{A,B}, _args::A, _data) where {A,B} 
     type2model(_m) |> sourceXform |> loadvals(_args, NamedTuple())
 end
 
 export sourceXform
 
-function sourceXform(m::Model{A,B,D}) where {A,B,D}
+function sourceXform(m::Model{A,B}) where {A,B}
     _m = canonical(m)
 
     proc(_m, st::Assign)        = :($(st.x) = $(st.rhs))
     proc(_m, st::Return)     = nothing
     proc(_m, st::LineNumber) = nothing
-    proc(_m, st::Observe)    = :($(st.x) = rand($(st.rhs)))
+    # proc(_m, st::Observe)    = :($(st.x) = rand($(st.rhs)))
     
     function proc(_m, st::Sample)
         @q begin

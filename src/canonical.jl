@@ -58,8 +58,7 @@ function canonical(m :: Model)
     vals  = map(canonical, m.vals) 
     dists = map(canonical, m.dists) 
     retn = m.retn  
-    data = m.data
-    Model(args, vals, dists, retn, data)
+    Model(args, vals, dists, retn)
 end    
 
 ex1 = :(map(1:10) do x x^2 end)

@@ -12,11 +12,6 @@ struct Sample <: Statement
     rhs 
 end
 
-struct Observe <: Statement
-    x :: Symbol
-    rhs 
-end
-
 struct LineNumber <: Statement
     node :: LineNumberNode
 end
@@ -29,10 +24,7 @@ Statement(x) = convert(Statement, x)
 
 function Statement(m::Model, x::Symbol)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
-    if x ∈ keys(m.dists) 
-        x ∈ m.data && return Observe(x, m.dists[x])
-        return Sample(x,m.dists[x])
-    end
+    x ∈ keys(m.dists) && return Sample(x,m.dists[x])
 end
 
 function Base.convert(::Type{Statement}, expr :: Expr)
@@ -43,7 +35,6 @@ function Base.convert(::Type{Statement}, expr :: Expr)
 end
 
 varName(st :: Sample)     = st.x
-varName(st :: Observe)    = st.x
 varName(st :: Assign)     = st.x
 varName(st :: Return)     = nothing
 varName(st :: LineNumber) = nothing
@@ -53,7 +44,6 @@ varName(::Nothing)        = nothing
 Base.convert(::Type{Statement}, node :: LineNumberNode) = LineNumber(node)
 
 Base.convert(::Type{Expr}, st::Sample)     = :($(st.x) ~ $(st.rhs))
-Base.convert(::Type{Expr}, st::Observe)    = :($(st.x) ⩪ $(st.rhs))
 Base.convert(::Type{Expr}, st::Assign)     = :($(st.x) = $(st.rhs))
 Base.convert(::Type{Expr}, st::Return)     = :(return $(st.rhs))
 Base.convert(::Type{Expr}, st::LineNumber) = st.node

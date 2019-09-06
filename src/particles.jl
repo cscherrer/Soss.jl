@@ -28,7 +28,6 @@ function sourceParticles(m::Model)
     m = canonical(m)
     proc(m, st::Assign)     = :($(st.x) = $(st.rhs))
     proc(m, st::Sample) = :($(st.x) = parts($(st.rhs)))
-    proc(m, st::Observe) = :($(st.x) = parts($(st.rhs)))
     proc(m, st::Return)  = :(return $(st.rhs))
     proc(m, st::LineNumber) = nothing
 

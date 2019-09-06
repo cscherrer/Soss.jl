@@ -17,7 +17,7 @@ using Random
 export nuts
 
 import Flux
-function nuts(m :: Model{A,B,D}, args, data) where {A,B,D}
+function nuts(m :: Model{A,B}, args, data) where {A,B}
     rng = MersenneTwister()
     ℓ(pars) = logdensity(m, args, data, pars)
 
