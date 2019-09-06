@@ -9,11 +9,11 @@ function rand(m::BoundModel{A, B}) where {A,B}
 end
 
 @generated function _rand(_m::Model{A,B}, _args::A) where {A,B} 
-    type2model(_m) |> sourceRand(_args) |> loadvals(_args, NamedTuple())
+    type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple())
 end
 
 export sourceRand
-function sourceRand(A) 
+function sourceRand() 
     function(m::Model)
         
         _m = canonical(m)
