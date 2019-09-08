@@ -3,3 +3,4 @@
 *.jl.mem
 deps/deps.jl
 src/sandbox.jl
+Manifest.toml
