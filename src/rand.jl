@@ -4,12 +4,20 @@ export rand
 
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-function rand(m::BoundModel{A, B}) where {A,B}
-    return _rand(m.model, m.args)    
+@inline function rand(m::BoundModel)
+    return _rand(m.model, m.args)
 end
 
-@gg function _rand(_m::Model{A,B}, _args::A) where {A,B} 
+@generated function rand(m::T) where {T <: Model}
+    type2model(T) |> sourceRand()
+end
+
+@gg function _rand(_m::Model{A,B}, _args::A) where {A,B}
     type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple())
+end
+
+@gg function _rand(_m::Model{A,B}, _args::NamedTuple{()}) where {A, B}
+    type2model(_m) |> sourceRand()
 end
 
 export sourceRand

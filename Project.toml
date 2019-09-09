@@ -61,9 +61,7 @@ TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
-DynamicHMC = "^2.0"
 MonteCarloMeasurements = ">=0.3.5"
-julia = "^1.0"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
