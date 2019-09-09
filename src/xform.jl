@@ -4,47 +4,59 @@ using Reexport
 using MLStyle
 using Distributions
 
-EmptyNTtype = NamedTuple{(),T} where T<:Tuple
 
 
 export xform
+
+
+function xform(m::BoundModel{A, B}, _data) where {A,B}
+    return _xform(m.model, m.args, _data)    
+end
+
+@gg function _xform(_m::Model{A,B}, _args::A, _data) where {A,B} 
+    type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
+end
 
 # function xform(m::Model{EmptyNTtype, B}) where {B}
 #     return xform(m,NamedTuple())    
 # end
 
-@generated function xform(_m::Model{A,B}, _args::A, _data) where {A,B} 
-    type2model(_m) |> sourceXform |> loadvals(_args, NamedTuple())
-end
 
 export sourceXform
 
-function sourceXform(m::Model{A,B}) where {A,B}
-    _m = canonical(m)
+function sourceXform(_data)
+    function(_m::Model)
 
-    proc(_m, st::Assign)        = :($(st.x) = $(st.rhs))
-    proc(_m, st::Return)     = nothing
-    proc(_m, st::LineNumber) = nothing
-    # proc(_m, st::Observe)    = :($(st.x) = rand($(st.rhs)))
-    
-    function proc(_m, st::Sample)
-        @q begin
-                $(st.x) = rand($(st.rhs))
-                _t = xform($(st.rhs))
+        _m = canonical(_m)
 
-                _result = merge(_result, ($(st.x)=_t,))
+        _datakeys = getntkeys(_data)
+        proc(_m, st::Assign)        = :($(st.x) = $(st.rhs))
+        proc(_m, st::Return)     = nothing
+        proc(_m, st::LineNumber) = nothing
+        
+        function proc(_m, st::Sample)
+            if st.x ∈ _datakeys
+                return :($(st.x) = $_datakeys)
+            else
+                return (@q begin
+                    $(st.x) = rand($(st.rhs))
+                    _t = xform($(st.rhs))
+
+                    _result = merge(_result, ($(st.x)=_t,))
+                end)
+            end
+            
         end
+
+        wrap(kernel) = @q begin
+            _result = NamedTuple()
+            $kernel
+            as(_result)
+        end
+
+        buildSource(_m, proc, wrap) |> flatten
+
     end
-
-    wrap(kernel) = @q begin
-        _result = NamedTuple()
-        $kernel
-        as(_result)
-    end
-
-    buildSource(_m, proc, wrap) |> flatten
-
-
 end
 
 
