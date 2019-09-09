@@ -56,3 +56,27 @@ julia> nuts(m(σ=1),(x=[-1,0,1],)) |> particles
 (μ = -0.00502 ± 0.47,)
 ```
 
+## To Do
+
+We need a way to "lift" a `Distribution` (without parameters) to a `Model`, or one with parameters to a `BoundModel`
+
+Should we rename `BoundModel`? It's really a generative process.
+
+Models are "function-like", so a `BoundModel` should be sometimes usable as a value. `m1(m2(args))` should work.
+
+This also means `m1 ∘ m2` should be fine
+
+We need some terminology. I think maybe things that use `@gg` should be "inference primitives". We have some (and will have many more) inference methods that don't call this directly
+
+There's a `return` available in case you want a result other than a `NamedTuple`, but it's a little fiddly still. I think whether the `return` is respected or ignored should depend on the inference primitive. And some will also modify it, similar to how a state monad works. Likelihood weighting is an example of this.
+
+Rather than having lots of functions for inference, anything that's not a primitive should (I think for now at least) be a method of... let's call it `sample`. This should always return an iterator, so we can combine results after the fact using tools like `IterTools`, `ResumableFucntions`, and `Transducers`.
+
+A model is also like a poset (via the variable dependency DAG). Slicing could be very useful, as `m[:a,:b]`
+
+We already have a way to `merge` models, we should look into intersection as well.
+
+We need ways to interact with Turing and Gen. Some ideas:
+
+- Turn a Soss model into an "outside" (Turing or Gen) model
+- Embed outside models as a black box in a Soss model, using their methods for inference
