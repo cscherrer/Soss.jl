@@ -164,6 +164,8 @@ function buildSource(m, proc, wrap=identity; kwargs...)
         isnothing(ex) || push!(kernel.args, ex)
     end
 
+
+    isnothing(m.retn) || push!(kernel.args, proc(m, Return(m.retn); kwargs...))
     # args = argtuple(m)
 
     # body = @q begin

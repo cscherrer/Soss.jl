@@ -8,7 +8,7 @@ function rand(m::BoundModel{A, B}) where {A,B}
     return _rand(m.model, m.args)    
 end
 
-@generated function _rand(_m::Model{A,B}, _args::A) where {A,B} 
+@gg function _rand(_m::Model{A,B}, _args::A) where {A,B} 
     type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple())
 end
 

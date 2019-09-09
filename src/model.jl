@@ -12,7 +12,7 @@ struct Model{A,B} <: AbstractModel{A,B}
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
-    retn  :: Union{Nothing, Expr}
+    retn  :: Union{Nothing, Symbol, Expr}
 end
 
 argstype(::Model{A,B}) where {A,B} = A
@@ -24,7 +24,7 @@ bodytype(::Type{Model{A,B}}) where {A,B} = B
 function Model(args, vals, dists, retn)
     A = NamedTuple{Tuple(args)}
     m = Model{A,Any}(args, vals, dists, retn)
-    B = convert(Expr, m).args[end] |> expr2typelevel
+    B = convert(Expr, m).args[end] |> to_type
     Model{A,B}(args, vals, dists, retn)
 end
 
@@ -36,7 +36,7 @@ end
 
 const emptyModel = 
     let A = NamedTuple{(),Tuple{}}                    
-        B = (@q begin end) |> expr2typelevel
+        B = (@q begin end) |> to_type
     Model{A,B}([], NamedTuple(), NamedTuple(), nothing)
 end
 
@@ -58,7 +58,7 @@ function Model(expr :: Expr)
     @match expr begin
         :($k = $v)   => Model(Symbol[], namedtuple(k)([v]), nt, nothing)
         :($k ~ $v)   => Model(Symbol[], nt, namedtuple(k)([v]), nothing)
-        :(return :v) => Model(Symbol[], nt, nt, v, Symbol[])
+        Expr(:return, x...) => Model(Symbol[], nt, nt, x[1])
         Expr(:block, body...) => foldl(merge, Model.(body))
         :(@model $lnn $body) => Model(body)
         :(@model $lnn $args $body) => Model(args.args, body)
@@ -125,6 +125,7 @@ function Base.convert(::Type{Expr}, m::Model{T} where T)
         push!(body.args, Expr(m,v))
     end
 
+    isnothing(m.retn) || push!(body.args, :(return $(m.retn)))
 
     q = if numArgs == 0
         @q begin
@@ -135,7 +136,6 @@ function Base.convert(::Type{Expr}, m::Model{T} where T)
             @model $(args) $body
         end
     end
-
 
     striplines(q).args[1]
 end
@@ -171,6 +171,8 @@ end
 
 
 (m::Model)(;args...)= BoundModel(m,(;args...))
+
+(m::Model)(nt::NamedTuple) = BoundModel(m,nt)
 
 function Base.show(io::IO, bm :: BoundModel)
     println("Model with bound arguments\n")

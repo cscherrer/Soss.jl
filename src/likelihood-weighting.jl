@@ -1,11 +1,11 @@
 
 export weightedSample
 
-function weightedSample(m::BoundModel{A, B},x) where {A,B}
-    return _weightedSample(m.model, m.args, x)    
+function weightedSample(m::BoundModel{A, B}, _data) where {A,B}
+    return _weightedSample(m.model, m.args, _data)    
 end
 
-@generated function _weightedSample(_m::Model{A,B}, _args::A, _data) where {A,B} 
+@gg function _weightedSample(_m::Model{A,B}, _args::A, _data) where {A,B} 
     type2model(_m) |> sourceWeightedSample(_data) |> loadvals(_args, _data)
 end
 

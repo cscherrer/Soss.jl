@@ -1,27 +1,16 @@
 using TransformVariables, LogDensityProblems, DynamicHMC, MCMCDiagnostics, Parameters,
     Distributions, Statistics, StatsFuns, ForwardDiff
 
-# struct NUTS_result{T}
-#     chain::Vector{NUTS_Transition{Vector{Float64},Float64}}
-#     transformation
-#     samples::Vector{T}
-#     tuning
-# end
-
-# Base.show(io::IO, n::NUTS_result) = begin
-#     println(io, "NUTS_result with samples:")
-#     println(IOContext(io, :limit => true, :compact => true), n.samples)
-# end
 using Random
 
 export nuts
 
 import Flux
-function nuts(m :: Model{A,B}, args, data) where {A,B}
+function nuts(m :: BoundModel{A,B}, _data) where {A,B}
     rng = MersenneTwister()
-    ℓ(pars) = logdensity(m, args, data, pars)
+    ℓ(pars) = logpdf(m, merge(pars, _data))
 
-    t = xform(m,args)
+    t = xform(m,_data)
     P = TransformedLogDensity(t, ℓ)
     ∇P = ADgradient(Val(:Flux), P)
     results = mcmc_with_warmup(MersenneTwister(), ∇P, 1000);
