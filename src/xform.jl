@@ -68,6 +68,8 @@ function xform(d)
     end
 end
 
+using TransformVariables: ShiftedExp, ScaledShiftedLogistic
+
 function asTransform(supp:: RealInterval) 
     (lb, ub) = (supp.lb, supp.ub)
 
