@@ -5,7 +5,7 @@ function logpdf(m::BoundModel{A, B},x) where {A,B}
     return _logpdf(m.model, m.args, x)    
 end
 
-@generated function _logpdf(_m::Model{A,B}, _args::A, _data) where {A,B} 
+@gg function _logpdf(_m::Model{A,B}, _args::A, _data) where {A,B} 
     type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data)
 end
 
