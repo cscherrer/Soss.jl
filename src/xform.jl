@@ -13,7 +13,7 @@ function xform(m::BoundModel{A, B}, _data) where {A,B}
     return _xform(m.model, m.args, _data)    
 end
 
-@gg function _xform(_m::Model{A,B}, _args::A, _data) where {A,B} 
+@gg function _xform(_m::Model{Asub,B}, _args::A, _data) where {Asub, A,B} 
     type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
 end
 
@@ -72,9 +72,9 @@ function asTransform(supp:: RealInterval)
     (lb, ub) = (supp.lb, supp.ub)
 
     (lb, ub) == (-Inf, Inf) && (return asℝ)
-    (lb, ub) == (0.0,  Inf) && (return asℝ₊)
-    (lb, ub) == (0.0,  1.0) && (return as𝕀)
-    error("asTransform($supp) not yet supported")
+    isinf(ub) && return ShiftedExp(lb)
+    isinf(lb) && return error("asTransform($supp) not yet supported") #TODO
+    return ScaledShiftedLogistic(ub-lb, lb)
 end
 
 # export xform
