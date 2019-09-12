@@ -36,7 +36,7 @@ function sourceXform(_data)
         
         function proc(_m, st::Sample)
             if st.x ∈ _datakeys
-                return :($(st.x) = $_datakeys)
+                return :($(st.x) = _data.$(st.x))
             else
                 return (@q begin
                     $(st.x) = rand($(st.rhs))
