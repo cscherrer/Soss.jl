@@ -1,4 +1,4 @@
-using GG
+using GeneralizedGenerated
 
 export rand
 

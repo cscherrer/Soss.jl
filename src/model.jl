@@ -4,7 +4,7 @@ using MLStyle
 using MacroTools: @q, striplines
 using SimpleGraphs
 using SimplePosets
-using GG
+using GeneralizedGenerated
 
 abstract type AbstractModel{A,B} end
 
