@@ -40,7 +40,6 @@ PositiveFactorizations = "85a6dd25-e78a-55b7-8502-1745935b8125"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
-Rethinking_Soss = "7fa191c4-38bb-51a3-bb73-5cc1d37afa1c"
 SimpleGraphs = "55797a34-41de-5266-9ec1-32ac4eb504d3"
 SimplePartitions = "ec83eff0-a5b5-5643-ae32-5cbf6eedec9d"
 SimplePosets = "b2aef97b-4721-5af9-b440-0bad754dc5ba"
@@ -55,8 +54,8 @@ Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 
 [compat]
-julia = "^1.2"
 MonteCarloMeasurements = ">=0.3.5"
+julia = "^1.2"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
