@@ -7,6 +7,7 @@ version = "0.2.0"
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
 BangBang = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 Cassette = "7057c7e9-c182-5462-911a-8362d720325c"
 CodeTracking = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -39,6 +40,7 @@ PositiveFactorizations = "85a6dd25-e78a-55b7-8502-1745935b8125"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
+Rethinking_Soss = "7fa191c4-38bb-51a3-bb73-5cc1d37afa1c"
 SimpleGraphs = "55797a34-41de-5266-9ec1-32ac4eb504d3"
 SimplePartitions = "ec83eff0-a5b5-5643-ae32-5cbf6eedec9d"
 SimplePosets = "b2aef97b-4721-5af9-b440-0bad754dc5ba"
@@ -53,6 +55,7 @@ Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 
 [compat]
+julia = "^1.2"
 MonteCarloMeasurements = ">=0.3.5"
 
 [extras]
