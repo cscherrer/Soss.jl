@@ -20,11 +20,23 @@ sourceLogpdf         sourceRand            sourceXform
 sourceParticles      sourceWeightedSample
 ```
 
-The general pattern is that a primitive `sourceFoo` specifies how code is generated for a function `foo`. 
+The general pattern is that a primitive `sourceFoo` specifies how code is generated for an inference function `foo`. 
 
-For more details, see the *Internals* section.
+For more details on inference primitives, see the *Internals* section.
 
 ## Inference Functions
+
+An *inference function* is a function that takes a `JointDistribution` as an argument, and calls at least one inference primitive (not necessarily directly). The wrapper around each primitive is a special case of this, but most inference functions work at a higher level of abstraction.
+
+There's some variability , but is often of the form
+
+```julia
+foo(d::JointDistribution, data::NamedTuple)
+```
+
+For example, `advancedHMC` uses [`TuringLang/AdvancedHMC.jl`](https://github.com/TuringLang/AdvancedHMC.jl) , which needs a `logpdf` and its gradient. 
+
+Most inference algorithms can be expressed in terms of inference primitives. 
 
 ## Chain Combinators
 
@@ -82,8 +94,4 @@ end
 
 
 
-# Internals
-
-## `Model`
-
-##  
+## 
