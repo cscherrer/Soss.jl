@@ -1,5 +1,5 @@
-using SimplePartitions
-using SimpleGraphs
+using SimplePartitions: find_part
+import SimpleGraphs
 
 
 
@@ -11,7 +11,7 @@ end
 
 # Type piracy, this should really go in SimpleGraphs
 # OTOH there's not anything else this could really mean
-SimpleGraphs.components(g::SimpleDigraph) = components(convert(SimpleGraph, g))
+SimpleGraphs.components(g::SimpleDigraph) = SimpleGraphs.components(convert(SimpleGraph, g))
 
 export predictive
 function predictive(m::Model, x :: Symbol)
