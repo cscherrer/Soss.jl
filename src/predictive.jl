@@ -34,3 +34,4 @@ function predictive(m::Model, x :: Symbol)
     end
 end
 
+predictive(m::Model, x::Symbol, xs...) = predictive(predictive(m,x), xs...)
