@@ -159,7 +159,7 @@ function buildSource(m, proc, wrap=identity; kwargs...)
 
     kernel = @q begin end
 
-    for st in map(v -> Statement(m,v), toposortvars(m))
+    for st in map(v -> findStatement(m,v), toposortvars(m))
         ex = proc(m, st; kwargs...)
         isnothing(ex) || push!(kernel.args, ex)
     end

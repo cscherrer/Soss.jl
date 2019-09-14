@@ -87,6 +87,9 @@ function Model(args::Vector{Symbol}, expr::Expr)
     merge(m1, m2)
 end
 
+
+Expr(m::Model,v) = convert(Expr,findStatement(m,v) )
+
 Model(::LineNumberNode) = emptyModel
 
 toargs(vs :: Vector{Symbol}) = Tuple(vs)
