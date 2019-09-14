@@ -1,7 +1,7 @@
 
 export weightedSample
 
-function weightedSample(m::BoundModel{A, B}, _data) where {A,B}
+function weightedSample(m::JointDistribution{A, B}, _data) where {A,B}
     return _weightedSample(m.model, m.args, _data)    
 end
 
