@@ -4,7 +4,7 @@ export rand
 
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-@inline function rand(m::BoundModel)
+@inline function rand(m::JointDistribution)
     return _rand(m.model, m.args)
 end
 

@@ -12,8 +12,8 @@ import MLStyle
 @reexport using MonteCarloMeasurements
 
 
-include("model.jl")
 include("statement.jl")
+include("model.jl")
 # include("weighted.jl")
 
 include("for.jl")
@@ -22,7 +22,7 @@ include("dist.jl")
 include("iid.jl")
 include("utils.jl")
 include("dependencies.jl")
-include("logdensity.jl")
+include("logpdf.jl")
 include("likelihood-weighting.jl")
 # include("examples.jl")
 # include("graph.jl")
@@ -41,4 +41,5 @@ include("advancedhmc.jl")
 # include("plots.jl")
 # include("rejection.jl")
 include("rand.jl")
+include("predictive.jl")
 end # module
