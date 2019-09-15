@@ -7,56 +7,24 @@ foreach([<=, >=, <, >]) do cmp
     MonteCarloMeasurements.register_primitive(cmp, eval)
 end
 
-export makeParticles
-function makeParticles(m :: Model)
-    fpre = @eval $(sourceParticles(m))
-    f(;kwargs...) = Base.invokelatest(fpre; kwargs...)
-end
-
 export particles
-particles(m::Model; kwargs...) = makeParticles(m)(;kwargs...)
 
-function particles(m::Model, n::Int64; kwargs...)
-    r = makeParticles(m)
-    [r(;kwargs...) for j in 1:n] |> DataFrame
-
-end
-
-particles(d) = Particles(1000, d)
-
-function sourceParticles(m::Model)
-    m = canonical(m)
-    proc(m, st::Assign)     = :($(st.x) = $(st.rhs))
-    proc(m, st::Sample) = :($(st.x) = parts($(st.rhs)))
-    proc(m, st::Return)  = :(return $(st.rhs))
-    proc(m, st::LineNumber) = nothing
-
-    body = buildSource(m, proc) |> striplines
-    
-    argsExpr = Expr(:tuple,freeVariables(m)...)
-
-    stochExpr = begin
-        vals = map(variables(m)) do x Expr(:(=), x,x) end
-        Expr(:tuple, vals...)
-    end
-    
-    @gensym particles
-    
-    flatten(@q (
-        function $particles(args...) 
-            $body
-            $stochExpr
-        end
-    ))
-
+particles(v::Vector{<:Real}) = Particles(v)
+particles(d) = begin
+    Particles(1000, d)
 end
 
 # particles(n :: NUTS_result) = particles(n.samples)
+using IterTools
 
-function particles(s::Vector{NamedTuple{vs, T}} where {vs, T})
+function particles(v::Vector{Vector{T} }) where {T}
+    map(eachindex(v[1])) do j particles([x[j] for x in v]) end
+end
+
+function particles(s::Vector{NamedTuple{vs, T}}) where {vs, T}
     nt = NamedTuple()
-    for v in keys(s[1])
-        nt = merge(nt, [v => Particles(getproperty.(s,v))])
+    for k in keys(s[1])
+        nt = merge(nt, [k => particles(getproperty.(s,k))])
     end
     nt
 end
