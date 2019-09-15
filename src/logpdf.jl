@@ -1,7 +1,7 @@
 
 export logpdf
 
-function logpdf(m::BoundModel{A, B},x) where {A,B}
+function logpdf(m::JointDistribution{A, B},x) where {A,B}
     return _logpdf(m.model, m.args, x)    
 end
 

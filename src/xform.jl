@@ -9,7 +9,7 @@ using Distributions
 export xform
 
 
-function xform(m::BoundModel{A, B}, _data) where {A,B}
+function xform(m::JointDistribution{A, B}, _data) where {A,B}
     return _xform(m.model, m.args, _data)    
 end
 

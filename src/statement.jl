@@ -22,10 +22,7 @@ end
 
 Statement(x) = convert(Statement, x)
 
-function Statement(m::Model, x::Symbol)
-    x ∈ keys(m.vals) && return Assign(x,m.vals[x])
-    x ∈ keys(m.dists) && return Sample(x,m.dists[x])
-end
+
 
 function Base.convert(::Type{Statement}, expr :: Expr)
     @match expr begin
@@ -52,4 +49,3 @@ function Base.convert(::Type{Expr}, sts::Vector{Statement})
     Expr(:block, [convert(Expr, st) for st in sts]...)
 end
 
-Expr(m::Model,v) = convert(Expr,Statement(m,v) )

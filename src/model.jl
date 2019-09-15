@@ -52,13 +52,17 @@ end
 
 Base.merge(m::Model, ::Nothing) = m
 
+Model(st::Assign) = Model(Symbol[], namedtuple(st.x)([st.rhs]), NamedTuple(), nothing)
+Model(st::Sample) = Model(Symbol[], NamedTuple(), namedtuple(st.x)([st.rhs]), nothing)
+Model(st::Return) = Model(Symbol[], nt, nt, st.rhs)
+Model(st::LineNumber) = emptyModel
 
 function Model(expr :: Expr)
     nt = NamedTuple()
     @match expr begin
-        :($k = $v)   => Model(Symbol[], namedtuple(k)([v]), nt, nothing)
-        :($k ~ $v)   => Model(Symbol[], nt, namedtuple(k)([v]), nothing)
-        Expr(:return, x...) => Model(Symbol[], nt, nt, x[1])
+        :($k = $v)   => Model(Assign(k,v))
+        :($k ~ $v)   => Model(Sample(k,v))
+        Expr(:return, x...) => Model(Return(x[1]))
         Expr(:block, body...) => foldl(merge, Model.(body))
         :(@model $lnn $body) => Model(body)
         :(@model $lnn $args $body) => Model(args.args, body)
@@ -86,6 +90,9 @@ function Model(args::Vector{Symbol}, expr::Expr)
     m2 = Model(expr)
     merge(m1, m2)
 end
+
+
+Expr(m::Model,v) = convert(Expr,findStatement(m,v) )
 
 Model(::LineNumberNode) = emptyModel
 
@@ -164,17 +171,30 @@ Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 # observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
 # observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
 
-struct BoundModel{A,B} <: AbstractModel{A,B}
+struct JointDistribution{A,B} <: AbstractModel{A,B}
     model::Model{A,B}
     args::A
 end
 
 
-(m::Model)(;args...)= BoundModel(m,(;args...))
+(m::Model)(;args...)= JointDistribution(m,(;args...))
 
-(m::Model)(nt::NamedTuple) = BoundModel(m,nt)
+(m::Model)(nt::NamedTuple) = JointDistribution(m,nt)
 
-function Base.show(io::IO, bm :: BoundModel)
-    println("Model with bound arguments\n")
-    println(io, convert(Expr, bm.model))
+function Base.show(io::IO, d :: JointDistribution)
+    m = d.model
+    println(io, "Joint Distribution")
+    print(io, "    Bound arguments: [")
+    join(io, arguments(m), ", ")
+    println(io, "]")
+    print(io, "    Variables: [")
+    join(io, setdiff(toposortvars(m),arguments(m)), ", ")
+    println(io, "]\n")
+    println(io, convert(Expr, m))
+end
+
+
+function findStatement(m::Model, x::Symbol)
+    x ∈ keys(m.vals) && return Assign(x,m.vals[x])
+    x ∈ keys(m.dists) && return Sample(x,m.dists[x])
 end

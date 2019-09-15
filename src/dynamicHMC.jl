@@ -3,11 +3,10 @@ using TransformVariables, LogDensityProblems, DynamicHMC, MCMCDiagnostics, Param
 
 using Random
 
-export nuts
+export dynamicHMC
 
 # import Flux
-function nuts(m :: BoundModel{A,B}, _data) where {A,B}
-    rng = MersenneTwister()
+function dynamicHMC(m :: JointDistribution, _data) 
     ℓ(pars) = logpdf(m, merge(pars, _data))
 
     t = xform(m,_data)
