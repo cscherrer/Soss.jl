@@ -6,7 +6,7 @@ using Random
 export dynamicHMC
 
 # import Flux
-function dynamicHMC(m :: JointDistribution, _data, N::Int) 
+function dynamicHMC(m :: JointDistribution, _data, N=1000::Int) 
     ℓ(pars) = logpdf(m, merge(pars, _data))
 
     t = xform(m,_data)
@@ -17,7 +17,7 @@ function dynamicHMC(m :: JointDistribution, _data, N::Int)
 end
 
 
-function dynamicHMC(m :: JointDistribution, _data) 
+function dynamicHMC(m :: JointDistribution, _data, ::Val{Inf}) 
     ℓ(pars) = logpdf(m, merge(pars, _data))
 
     t = xform(m,_data)
@@ -38,7 +38,7 @@ using ResumableFunctions
 export stream
 @resumable function stream(m :: JointDistribution, _data::NamedTuple) 
     t = xform(m, _data)
-    (results, steps) = dynamicHMC(m, _data)
+    (results, steps) = dynamicHMC(m, _data, Val(Inf))
     Q = results.final_warmup_state.Q
     while true
         Q, tree_stats = DynamicHMC.mcmc_next_step(steps, Q)
