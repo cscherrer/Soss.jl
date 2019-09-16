@@ -58,15 +58,11 @@ julia> nuts(m(σ=1),(x=[-1,0,1],)) |> particles
 
 ## To Do
 
-We need a way to "lift" a `Distribution` (without parameters) to a `Model`, or one with parameters to a `BoundModel`
+We need a way to "lift" a "`Distribution`" (without parameters, so really a family) to a `Model`, or one with parameters to a `JointDistribution`
 
-Should we rename `BoundModel`? It's really a generative process.
-
-Models are "function-like", so a `BoundModel` should be sometimes usable as a value. `m1(m2(args))` should work.
+Models are "function-like", so a `JointDistribution` should be sometimes usable as a value. `m1(m2(args))` should work.
 
 This also means `m1 ∘ m2` should be fine
-
-We need some terminology. I think maybe things that use `@gg` should be "inference primitives". We have some (and will have many more) inference methods that don't call this directly
 
 Since inference primitives are specialized for the type of data, we can include methods for `Union{Missing, T}` data. PyMC3 has something like this, but for us it will be better since we know at compile time whether any data are missing.
 
@@ -75,8 +71,6 @@ There's a `return` available in case you want a result other than a `NamedTuple`
 Rather than having lots of functions for inference, anything that's not a primitive should (I think for now at least) be a method of... let's call it `sample`. This should always return an iterator, so we can combine results after the fact using tools like `IterTools`, `ResumableFunctions`, and `Transducers`.
 
 This situation just described is for generating a sequence of samples from a single distribution. But we may also have models with a sequence of distributions, either observed or sampled, or a mix. This can be something like Haskell's `iterateM`, though we need to think carefully about the specifics.
-
-A model is also like a poset (via the variable dependency DAG). Slicing could be very useful, as `m[:a,:b]`
 
 We already have a way to `merge` models, we should look into intersection as well.
 
