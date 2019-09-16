@@ -12,7 +12,7 @@ end
     type2model(T) |> sourceRand()
 end
 
-@gg function _rand(_m::Model{A,B}, _args::A) where {A,B}
+@gg function _rand(_m::Model{A,B}, _args::A0) where {A0,A,B}
     type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple())
 end
 

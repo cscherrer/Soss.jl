@@ -174,6 +174,8 @@ struct JointDistribution{A0,A,B}
     args::A0
 end
 
+(jd::JointDistribution)(nt::NamedTuple) = JointDistribution(jd.model, merge(jd.args, nt))
+
 
 (m::Model)(;args...)= JointDistribution(m,(;args...))
 
