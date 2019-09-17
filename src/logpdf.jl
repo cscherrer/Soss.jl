@@ -1,11 +1,11 @@
 
 export logpdf
 
-function logpdf(m::JointDistribution{A, B},x) where {A,B}
+function logpdf(m::JointDistribution,x)
     return _logpdf(m.model, m.args, x)    
 end
 
-@gg function _logpdf(_m::Model{A,B}, _args::A, _data) where {A,B} 
+@gg function _logpdf(_m::Model, _args, _data)  
     type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data)
 end
 
