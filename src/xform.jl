@@ -108,3 +108,5 @@ end
 function xform(d::iid)
     as(Array, xform(d.dist), d.size...)
 end
+
+xform(d::MvNormal) =  as(Vector, length(d))
