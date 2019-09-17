@@ -36,7 +36,7 @@ end
 using ResumableFunctions
 
 export stream
-@resumable function stream(m :: JointDistribution, _data::NamedTuple) 
+@resumable function stream(f::typeof(dynamicHMC), m :: JointDistribution, _data::NamedTuple) 
     t = xform(m, _data)
     (results, steps) = dynamicHMC(m, _data, Val(Inf))
     Q = results.final_warmup_state.Q
