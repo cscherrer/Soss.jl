@@ -9,12 +9,13 @@ using AdvancedHMC
 
 
 
-export advhmc
+export advancedHMC
 
 
-function advhmc(m :: Model, args, data; kwargs...)
-    ℓ(pars) = logdensity(m, args, data, pars)
-    t = xform(m,args)
+function advancedHMC(m :: JointDistribution{A,B}, _data) where {A,B}
+    ℓ(pars) = logpdf(m, merge(pars, _data))
+
+    t = xform(m,_data)
 
     function f(x) 
         (θ, logjac) = transform_and_logjac(t,x)

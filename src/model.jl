@@ -6,9 +6,7 @@ using SimpleGraphs
 using SimplePosets
 using GeneralizedGenerated
 
-abstract type AbstractModel{A,B} end
-
-struct Model{A,B} <: AbstractModel{A,B}
+struct Model{A,B} 
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
@@ -171,10 +169,12 @@ Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 # observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
 # observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
 
-struct JointDistribution{A,B} <: AbstractModel{A,B}
+struct JointDistribution{A0,A,B}
     model::Model{A,B}
-    args::A
+    args::A0
 end
+
+(jd::JointDistribution)(nt::NamedTuple) = JointDistribution(jd.model, merge(jd.args, nt))
 
 
 (m::Model)(;args...)= JointDistribution(m,(;args...))

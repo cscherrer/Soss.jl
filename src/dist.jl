@@ -45,3 +45,18 @@ Distributions.support(::HalfNormal) = RealInterval(0.0, Inf)
 
 # Binomial distribution, parameterized by logit(p)
 LogisticBinomial(n,x)=Binomial(n,logistic(x))
+
+export EqualMix
+struct EqualMix{T}
+    components::Vector{T}
+end
+
+function Distributions.logpdf(m::EqualMix{T}, x) where {T}
+    logsumexp(map(d -> logpdf(d,x), m.components))
+end
+
+function Base.rand(m::EqualMix{T}) where {T}
+    rand(rand(m.components))
+end
+
+xform(d::EqualMix) = xform(d.components[1])

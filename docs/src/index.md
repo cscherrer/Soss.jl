@@ -53,7 +53,7 @@ Most inference algorithms can be expressed in terms of inference primitives.
 
 
 ```julia
-struct Model{A,B} <: AbstractModel{A,B}
+struct Model{A,B}
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
