@@ -1,11 +1,11 @@
 
 export weightedSample
 
-function weightedSample(m::JointDistribution{A, B}, _data) where {A,B}
+function weightedSample(m::JointDistribution, _data) 
     return _weightedSample(m.model, m.args, _data)    
 end
 
-@gg function _weightedSample(_m::Model{A,B}, _args::A, _data) where {A,B} 
+@gg function _weightedSample(_m::Model, _args, _data) 
     type2model(_m) |> sourceWeightedSample(_data) |> loadvals(_args, _data)
 end
 
