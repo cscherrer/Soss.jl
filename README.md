@@ -79,4 +79,7 @@ We need ways to interact with Turing and Gen. Some ideas:
 - Turn a Soss model into an "outside" (Turing or Gen) model
 - Embed outside models as a black box in a Soss model, using their methods for inference
 
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/cscherrer/Soss.jl.svg)](https://starchart.cc/cscherrer/Soss.jl)
 
