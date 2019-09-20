@@ -74,8 +74,8 @@ function asTransform(supp:: RealInterval)
     (lb, ub) = (supp.lb, supp.ub)
 
     (lb, ub) == (-Inf, Inf) && (return asℝ)
-    isinf(ub) && return ShiftedExp(lb)
-    isinf(lb) && return error("asTransform($supp) not yet supported") #TODO
+    isinf(ub) && return ShiftedExp(true,lb)
+    isinf(lb) && return ShiftedExp(false,lb)
     return ScaledShiftedLogistic(ub-lb, lb)
 end
 

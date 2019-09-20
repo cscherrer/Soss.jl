@@ -28,6 +28,7 @@ function canonical(expr :: Expr)
             :(iid($rn,$rdist)) |> r
         end
 
+        
         :($f($(args...))) => begin
             rf = r(f)
             rx = map(r,args)
