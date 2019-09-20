@@ -1,15 +1,17 @@
-using Documenter
-using Soss
+using Documenter, Soss
 
-makedocs(
-    sitename = "Soss",
-    format = Documenter.HTML(),
-    modules = [Soss]
+makedocs(;
+    modules=[Soss],
+    format=Documenter.HTML(),
+    pages=[
+        "Home" => "index.md",
+    ],
+    repo="https://github.com/cscherrer/Soss.jl/blob/{commit}{path}#L{line}",
+    sitename="Soss.jl",
+    authors="Chad Scherrer",
+    assets=String[],
 )
 
-# Documenter can also automatically deploy documentation to gh-pages.
-# See "Hosting Documentation" and deploydocs() in the Documenter manual
-# for more information.
-#=deploydocs(
-    repo = "<repository url>"
-)=#
+deploydocs(;
+    repo="github.com/cscherrer/Soss.jl",
+)
