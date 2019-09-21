@@ -8,7 +8,7 @@ using Parameters
 export For
 struct For # <: Distribution{Multivariate,S} where {T, X, D <: Distribution{V,X} where V <: VariateForm, S <: ValueSupport} # where {A, D <: Distribution{V,A} where V, T, X} 
     f   # f(θ) returns a distribution of type D
-    θs :: AbstractArray
+    θs
 end
 
 # function For(f, θs) 
@@ -27,14 +27,13 @@ Base.rand(dist::For) = map(rand, map(dist.f,dist.θs))
 
 
 
-@inline function Distributions.logpdf(d::For,x::AbstractArray)
+@inline function Distributions.logpdf(d::For,xs::AbstractArray)
     f = d.f
     θs = d.θs
 
     s = 0.0
-    @inbounds @simd for j in eachindex(x)
-        θ = θs[j]
-        s += logpdf(f(θ), x[j])
+    for (θ,x) in zip(θs, xs)
+        s += logpdf(f(θ), x)
     end
     s
 end
