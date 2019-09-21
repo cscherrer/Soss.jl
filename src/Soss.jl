@@ -42,4 +42,5 @@ include("advancedhmc.jl")
 # include("rejection.jl")
 include("rand.jl")
 include("predictive.jl")
+include("mix.jl")
 end # module
