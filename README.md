@@ -9,30 +9,96 @@
 
 Soss is a library for _probabilistic programming_
 
-Let's jump right in with a simple model:
+Let's jump right in with a simple linear model:
 
 ```julia
-m = @model σ begin
-    μ ~ Normal(0,1)
-    x ~ Normal(μ,σ) |> iid(3)
+using Soss 
+
+m = @model X begin
+    β ~ Normal() |> iid(size(X,2))
+    y ~ For(eachrow(X)) do x
+        Normal(x' * β, 1)
+    end
 end;
 ```
 
-`iid` here means [independent and identically distributed](https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables). This really just means `x` will consist of 3 samples from the same `Normal(μ,σ)` distribution.
+In Soss, models are _first-class_ and _function-like_, and "applying" a model to its arguments gives a _joint distribution_.
 
-If we call this with `rand`, it works as if we had defined a `Distribution`:
+Just a few of the things we can do in Soss:
 
+- Sample from the (forward) model
+- Condition a joint distribution on a subset of parameters
+- Have arbitrary Julia values (yes, even other models) as inputs or outputs of a model
+- Build a new model for the _predictive_ distribution, for assigning parameters to particular values
+
+Let's use our model to build some fake data:
 ```julia
-julia> rand(m(σ=1))
-(σ = 1, μ = -0.5501310309951254, x = [-1.4490947813119675, -0.7321340792184637, -0.6933769500276799])
+julia> truth.X
+6×3 Array{Float64,2}:
+  0.571468   0.610267   0.571329 
+ -1.77231   -0.69027    0.86766  
+  0.430517   0.862492   1.8123   
+  2.17841    1.52372    1.04112  
+ -0.651006   0.95506    0.0898225
+ -1.52253   -1.17613   -0.971853 
+
+julia> truth.β
+3-element Array{Float64,1}:
+ -0.053228214883879355
+ -0.4392003338762938  
+  1.3778401407122243  
+
+julia> truth.y
+6-element Array{Float64,1}:
+ -0.8955870975516593 
+  0.1657180493730872 
+  1.3436737223738442 
+ -0.29564066790938537
+ -0.9008897828368391 
+ -0.4862385519011053 
 ```
 
-And just like with `Distribution`s, we can go in the other direction:
+And now pretend we don't know `β`, and have the model figure it out
 
 ```julia
-julia> logpdf(m(σ=1), (μ=0, x=[-1,0,1]))
--4.675754132818691
+julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
+
+julia> particles(post)
+(β = Particles{Float64,1000}[0.142 ± 0.4, -0.462 ± 0.6, 0.488 ± 0.43],)
 ```
+
+For model diagnostics and prediction, we need the _predictive distribution_:
+```julia
+julia> pred = predictive(m,:β)
+@model (X, β) begin
+        y ~ For(eachrow(X)) do x
+                Normal(x' * β, 1)
+            end
+    end
+```
+
+This requires `X` and `β` as inputs, so we can do something like this to do a _posterior predictive check_
+
+```julia
+ppc = [rand(pred(;X=truth.X, p...)).y for p in post];
+```
+
+Often these are easier to work with in terms of `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl))
+
+```julia
+julia> truth.y - particles(ppc)
+6-element Array{Particles{Float64,1000},1}:
+ -1.01 ± 1.0 
+ -0.326 ± 1.2
+  0.817 ± 1.2
+ -0.37 ± 1.2 
+ -0.484 ± 1.3
+ -0.317 ± 1.1
+```
+
+These play a role similar to that of residuals in a non-Bayesian approach (there's plenty more detail to go into, but that's fgor another time).
+
+
 
 ## What's Really Happening Here?
 
