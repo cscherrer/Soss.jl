@@ -33,6 +33,8 @@ Just a few of the things we can do in Soss:
 
 Let's use our model to build some fake data:
 ```julia
+truth = rand(m(x=randn(6)));
+
 julia> truth.X
 6×3 Array{Float64,2}:
   0.571468   0.610267   0.571329 
