@@ -45,19 +45,16 @@ stochastic(m::Model) = keys(m.dists)
 export bound
 bound(m::Model) = keys(m.vals)
 
-# """
-#     parameters(m::Model)
 
-# A _parameter_ is a stochastic node that is only assigned once
-# """
-export observed
-observed(m::Model) = keys(m.data)
+# TODO: Fix these broken methods
+# export observed
+# observed(m::Model) = keys(m.data)
 
-export parameters
-parameters(m::Model) = setdiff(
-    stochastic(m), 
-    observed(m)
-)
+# export parameters
+# parameters(m::Model) = setdiff(
+#     stochastic(m), 
+#     observed(m)
+# )
 
 export freeVariables
 function freeVariables(m::Model)
@@ -92,15 +89,8 @@ end
 
 import MacroTools: striplines, @q
 
-# import LogDensityProblems: logdensity
-# using ResumableFunctions
-
-# export arguments, args, stochastic, observed, parameters, supports
-# export paramSupport
 
 
-# import MacroTools: striplines, flatten, unresolve, resyntax, @q, @capture
-# using StatsFuns
 using DataStructures: counter
 
 # function arguments(model::Model)
@@ -112,25 +102,6 @@ using DataStructures: counter
 
 allequal(xs) = all(xs[1] .== xs)
 
-# export findsubexprs
-# function findsubexprs(expr, vs)
-#     intersect(getSymbols(expr), vs)
-# end
-
-
-# export prior
-# function prior(m :: Model)
-#     po = dependencies(m)
-#     keep = parameters(m)
-#     for v in keep
-#         union!(keep, below(po, v))
-#     end
-#     proc(m, st::Follows) = st.x ∈ keep
-#     proc(m, st::Let)     = st.x ∈ keep
-#     proc(m, st) = true
-#     newbody = filter(st -> proc(m,st), m.body)
-#     Model([],newbody)
-# end
 
 
 # # fold example usage:
