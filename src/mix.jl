@@ -9,8 +9,16 @@ Mix(w::Vector) = dists -> Mix(dists, log.(w))
 
 function Base.rand(mix::Mix)
     # This is the "Gumbel max trick"  for categorical sampling
-    j = argmax(mix.logweights .+ rand(Gumbel()))
-    mix.dists.f(mix.dists.θs[j]) |> rand
+    (j_max,lw_max) = (0,-Inf)
+
+    for (j,lw) in enumerate(mix.logweights)
+        lw_gumbel = lw + rand(Gumbel())
+        if lw_gumbel > lw_max
+            (j_max,lw_max) = (j, lw_gumbel)
+        end
+    end
+
+    mix.dists.f(mix.dists.θs[j_max]) |> rand
 end
 
 function Base.rand(mix::Mix, N::Int)
