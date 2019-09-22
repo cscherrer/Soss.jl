@@ -185,7 +185,7 @@ function Base.show(io::IO, d :: JointDistribution)
     m = d.model
     println(io, "Joint Distribution")
     print(io, "    Bound arguments: [")
-    join(io, arguments(m), ", ")
+    join(io, fieldnames(arguments(d)), ", ")
     println(io, "]")
     print(io, "    Variables: [")
     join(io, setdiff(toposortvars(m),arguments(m)), ", ")
