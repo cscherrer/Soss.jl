@@ -60,3 +60,6 @@ function Base.rand(m::EqualMix{T}) where {T}
 end
 
 xform(d::EqualMix) = xform(d.components[1])
+
+export StudentT
+StudentT(ν, μ=0.0, σ=1.0) = LocationScale(μ,σ, TDist(ν))
