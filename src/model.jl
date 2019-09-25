@@ -52,7 +52,7 @@ Base.merge(m::Model, ::Nothing) = m
 
 Model(st::Assign) = Model(Symbol[], namedtuple(st.x)([st.rhs]), NamedTuple(), nothing)
 Model(st::Sample) = Model(Symbol[], NamedTuple(), namedtuple(st.x)([st.rhs]), nothing)
-Model(st::Return) = Model(Symbol[], nt, nt, st.rhs)
+Model(st::Return) = Model(Symbol[], NamedTuple(), NamedTuple(), st.rhs)
 Model(st::LineNumber) = emptyModel
 
 function Model(expr :: Expr)
