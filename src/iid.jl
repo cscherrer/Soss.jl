@@ -34,7 +34,7 @@ Base.length(d::iid) = prod(d.size)
 import Base.eltype
 Base.eltype(d::iid) = typeof(d.dist)
 
-rand(d::iid) = rand(d.dist,d.size)
+Base.rand(d::iid) = rand(d.dist,d.size)
 
 function Distributions.logpdf(d::iid,x)
     s = Float64(0)
@@ -44,3 +44,13 @@ function Distributions.logpdf(d::iid,x)
     end
     s
 end
+
+
+function Base.rand(d::Union{iid, HalfNormal}, n::Int)
+    x1 = rand(d)
+    x = Array{typeof(x1),1}(undef, n)
+    for j in eachindex(x)
+        @inbounds x[j] = rand(d)
+    end
+    x
+end 
