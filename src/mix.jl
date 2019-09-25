@@ -1,7 +1,7 @@
 
 struct Mix
     dists :: For
-    logweights :: Vector{Float64}
+    logweights :: Vector
 end
 
 export Mix
@@ -31,6 +31,7 @@ function Base.rand(mix::Mix, N::Int)
     x
 end
 
+xform(mix::Mix) = xform(mix.dists.θs[1])
 
 function Distributions.logpdf(mix::Mix, x)
     ℓ = 0.0
@@ -40,7 +41,7 @@ function Distributions.logpdf(mix::Mix, x)
     ℓ
 end
 
-function Mix(x :: Vector, w :: Vector{Float64})
+function Mix(x :: Vector, w :: Vector)
     f = For(identity, x) 
     Mix(f, log.(w))
 end
