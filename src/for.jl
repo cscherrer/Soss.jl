@@ -8,8 +8,10 @@ using Parameters
 export For
 struct For # <: Distribution{Multivariate,S} where {T, X, D <: Distribution{V,X} where V <: VariateForm, S <: ValueSupport} # where {A, D <: Distribution{V,A} where V, T, X} 
     f   # f(θ) returns a distribution of type D
-    θs
+    θs 
 end
+
+For(f, θs::AbstractRange...) = For(f,θs)
 
 # function For(f, θs) 
 #     T = eltype(θs)
@@ -21,7 +23,7 @@ end
 
 export rand
 
-Base.rand(dist::For) = map(rand, map(dist.f,dist.θs))
+Base.rand(dist::For) = map(rand, map(ci -> dist.f(Tuple(ci)...),CartesianIndices(dist.θs)))
 
 # Distributions.logpdf(dist::For, xs) = logpdf.(map(dist.f, dist.θs), xs) |> sum
 
@@ -29,11 +31,11 @@ Base.rand(dist::For) = map(rand, map(dist.f,dist.θs))
 
 @inline function Distributions.logpdf(d::For,xs::AbstractArray)
     f = d.f
-    θs = d.θs
+    θs = CartesianIndices(d.θs)
 
     s = 0.0
     for (θ,x) in zip(θs, xs)
-        s += logpdf(f(θ), x)
+        s += logpdf(f(Tuple(θ)...), x)
     end
     s
 end

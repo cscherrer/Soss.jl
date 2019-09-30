@@ -43,4 +43,5 @@ include("advancedhmc.jl")
 include("rand.jl")
 include("predictive.jl")
 include("mix.jl")
+include("plots.jl")
 end # module
