@@ -24,7 +24,7 @@ end
 
 export sourceXform
 
-function sourceXform(_data)
+function sourceXform(_data=NamedTuple())
     function(_m::Model)
 
         _m = canonical(_m)
@@ -97,12 +97,11 @@ end
 
 
 
-function xform(d::For)
-    # allequal(d.f.(d.θs)) && 
-    return as(Array, xform(d.f(d.θs[1])), size(d.θs)...)
+function xform(d::For)  
+    xf1 = xform(d.f(getindex.(d.θs, 1)...))
+    return as(Array, xf1, length.(d.θs)...)
     
     # TODO: Implement case of unequal supports
-    @error "xform: Unequal supports not yet supported"
 end
 
 function xform(d::iid)
