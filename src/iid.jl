@@ -9,10 +9,10 @@ struct iid
     dist
 end
 
-# TODO: Clean up this hack
-iid(n::Int) = dist -> iid(n,dist)
+iid(t::Int...) = dist -> iid(t,dist)
 
-iid(dist) = iid(Nothing, dist)
+
+# iid(dist) = iid(Nothing, dist)
 
 function Base.iterate(d::iid)
     n = prod(d.size) * length(d.dist)
@@ -34,11 +34,21 @@ Base.length(d::iid) = prod(d.size)
 import Base.eltype
 Base.eltype(d::iid) = typeof(d.dist)
 
-Base.rand(d::iid) = rand(d.dist,d.size)
+function Base.rand(d::iid)
+    T = typeof(rand(d.dist))
+    x = Array{T}(undef, d.size)
+    for cartix in CartesianIndices(x)
+        ix = Tuple(cartix)
+        @inbounds setindex!(x,rand(d.dist), ix...)
+    end
+    x
+end
+
 
 function Distributions.logpdf(d::iid,x)
-    s = Float64(0)
+    s = zero(Float64)
     Δs(xj) = logpdf(d.dist, xj)
+
     @inbounds @simd for j = 1:length(x)
         s += Δs(x[j])
     end
@@ -46,11 +56,11 @@ function Distributions.logpdf(d::iid,x)
 end
 
 
-function Base.rand(d::Union{iid, HalfNormal}, n::Int)
-    x1 = rand(d)
-    x = Array{typeof(x1),1}(undef, n)
-    for j in eachindex(x)
-        @inbounds x[j] = rand(d)
-    end
-    x
-end 
+# function Base.rand(d::Union{iid, HalfNormal}, n::Int)
+#     x1 = rand(d)
+#     x = Array{typeof(x1),1}(undef, n)
+#     for j in eachindex(x)
+#         @inbounds x[j] = rand(d)
+#     end
+#     x
+# end 
