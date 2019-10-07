@@ -8,7 +8,6 @@ mt = @model x begin
     σ = 0.5
     yhat = α .+ β .* x
     y ~ For(eachindex(x)) do j
-        # StudentT(3,yhat[j], σ)
         Mix([Normal(yhat[j], σ), Normal(yhat[j],10σ)], [0.8,0.2])
     end
 end;
@@ -135,5 +134,22 @@ savefig("ppc2.png")
 
 
 
+using Soss
 
+m = @model begin
+    μ ~ Normal() |> iid(2)
+    σ ~ HalfNormal() |> iid(3)
+    x ~ For(1:2,1:3) do i,j
+        Normal(μ[i], σ[j])
+    end
+end;
 
+truth = rand(m())
+
+post = dynamicHMC(m(), (x=truth.x,)) |> particles
+
+pred = predictive(m,:μ,:σ) 
+
+predpost = pred(post) 
+
+rand(predpost)

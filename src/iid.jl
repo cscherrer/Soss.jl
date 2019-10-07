@@ -49,7 +49,7 @@ function Distributions.logpdf(d::iid,x)
     s = zero(Float64)
     Δs(xj) = logpdf(d.dist, xj)
 
-    @inbounds @simd for j = 1:length(x)
+    @inbounds @simd for j in eachindex(x)
         s += Δs(x[j])
     end
     s

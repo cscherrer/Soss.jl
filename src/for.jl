@@ -29,7 +29,38 @@ Base.rand(dist::For) = map(rand, map(ci -> dist.f(Tuple(ci)...),CartesianIndices
 
 
 
-@inline function Distributions.logpdf(d::For,xs::AbstractArray)
+# @inline function Distributions.logpdf(d::For,xs::AbstractArray)
+#     f = d.f
+#     θs = CartesianIndices(d.θs)
+
+#     s = 0.0
+#     # for (θ,x) in zip(θs, xs)
+#     @simd for I in CartesianIndices(d.θs)
+#         @inbounds s += logpdf(f(Tuple(I)...), xs[I])
+#     end
+#     s
+# end
+
+# arrayRank(::Type{Array{T,N}}) where {T,N} = N
+
+using Base.Cartesian
+
+
+
+@generated function Distributions.logpdf(d::For,x::AbstractArray{T,N}) where {T,N}
+    # N = arrayRank(x)
+    ituple = @macroexpand @ntuple($N, i)
+    quote
+        s = 0.0
+        @nloops $N i x begin
+            s += logpdf(@ncall($N,d.f,i->(@ntuple $N i)), @nref $N x i)
+        end
+        s
+    end
+end
+
+export lpdf
+@inline function lpdf(d::For,xs::AbstractArray)
     f = d.f
     θs = CartesianIndices(d.θs)
 
@@ -39,8 +70,6 @@ Base.rand(dist::For) = map(rand, map(ci -> dist.f(Tuple(ci)...),CartesianIndices
     end
     s
 end
-
-
 
 # function For(f, js; dist=nothing)
 #     @match dist begin
