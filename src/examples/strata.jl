@@ -16,7 +16,7 @@ x = randn(100);
 truth = rand(mt(x=x));
 
 
-using JLD
+# using JLD
 # save("strata-truth.jld", 
 #     "α", truth.α, 
 #     "β", truth.β, 
@@ -24,10 +24,10 @@ using JLD
 #     "x", truth.x,
 #     "y", truth.y)
 
-truth = let
-    d  = load("strata-truth.jld")
-    (α = d["α"], β = d["β"], σ = d["σ"], x = d["x"], y = d["y"])
-end
+# truth = let
+#     d  = load("strata-truth.jld")
+#     (α = d["α"], β = d["β"], σ = d["σ"], x = d["x"], y = d["y"])
+# end
 
 x = truth.x
 
@@ -92,6 +92,7 @@ m2 = @model x begin
     β ~ Normal()
     σ ~ HalfNormal(10)
     νinv ~ HalfNormal()
+    ν = 1/νinv
     yhat = α .+ β .* x
     y ~ For(eachindex(x)) do j
             StudentT(1/νinv,yhat[j],σ)
