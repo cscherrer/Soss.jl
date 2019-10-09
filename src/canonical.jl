@@ -22,8 +22,6 @@ function canonical(expr :: Expr)
             rx = r.(x)
 
             rxtup = Expr(:tuple, rx...)
-            @show rf
-            @show rxtup
             :(For($rf, $rxtup)) |> r
         end        
         
