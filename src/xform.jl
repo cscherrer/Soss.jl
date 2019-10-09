@@ -40,7 +40,7 @@ function sourceXform(_data=NamedTuple())
             else
                 return (@q begin
                     $(st.x) = rand($(st.rhs))
-                    _t = xform($(st.rhs))
+                    _t = xform($(st.rhs), _data)
 
                     _result = merge(_result, ($(st.x)=_t,))
                 end)
@@ -59,13 +59,12 @@ function sourceXform(_data=NamedTuple())
     end
 end
 
-
-
-
-function xform(d)
+function xform(d, _data)
     if hasmethod(support, (typeof(d),))
         return asTransform(support(d)) 
     end
+
+    error("Not implemented:\nxform($d)")
 end
 
 using TransformVariables: ShiftedExp, ScaledShiftedLogistic

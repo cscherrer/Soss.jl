@@ -2,22 +2,41 @@ using Revise
 using Soss
 using ResumableFunctions
 
-hmmStepM = @model (ss0, step, noise) begin
-    s1 ~ EqualMix(map(step, ss0))
-    x ~ noise(s1)
-end;
-
 
 hmmStep = @model (s0, step, noise) begin
     s1 ~ step(s0)
     x1 ~ noise(s1)
 end;
 
-s0 = Normal(0,1)
+hmmStepM = @model (s0, step, noise) begin
+    s1 ~ EqualMix(step.(s0.particles))
+    x ~ noise(s1)
+end;
+
+
+
+s0 = rand(Normal(0,1), 100)
+
+function step(s)
+    m = @model s begin
+        x ~ Normal(s,1)
+    end
+
+    m(s=s)
+end
+
+function noise(s)
+    m = @model s begin
+        x ~ Normal(s,1)
+    end
+
+    m(s=s)
+end
+
 step(s) = Normal(s,1)
 noise(s) = Normal(s,1)
 
-dynamicHMC(hmmStep(ss0=rand(s0,10), step=step, noise=noise), (x=1.0,)) |> particles
+dynamicHMC(hmmStepM(s0=s0, step=step, noise=noise), (x=1.0,)) |> particles
 
 struct Chain
     init
