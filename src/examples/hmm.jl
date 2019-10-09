@@ -4,39 +4,39 @@ using ResumableFunctions
 
 
 hmmStep = @model (s0, step, noise) begin
-    s1 ~ step(s0)
-    x1 ~ noise(s1)
+    s1 ~ EqualMix(step.(s0))
+    y ~ noise(s1.x)
 end;
-
-hmmStepM = @model (s0, step, noise) begin
-    s1 ~ EqualMix(step.(s0.particles))
-    x ~ noise(s1)
-end;
-
-
-
-s0 = rand(Normal(0,1), 100)
 
 function step(s)
     m = @model s begin
-        x ~ Normal(s,1)
+        νinv ~ HalfNormal()
+        x ~ StudentT(1/νinv, s,1)
     end
-
     m(s=s)
-end
+end;
 
 function noise(s)
     m = @model s begin
         x ~ Normal(s,1)
     end
-
     m(s=s)
-end
+end;
 
-step(s) = Normal(s,1)
-noise(s) = Normal(s,1)
+rand(hmmStep(s0=s0, step=step, noise=noise))
+s0 = rand(Normal(0,10), 100);
 
-dynamicHMC(hmmStepM(s0=s0, step=step, noise=noise), (x=1.0,)) |> particles
+particles(s0)
+
+
+dynamicHMC(hmmStep(s0=s0, step=step, noise=noise), (y=(x=1.0,),)) |> particles
+
+
+
+
+step(s) = StudentT(3,s,1);
+noise(s) = Normal(s,1);
+
 
 struct Chain
     init
