@@ -8,13 +8,10 @@ using Parameters
 export For
 struct For{N} # <: Distribution{Multivariate,S} where {T, X, D <: Distribution{V,X} where V <: VariateForm, S <: ValueSupport} # where {A, D <: Distribution{V,A} where V, T, X} 
     f   # f(θ) returns a distribution of type D
-    θs :: NTuple{N}
+    θs :: NTuple{N, UnitRange{Int}}
 end
 
-function For(f, θs::UnitRange{Int}...)
-    N = length(θs)
-    For{N}(f,θs)
-end
+For(f, θs::UnitRange{Int}...) = For{length(θs)}(f,θs)
 
 # function For(f, θs) 
 #     T = eltype(θs)

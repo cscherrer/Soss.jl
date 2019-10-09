@@ -6,6 +6,7 @@ using Reexport: @reexport
 @reexport using Distributions
 @reexport using StatsFuns
 using NamedTupleTools
+using DistributionsAD
 
 import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
 import MLStyle
