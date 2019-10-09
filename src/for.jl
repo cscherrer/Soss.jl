@@ -6,12 +6,15 @@ using Parameters
 # T is the type of Parameters
 # X is the type of observations
 export For
-struct For # <: Distribution{Multivariate,S} where {T, X, D <: Distribution{V,X} where V <: VariateForm, S <: ValueSupport} # where {A, D <: Distribution{V,A} where V, T, X} 
+struct For{N} # <: Distribution{Multivariate,S} where {T, X, D <: Distribution{V,X} where V <: VariateForm, S <: ValueSupport} # where {A, D <: Distribution{V,A} where V, T, X} 
     f   # f(θ) returns a distribution of type D
-    θs 
+    θs :: NTuple{N}
 end
 
-For(f, θs::AbstractRange...) = For(f,θs)
+function For(f, θs::UnitRange{Int}...)
+    N = length(θs)
+    For{N}(f,θs)
+end
 
 # function For(f, θs) 
 #     T = eltype(θs)
@@ -23,7 +26,11 @@ For(f, θs::AbstractRange...) = For(f,θs)
 
 export rand
 
-Base.rand(dist::For) = map(rand, map(ci -> dist.f(Tuple(ci)...),CartesianIndices(dist.θs)))
+function Base.rand(dist::For)
+    map(CartesianIndices(dist.θs)) do I
+        (rand ∘ dist.f)(Tuple(I)...)
+    end
+end
 
 # Distributions.logpdf(dist::For, xs) = logpdf.(map(dist.f, dist.θs), xs) |> sum
 
@@ -45,31 +52,59 @@ Base.rand(dist::For) = map(rand, map(ci -> dist.f(Tuple(ci)...),CartesianIndices
 
 using Base.Cartesian
 
+@generated function lpdf(d::For{N},x::Array{T,N}) where {T,N}
+    ixs = Symbol.("i_",1:N) |> Tuple  # (:i_1, :i_2, :i_3)
+    ixs_tuple = Expr(:tuple, ixs...)  # :((i_1, i_2, i_3))
 
-
-@generated function Distributions.logpdf(d::For,x::AbstractArray{T,N}) where {T,N}
-    # N = arrayRank(x)
-    ituple = @macroexpand @ntuple($N, i)
-    quote
-        s = 0.0
-        @nloops $N i x begin
-            s += logpdf(@ncall($N,d.f,i->(@ntuple $N i)), @nref $N x i)
-        end
-        s
+    # @gensym s
+    s = :s
+    q = @q begin
+        @inbounds θ = getindex.(d.θs, $ixs_tuple)
+        @inbounds $s += logpdf(d.f(θ...), x[$ixs_tuple...])
+        # @show $s
     end
+
+    for loopnum in 1:N
+        q = @q begin
+            @inbounds @simd for $(ixs[loopnum]) in d.θs[$loopnum]
+                $q
+            end
+        end
+    end
+
+    
+    q = (@q begin
+        $s = 0.0
+        $q
+        $s
+    end) |> flatten
+
+
 end
 
-export lpdf
-@inline function lpdf(d::For,xs::AbstractArray)
-    f = d.f
-    θs = CartesianIndices(d.θs)
 
+# @generated function Distributions.logpdf(d::For,x::AbstractArray{T,N}) where {T,N}
+#     # N = arrayRank(x)
+#     ituple = @macroexpand @ntuple($N, i)
+#     quote
+#         s = 0.0
+#         @nloops $N i x begin
+#             s += logpdf(@ncall($N,d.f,i->(@ntuple $N i)), @nref $N x i)
+#         end
+#         s
+#     end
+# end
+
+export logpdf
+@inline function logpdf(d::For,xs::AbstractArray)
     s = 0.0
-    for (θ,x) in zip(θs, xs)
-        s += logpdf(f(Tuple(θ)...), x)
+    for (θ,x) in zip(CartesianIndices(d.θs), xs)
+        s += logpdf(d.f(Tuple(θ)...), x)
     end
     s
 end
+
+
 
 # function For(f, js; dist=nothing)
 #     @match dist begin

@@ -15,11 +15,16 @@ function canonical(expr :: Expr)
             :($rf($rx)) |> r
         end
 
-        Expr(:do, :($g($x)), :($f)) => begin
-            rg = r(g)
+        Expr(:block, body...) => Expr(:block, canonical.(body)...)
+
+        Expr(:do, :(For($(x...))), :($f)) => begin
             rf = r(f)
-            rx = r(x)            
-            :($rg($rf, $rx)) |> r
+            rx = r.(x)
+
+            rxtup = Expr(:tuple, rx...)
+            @show rf
+            @show rxtup
+            :(For($rf, $rxtup)) |> r
         end        
         
         :((iid($n))($dist)) => begin
