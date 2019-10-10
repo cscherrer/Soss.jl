@@ -96,15 +96,15 @@ end
 
 
 
-function xform(d::For)  
-    xf1 = xform(d.f(getindex.(d.θs, 1)...))
+function xform(d::For, _data)  
+    xf1 = xform(d.f(getindex.(d.θs, 1)...), _data)
     return as(Array, xf1, length.(d.θs)...)
     
     # TODO: Implement case of unequal supports
 end
 
-function xform(d::iid)
-    as(Array, xform(d.dist), d.size...)
+function xform(d::iid, _data)
+    as(Array, xform(d.dist, _data), d.size...)
 end
 
 xform(d::MvNormal) =  as(Vector, length(d))
