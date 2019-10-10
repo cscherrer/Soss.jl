@@ -2,7 +2,7 @@ using Revise
 using Soss
 
 m = @model begin
-    n = 100 # number of samples
+    n = 10 # number of samples
     m = 3 # reviewers for each example
 
     p_bad ~ Beta(1,10) |> iid(n)
@@ -24,27 +24,3 @@ truth = rand(m());
 
 pairs(truth)
 pairs(result)
-
-
-
-
-# m = @model begin
-#     n = 20
-#     m = 20
-#     μ ~ Normal() |> iid(n)
-#     σ ~ HalfNormal() |> iid(m)
-#     x ~ For(1:n,1:m) do i,j
-#         Normal(μ[i],σ[j])
-#     end
-# end;
-
-# truth = rand(m()) 
-# result = dynamicHMC(m(), (x=truth.x,)) |> particles
-
-# f(x) = x+1
-# m = @model begin
-#     y = f(x)
-#     x ~ Normal(y,1)
-# end;
-
-
