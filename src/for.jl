@@ -6,8 +6,8 @@ using Parameters
 # T is the type of Parameters
 # X is the type of observations
 export For
-struct For{N} # <: Distribution{Multivariate,S} where {T, X, D <: Distribution{V,X} where V <: VariateForm, S <: ValueSupport} # where {A, D <: Distribution{V,A} where V, T, X} 
-    f   # f(θ) returns a distribution of type D
+struct For{N,F} # <: Distribution{Multivariate,S} where {T, X, D <: Distribution{V,X} where V <: VariateForm, S <: ValueSupport} # where {A, D <: Distribution{V,A} where V, T, X} 
+    f :: F  # f(θ) returns a distribution of type D
     θs :: NTuple{N, UnitRange{Int}}
 end
 
