@@ -1,30 +1,30 @@
-struct AbstractSimplex{N,T} end
+struct AbstractSimplex{T} end
 
 export Simplex
-struct Simplex{N,T}  <: AbstractVector{T}
+struct Simplex{T}  <: AbstractVector{T}
     weights::Vector{T}
 end
 
 function Simplex(w) 
     N = length(w)
     T = eltype(w)
-    Simplex{N,T}(w)
+    Simplex{T}(w)
 end
 
-Base.length(::Simplex{N,T}) where {N,T} = N
-Base.size(::Simplex{N,T}) where {N,T} = (N,)
-Base.getindex(s::Simplex{N,T}, n) where {N,T} = s.weights[n]
+Base.length(s::Simplex{T}) where {T} = length(s.weights)
+Base.size(s::Simplex{T}) where {T} = (length(s.weights),)
+Base.getindex(s::Simplex{T}, n) where {T} = s.weights[n]
 
 
-struct LogFloat{T}
-    val
+struct Log{T}
+    val :: T
 end
 
-function Base.:*(x::LogFloat{Tx}, y::LogFloat{Ty}) where {Tx <: Real, Ty <: Real}  
-    LogFloat(x.val + y.val)
+function Base.:*(x::Log{Tx}, y::Log{Ty}) where {Tx <: Real, Ty <: Real}  
+    Log(x.val + y.val)
 end
 
-Base.log(x::LogFloat{T}) where {T <: Real} = x.val
+Base.log(x::Log{T}) where {T <: Real} = x.val
 
 
 struct AbstractMix end
@@ -34,17 +34,17 @@ struct MixFor
     weights :: Simplex
 end
 
-struct MixVec
-    dists :: Vector
-    weights :: Simplex
+struct MixVec{D,W}
+    dists :: Vector{D}
+    weights :: Simplex{W}
 end
 
 
 
 export Mix
 
-function Mix(dists :: Vector, weights :: Vector)
-    MixVec(dists, Simplex(weights))
+function Mix(dists :: Vector{D}, weights :: Vector{W}) where {D,W}
+    MixVec{D,W}(dists, Simplex(weights))
 end
 
 # Mix(w::Vector) = dists -> Mix(dists, log.(w))
