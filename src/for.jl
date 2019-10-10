@@ -11,7 +11,9 @@ struct For{N,F} # <: Distribution{Multivariate,S} where {T, X, D <: Distribution
     θs :: NTuple{N, UnitRange{Int}}
 end
 
-For(f, θs::UnitRange{Int}...) = For{length(θs)}(f,θs)
+function For(f, θs::UnitRange{Int}...)
+    For{length(θs), typeof(f)}(f,θs)
+end
 
 # function For(f, θs) 
 #     T = eltype(θs)
