@@ -2,10 +2,10 @@ using Revise
 using Soss
 
 m = @model begin
-    n = 10 # number of samples
-    m = 3 # reviewers for each example
+    n = 30 # number of samples
+    m = 50 # reviewers for each example
 
-    p_bad ~ Beta(1,10) |> iid(n)
+    p_bad ~ Beta(1,3) |> iid(n)
     
     fpr ~ Beta(2,5) |> iid(m)
     tpr ~ Beta(5,2) |> iid(m)
@@ -17,10 +17,14 @@ m = @model begin
 end;
 
 truth = rand(m());
+logpdf(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)))
+
+
 
 @time result = dynamicHMC(m(), (y=truth.y,)) ;
 
 # result = @time advancedHMC(m(), (y=truth.y,))
 
 pairs(truth)
-pairs(result)
+result |> particles |> pairs
+

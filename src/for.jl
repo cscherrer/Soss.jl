@@ -6,13 +6,13 @@ using Parameters
 # T is the type of Parameters
 # X is the type of observations
 export For
-struct For{N,F} # <: Distribution{Multivariate,S} where {T, X, D <: Distribution{V,X} where V <: VariateForm, S <: ValueSupport} # where {A, D <: Distribution{V,A} where V, T, X} 
+struct For{N,F, T} # <: Distribution{Multivariate,S} where {T, X, D <: Distribution{V,X} where V <: VariateForm, S <: ValueSupport} # where {A, D <: Distribution{V,A} where V, T, X} 
     f :: F  # f(θ) returns a distribution of type D
-    θs :: NTuple{N, UnitRange{Int}}
+    θs :: NTuple{N, T}
 end
 
-function For(f, θs::UnitRange{Int}...)
-    For{length(θs), typeof(f)}(f,θs)
+function For(f::F, θs::T...) where {F,T <: AbstractRange}
+    For{length(θs), F, T}(f,θs)
 end
 
 # function For(f, θs) 
