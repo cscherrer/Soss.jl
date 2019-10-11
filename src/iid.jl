@@ -4,9 +4,9 @@ import Distributions.logpdf
 # TODO: iid is currently a bit weird. We'd like it to allow both a specific multiplicity and "on demand" (unspecified but flexible). It's clear how to do either, but not yet if this will allow a single representation.
 
 export iid
-struct iid
-    size
-    dist
+struct iid{N,D}
+    size :: N
+    dist :: D
 end
 
 iid(t::Int...) = dist -> iid(t,dist)
