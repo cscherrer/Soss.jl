@@ -1,6 +1,5 @@
 using Distributions
 import Distributions.logpdf
-using Parameters
 
 export For
 struct For{F,N,T,X} 
