@@ -24,7 +24,7 @@ function predictive(m::Model, x :: Symbol)
     # Find the strongly connected component containing x
     part = find_part(SimpleGraphs.components(g), x) |> union
 
-    newargs = arguments(m) ∪ [x]
+    newargs = (arguments(m) ∪ [x]) ∩ part
     setdiff!(part, newargs)
 
 
