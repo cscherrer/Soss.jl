@@ -1,7 +1,7 @@
 using MacroTools: @q
 import PyCall
 using MLStyle
-using Lazy
+# using Lazy
 
 import SymPy
 using SymPy: Sym, sympy, symbols

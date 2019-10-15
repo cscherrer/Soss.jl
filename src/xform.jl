@@ -1,6 +1,5 @@
 using Reexport
 
-@reexport using DataFrames
 using MLStyle
 using Distributions
 

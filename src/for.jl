@@ -53,11 +53,11 @@ end
     Weighted(_ℓ,x)
 end
 
-using Transducers
-using Transducers: @next, complete
-function Transducers.__foldl__(rf, val, d::For)
-    for θ in d.θ
-        val = @next(rf, val, f(θ))
-    end
-    return complete(rf, val)
-end
+# using Transducers
+# using Transducers: @next, complete
+# function Transducers.__foldl__(rf, val, d::For)
+#     for θ in d.θ
+#         val = @next(rf, val, f(θ))
+#     end
+#     return complete(rf, val)
+# end
