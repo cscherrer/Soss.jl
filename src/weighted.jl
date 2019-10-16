@@ -1,5 +1,11 @@
 export Weighted
-struct Weighted{T}
+struct Weighted{W,T}
+    ℓ :: W
     val :: T
-    logWeight :: Float64
+end
+
+using Printf
+function Base.show(io::IO, ℓx::Weighted)
+    @printf io "Weighted(%g.4\n" (ℓx.ℓ)
+    println(",", ℓx.val)
 end
