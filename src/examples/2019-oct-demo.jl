@@ -1,3 +1,4 @@
+using Revise
 using Soss
 using Random
 
@@ -13,7 +14,7 @@ end
 
 # Sample from generative model
 
-Random.seed!(42)
+Random.seed!(42);
 
 
 x = randn(3);
@@ -55,3 +56,12 @@ pairs(argspost)
 
 postpred = pred(argspost) |> rand;
 pairs(postpred)
+
+q = @model λ begin
+β ~ Normal(λ,1)
+end
+
+# imp(m(args),q(λ=1.0),truth)
+# importanceSample(m(args),q(λ=1.0),truth)
+
+# particles(m(args))
