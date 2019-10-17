@@ -59,21 +59,17 @@ parts(d::iid; N=1000) = map(1:d.size) do j parts(d.dist) end
 # promote_rule(::Type{B}, ::Type{A}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
 
 
-# @inline function particles(m::JointDistribution)
-#     return _particles(m.model, m.args)
-# end
+@inline function particles(m::JointDistribution)
+    return _particles(m.model, m.args)
+end
 
-# @generated function particles(m::T) where {T <: Model}
-#     type2model(T) |> sourceParticles()
-# end
+@gg function _particles(_m::Model, _args) 
+    type2model(_m) |> sourceParticles() |> loadvals(_args, NamedTuple())
+end
 
-# @gg function _particles(_m::Model, _args) 
-#     type2model(_m) |> sourceParticles() |> loadvals(_args, NamedTuple())
-# end
-
-# @gg function _particles(_m::Model, _args::NamedTuple{()})
-#     type2model(_m) |> sourceParticles()
-# end
+@gg function _particles(_m::Model, _args::NamedTuple{()})
+    type2model(_m) |> sourceParticles()
+end
 
 export sourceParticles
 function sourceParticles() 
