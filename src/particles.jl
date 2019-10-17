@@ -41,9 +41,7 @@ parts(x::Integer; N=1000) = parts(float(x))
 parts(x::Real; N=1000) = parts(repeat([x],N))
 parts(x::AbstractArray; N=1000) = Particles(x)
 parts(p::Particles; N=1000) = p 
-parts(d::For; N=1000) = map(d.θ) do θ 
-    parts(d.f(θ))
-end
+parts(d::For; N=1000) = parts.(d.f.(d.θ...))
 
 
 
@@ -77,23 +75,23 @@ parts(d::iid; N=1000) = map(1:d.size) do j parts(d.dist) end
 #     type2model(_m) |> sourceParticles()
 # end
 
-# export sourceParticles
-# function sourceParticles() 
-#     function(m::Model)
+export sourceParticles
+function sourceParticles() 
+    function(m::Model)
         
-#         _m = canonical(m)
-#         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
-#         proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs)))
-#         proc(_m, st::Return)  = :(return $(st.rhs))
-#         proc(_m, st::LineNumber) = nothing
+        _m = canonical(m)
+        proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
+        proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs)))
+        proc(_m, st::Return)  = :(return $(st.rhs))
+        proc(_m, st::LineNumber) = nothing
 
-#         vals = map(x -> Expr(:(=), x,x),variables(_m)) 
+        vals = map(x -> Expr(:(=), x,x),variables(_m)) 
 
-#         wrap(kernel) = @q begin
-#             $kernel
-#             $(Expr(:tuple, vals...))
-#         end
+        wrap(kernel) = @q begin
+            $kernel
+            $(Expr(:tuple, vals...))
+        end
 
-#         buildSource(_m, proc, wrap) |> flatten
-#     end
-# end
+        buildSource(_m, proc, wrap) |> flatten
+    end
+end
