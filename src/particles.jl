@@ -33,16 +33,14 @@ export parts
 
 # Just a little helper function for particles
 # https://github.com/baggepinnen/MonteCarloMeasurements.jl/issues/22
-parts(m::Model; N=1000) = particles(m)
+parts(d; N=1000) = particles(m)
 parts(x::Normal{P} where {P <: AbstractParticles}; N=1000) = Particles(length(x.μ), Normal()) * x.σ + x.μ
 parts(x::Sampleable{F,S}; N=1000) where {F,S} = Particles(N,x)
 parts(x::Integer; N=1000) = parts(float(x))
 parts(x::Real; N=1000) = parts(repeat([x],N))
 parts(x::AbstractArray; N=1000) = Particles(x)
 parts(p::Particles; N=1000) = p 
-parts(d::For; N=1000) = map(d.θs) do θ 
-    parts(d.f(θ))
-end
+parts(d::For; N=1000) = parts.(d.f.(d.θ...))
 
 
 
@@ -58,3 +56,37 @@ parts(d::iid; N=1000) = map(1:d.size) do j parts(d.dist) end
 
 # promote_rule(::Type{A}, ::Type{B}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
 # promote_rule(::Type{B}, ::Type{A}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
+
+
+@inline function particles(m::JointDistribution)
+    return _particles(m.model, m.args)
+end
+
+@gg function _particles(_m::Model, _args) 
+    type2model(_m) |> sourceParticles() |> loadvals(_args, NamedTuple())
+end
+
+@gg function _particles(_m::Model, _args::NamedTuple{()})
+    type2model(_m) |> sourceParticles()
+end
+
+export sourceParticles
+function sourceParticles() 
+    function(m::Model)
+        
+        _m = canonical(m)
+        proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
+        proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs)))
+        proc(_m, st::Return)  = :(return $(st.rhs))
+        proc(_m, st::LineNumber) = nothing
+
+        vals = map(x -> Expr(:(=), x,x),variables(_m)) 
+
+        wrap(kernel) = @q begin
+            $kernel
+            $(Expr(:tuple, vals...))
+        end
+
+        buildSource(_m, proc, wrap) |> flatten
+    end
+end

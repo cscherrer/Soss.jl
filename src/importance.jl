@@ -2,63 +2,67 @@ using Distributions
 using MonteCarloMeasurements
 
 export importanceSample
-@inline function importanceSample(p::JointDistribution, q::JointDistribution)
-    return _importanceSample(p.model, p.args, q.model, q.args)    
+@inline function importanceSample(p::JointDistribution, q::JointDistribution, _data)
+    return _importanceSample(p.model, p.args, q.model, q.args, _data)    
 end
 
-@gg function _importanceSample(p::Model, _pargs, q::Model, _qargs)  
+@gg function _importanceSample(p::Model, _pargs, q::Model, _qargs, _data)  
     p = type2model(p)
     q = type2model(q)
 
-    sourceImportanceSample(p,q) |> loadvals(_qargs, NamedTuple()) |> loadvals(_pargs, NamedTuple())
+    sourceImportanceSample()(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple())
 end
 
 export sourceImportanceSample
-function sourceImportanceSample(p,q)
-    p = canonical(p)
-    q = canonical(q)
-    m = merge(p,q)
+function sourceImportanceSample()
+    function(p::Model,q::Model)
+        p = canonical(p)
+        q = canonical(q)
+        m = merge(p,q)
 
-    function proc(m, st::Sample) 
-        if hasproperty(p.dists, st.x)
-            pdist = getproperty(p.dists, st.x)
-            qdist = st.rhs
-            @gensym ℓx
-            result = @q begin
-                $ℓx = importanceSample($pdist, $qdist)
-                _ℓ += $ℓx.ℓ
-                $(st.x) = $ℓx.val
+        function proc(m, st::Sample) 
+            if hasproperty(p.dists, st.x)
+                pdist = getproperty(p.dists, st.x)
+                qdist = st.rhs
+                @gensym ℓx
+                result = @q begin
+                    $ℓx = importanceSample($pdist, $qdist, _data)
+                    _ℓ += $ℓx.ℓ
+                    $(st.x) = $ℓx.val
+                end
+                return flatten(result)
+            else return :($(st.x) = $(st.rhs))
             end
             return flatten(result)
         else return :($(st.x) = $(st.rhs))
         end
-    end
-    proc(m, st::Assign)     = :($(st.x) = $(st.rhs))
-    proc(m, st::Return)  = :(return $(st.rhs))
-    proc(m, st::LineNumber) = nothing
+        proc(m, st::Assign)     = :($(st.x) = $(st.rhs))
+        proc(m, st::Return)  = :(return $(st.rhs))
+        proc(m, st::LineNumber) = nothing
 
-    body = buildSource(m, proc) |> flatten
-    
-    kwargs = freeVariables(q) ∪ arguments(p)
-    kwargsExpr = Expr(:tuple,kwargs...)
+        body = buildSource(m, proc) |> flatten
 
-    stochExpr = begin
-        vals = map(stochastic(m)) do x Expr(:(=), x,x) end
-        Expr(:tuple, vals...)
-    end
-    
-    wrap(kernel) = @q begin
-        _ℓ = 0.0
-        $body
-        return Weighted(_ℓ, $stochExpr)
-    end
+        kwargs = freeVariables(q) ∪ arguments(p)
+        kwargsExpr = Expr(:tuple,kwargs...)
 
-    buildSource(m, proc, wrap) |> flatten
+        stochExpr = begin
+            vals = map(stochastic(m)) do x Expr(:(=), x,x) end
+            Expr(:tuple, vals...)
+        end
+
+        wrap(kernel) = @q begin
+            _ℓ = 0.0
+            $body
+            return Weighted(_ℓ, $stochExpr)
+        end
+
+        buildSource(m, proc, wrap) |> flatten
+    end
 end
 
-
-@inline function importanceSample(p, q)
-    x = rand(q)
+export imp
+@inline function importanceSample(p, q, _data)
+    x = merge(rand(q), _data)
     ℓ = logpdf(p,x) - logpdf(q,x)
     Weighted(ℓ,x)
 end
@@ -133,5 +137,3 @@ end
 #     ))
 
 # end
-
-
