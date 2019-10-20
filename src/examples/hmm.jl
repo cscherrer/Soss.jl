@@ -10,26 +10,27 @@ end;
 
 function step(s)
     m = @model s begin
-        νinv ~ HalfNormal()
-        x ~ StudentT(1/νinv, s,1)
+        ν ~ HalfCauchy()
+        x ~ StudentT(ν, s,1)
     end
     m(s=s)
 end;
 
 function noise(s)
     m = @model s begin
-        x ~ Normal(s,1)
+        y ~ Normal(s,1)
     end
     m(s=s)
 end;
 
-rand(hmmStep(s0=s0, step=step, noise=noise))
 s0 = rand(Normal(0,10), 100);
-
 particles(s0)
 
+rand(hmmStep(s0=s0, step=step, noise=noise)) |> pairs
 
-dynamicHMC(hmmStep(s0=s0, step=step, noise=noise), (y=(x=1.0,),)) |> particles
+
+
+dynamicHMC(hmmStep(s0=s0, step=step, noise=noise), (y=(y=1.0,),)) |> particles
 
 
 

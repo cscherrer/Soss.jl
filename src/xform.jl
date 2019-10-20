@@ -96,8 +96,8 @@ end
 
 
 function xform(d::For, _data)  
-    xf1 = xform(d.f(getindex.(d.θs, 1)...), _data)
-    return as(Array, xf1, length.(d.θs)...)
+    xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
+    return as(Array, xf1, length.(d.θ)...)
     
     # TODO: Implement case of unequal supports
 end

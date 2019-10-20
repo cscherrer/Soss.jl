@@ -6,7 +6,6 @@ using MLStyle
 import SymPy
 using SymPy: Sym, sympy, symbols
 
-
 stats = PyCall.pyimport_conda("sympy.stats", "sympy")
 SymPy.import_from(stats)
 
@@ -346,8 +345,6 @@ Normal(μ,σ) = Normal(promote(μ,σ)...)
 
 
 # logpdf(Normal(sym(:μ),sym(:σ)), :x) |> SymPy.cse
-
-
 
 # # macro symdist(n, dist)
 # #     p = Expr(:tuple,gensym.(Symbol.(:p,1:n)))
