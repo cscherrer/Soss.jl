@@ -277,74 +277,9 @@ end
 #     s.func == sympy.Symbol && return Symbol(string(s))
 #     s.func == sympy.Idx && return Symbol(string(s))        
 #     s.func == sympy.IndexedBase && return Symbol(string(s))
-
-#     # @show s
-#     SymPy.is_real(s) && begin
-#         return SymPy.N(s)
-#     end
-
-
-#     @show s.func
-#     error("codegen")
-# end
-
-# codegen(s::AbstractFloat) = s
-
-# # export codegen
-# function codegen(m::Model)
-#     code = codegen(symlogpdf(m))
-#     unknowns = parameters(m) ∪ arguments(m)
-#     unkExpr = Expr(:tuple,unknowns...)
-#     @gensym logdensity
-#     result = @q begin
-#         function $logdensity(pars)
-#             @unpack $(unkExpr) = pars
-#             $code
-#         end
-#     end
-
-#     flatten(result)
-# end
-
-# # s = symlogpdf(normalModel).args[7].args[3]
-
-# # export fexpr
-# # fexpr = quote
-# #     f = function(μ,σ,x)
-# #         a = $(codegen(s))
-# #         return a
-# #     end
-# # end
-
-# # julia> i,j = sympy.symbols("i j", integer=True)
-# # (i, j)
-
-# # julia> x = sympy.IndexedBase("x")
-# # x
-
-# # julia> a = sympy.Sum(x[i], (i, 1, j))
-# #   j       
-# #  ___      
-# #  ╲        
-# #   ╲   x[i]
-# #   ╱       
-# #  ╱        
-# #  ‾‾‾      
-# # i = 1     
-
-# # julia> SymPy.walk_expression(a)
-# # :(Sum(Indexed(IndexedBase(x), i), (:i, 1, :j)))
-
-import Distributions.Normal
-Normal(μ::Sym, σ::Sym) = stats.Normal(:Normal, μ,σ) |> SymPy.density
-Normal(μ,σ) = Normal(promote(μ,σ)...)
-
-# import Distributions.logpdf
-# logpdf(d::Sym, x::Symbol) = logpdf(d, sym(x))
-# logpdf(d::Sym, x::Sym) = sympy.expand(SymPy.density(d).pdf(x) |> log, log=true, deep=false, force=true)
-
-
 # logpdf(Normal(sym(:μ),sym(:σ)), :x) |> SymPy.cse
+
+
 
 # # macro symdist(n, dist)
 # #     p = Expr(:tuple,gensym.(Symbol.(:p,1:n)))
