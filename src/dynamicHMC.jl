@@ -1,4 +1,4 @@
-using TransformVariables, LogDensityProblems, DynamicHMC,
+using TransformVariables, LogDensityProblems, DynamicHMC, 
     Distributions, Statistics, StatsFuns, ForwardDiff
 
 using Random
