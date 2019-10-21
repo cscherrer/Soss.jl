@@ -22,7 +22,7 @@ function dynamicHMC(m :: JointDistribution, _data, ::Val{Inf})
 
     t = xform(m,_data)
     P = TransformedLogDensity(t, ℓ)
-    ∇P = ADgradient(Val(:ForwardDiff), P)
+    ∇P = ADgradient(Val(:ReverseDiff), P)
     
     # initialization
     rng = MersenneTwister()
