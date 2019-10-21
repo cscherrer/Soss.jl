@@ -34,7 +34,6 @@ function sourceImportanceSample()
             else return :($(st.x) = $(st.rhs))
             end
             return flatten(result)
-        else return :($(st.x) = $(st.rhs))
         end
         proc(m, st::Assign)     = :($(st.x) = $(st.rhs))
         proc(m, st::Return)  = :(return $(st.rhs))
