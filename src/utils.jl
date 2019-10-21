@@ -1,5 +1,4 @@
 using MLStyle
-using DataStructures
 using SimpleGraphs
 using SimplePosets
 
@@ -91,7 +90,6 @@ import MacroTools: striplines, @q
 
 
 
-using DataStructures: counter
 
 # function arguments(model::Model)
 #     model.args

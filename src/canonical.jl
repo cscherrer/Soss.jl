@@ -1,7 +1,6 @@
 using MLStyle
 
 export canonical
-using Lazy
 canonical(x) = x
 
 # TODO: Make sure local variables are handled properly (e.g. local function args)
