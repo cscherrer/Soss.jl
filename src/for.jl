@@ -28,7 +28,7 @@ using Base.Cartesian
 export logpdf
 
 
-@inline function logpdf(d::For{F,N,X},xs::AbstractArray{X,N}) where {F,N, X}
+@inline function logpdf(d::For{F,N,X1},xs::AbstractArray{X2,N}) where {F,N, X1,  X2 <: X1}
     s = 0.0
     @inbounds @simd for θ in CartesianIndices(d.θ)
         s += logpdf(d.f(Tuple(θ)...), xs[θ])
