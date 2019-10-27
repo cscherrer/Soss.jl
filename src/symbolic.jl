@@ -8,7 +8,7 @@ using SymPy: Sym, sympy, symbols
 
 const symfuncs = Dict()
 
-_pow(a,b) = float(a)^b
+_pow(a,b) = float(a) ^ b
 
 function __init__()
     stats = PyCall.pyimport_conda("sympy.stats", "sympy")
@@ -23,9 +23,9 @@ function __init__()
 
     # https://discourse.julialang.org/t/pyobjects-as-keys/26521/2
     merge!(symfuncs, Dict(
-        sympy.log => log
+        sympy.log => Base.log
       , sympy.Pow => _pow
-      , sympy.Abs => abs
+      , sympy.Abs => Base.abs
       , sympy.Indexed => getindex
     ))
 
@@ -217,83 +217,6 @@ end
 
 
 
-export codegen
-function codegen(s::Sym)
-    s.func == sympy.Add && begin
-        @gensym add
-        ex = @q begin 
-            $add = 0.0
-        end
-        for arg in s.args
-            t = codegen(arg)
-            push!(ex.args, :($add += $t))
-        end
-        push!(ex.args, add)
-        # @show ex
-        return ex
-    end
-
-
-    s.func == sympy.Mul && begin
-        @gensym mul
-        ex = @q begin 
-            $mul = 1.0
-        end
-        for arg in s.args
-            t = codegen(arg)
-            push!(ex.args, :($mul *= $t))
-        end
-        push!(ex.args, mul)
-        return ex
-    end
-
-    s.func ∈ keys(symfuncs) && begin
-        # @show s
-        @gensym symfunc
-        argnames = gensym.("arg" .* string.(1:length(s.args)))
-        argvals = codegen.(s.args)
-        ex = @q begin end
-        for (k,v) in zip(argnames, argvals)
-            push!(ex.args, :($k = $v))
-        end
-        f = symfuncs[s.func]
-        push!(ex.args, :($symfunc = $f($(argnames...))))
-        push!(ex.args, symfunc)
-        return ex
-    end
-
-    s.func == sympy.Sum && begin
-        @gensym sum
-        @gensym Δsum
-        @gensym lo 
-        @gensym hi
-        
-        summand = codegen(s.args[1])
-        (ix, ixlo, ixhi) = s.args[2].args
-
-        ex = @q begin
-            let 
-                $sum = 0.0
-                $lo = $(codegen(ixlo))
-                $hi = $(codegen(ixhi))
-                for $(codegen(ix)) in $lo:$hi
-                    $Δsum = $summand
-                    $sum += $Δsum
-                end
-            $sum
-            end
-        end
-
-        return ex |> flatten
-    end
-    
-    s.func == sympy.Symbol && return Symbol(string(s))
-    s.func == sympy.Idx && return Symbol(string(s))        
-    s.func == sympy.IndexedBase && return Symbol(string(s))
-
-    # @show s
-    return convert(Expr, s)
-end
 # logpdf(Normal(sym(:μ),sym(:σ)), :x) |> SymPy.cse
 
 
@@ -307,7 +230,7 @@ end
 # # @macroexpand @symdist(4,Normal)
 
 function symvar(st::Sample)
-    st.rhs.args[1] ∈ [:For, :iid] && return IndexedBase(sy.x)
+    st.rhs.args[1] ∈ [:For, :iid] && return IndexedBase(st.x)
     return sym(st.x)
 end
 
@@ -317,20 +240,32 @@ function sourceSymlogpdf()
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
 
         function proc(_m, st :: Sample)
-            x = symvar(st)
+            # x = symvar(st)
 
             @q begin
-                _ℓ += symlogpdf($(st.rhs), $x)
+                _ℓ += symlogpdf($(st.rhs), $(st.x))
             end
         end
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
 
-        wrap(kernel) = @q begin
-            _ℓ = 0.0
-            $kernel
-            return _ℓ
+        function wrap(kernel)
+            q = @q begin
+                _ℓ = 0.0
+            end
+
+            for st in map(v -> findStatement(_m,v), toposortvars(_m))
+                push!(q.args, :($(st.x) = Soss.symvar($st)))
+            end
+
+            q = @q begin
+                $q 
+                $kernel
+                return _ℓ
+            end
         end
+
+                
 
         buildSource(_m, proc, wrap) |> flatten
     end
@@ -341,6 +276,7 @@ end
 export symlogpdf
 function symlogpdf(d::For{F,N,X}, x::Sym) where {F,N,X}
     js = sym.(gensym.(Symbol.(:_j,1:N)))
+    x = sympy.IndexedBase(x)
     result = symlogpdf(d.f(js...), x[js...]) |> expandSums
 
 
@@ -350,12 +286,22 @@ function symlogpdf(d::For{F,N,X}, x::Sym) where {F,N,X}
     result
 end
 
-symlogpdf(d::For{F,N,X}, x::Symbol) where {F,N,X} = symlogpdf(d,sympy.IndexedBase(x))
+symlogpdf(d::For{F,N,X}, x::Symbol) where {F,N,X} = symlogpdf(d,sym(x))
 
 function symlogpdf(d::Sym, x::Sym) 
     result = d.pdf(x) |> log
     sympy.expand_log(result,force=true)
 end
+
+
+function symlogpdf(m::JointDistribution)
+    return _symlogpdf(m.model)    
+end
+
+@gg function _symlogpdf(_m::Model)  
+    type2model(_m) |> sourceSymlogpdf() 
+end
+
 
 # # s = symlogpdf(normalModel).args[7].args[3]
 
