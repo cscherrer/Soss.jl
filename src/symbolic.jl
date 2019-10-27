@@ -1,10 +1,10 @@
 using MacroTools: @q
 import PyCall
 using MLStyle
-# using Lazy
 
 import SymPy
 using SymPy: Sym, sympy, symbols
+import SymPy.sympy
 
 const symfuncs = Dict()
 
@@ -15,10 +15,13 @@ function __init__()
     SymPy.import_from(stats)
     global stats = stats
     
-    @eval begin
-        Distributions.Normal(μ::Sym, σ::Sym) = stats.Normal(:Normal, μ,σ) |> SymPy.density
-        Distributions.Normal(μ,σ) = Normal(promote(μ,σ)...)
+    for dist in [:Normal, :Cauchy, :Laplace, :Beta, :Uniform]
+        @eval begin
+            Distributions.$dist(μ::Sym, σ::Sym) = stats.$dist(:dist, μ,σ) |> SymPy.density
+            Distributions.$dist(μ,σ) = $dist(promote(μ,σ)...)
+        end    
     end
+
 
 
     # https://discourse.julialang.org/t/pyobjects-as-keys/26521/2
@@ -35,14 +38,14 @@ end
 
 
 export sym
-sym(s::Symbol) = SymPy.symbols(s)
+sym(s::Symbol) = SymPy.symbols(s, real=true)
 sym(s) = Base.convert(Sym, s)
 function sym(expr::Expr) 
     @match expr begin
         Expr(:call, f, args...) => :($f($(map(sym,args)...)))
         :($x[$j]) => begin
             j = symbols(:j, cls=sympy.Idx)
-            x = sympy.IndexedBase(x)
+            x = sympy.IndexedBase(x, real=true)
             return x[j]
         end
         _ => begin
@@ -187,17 +190,19 @@ function maybesum(t::Sym, limits::Sym)
     # println()
     (ix, ixlo, ixhi) = limits.args
     ix = limits.args[1]
-    ifelse(ix in t, sympy.Sum(t, limits), t * (ixhi - ixlo + 1))
+    ix ∉ t && return t * (ixhi - ixlo + 1)
+    # TODO: Force reduction of sums that don't include parameters
+    return sympy.Sum(t, limits)
 end
 
 # # integrate(exp(ℓ), (sym(:μ), -oo, oo), (sym(:logσ),-oo,oo))
-# export marginal
-# function marginal(ℓ,v)
-#     f = ℓ.func
-#     f == sympy.Add || return ℓ
-#     newargs = filter(t -> sym(v) in t, collect(ℓ.args))
-#     foldl(+,newargs)
-# end
+export marginal
+function marginal(ℓ,v)
+    f = ℓ.func
+    f == sympy.Add || return ℓ
+    newargs = filter(t -> sym(v) in t, collect(ℓ.args))
+    foldl(+,newargs)
+end
 
 # marginal(m::Model, v) = marginal(m |> symlogpdf, v)
 
@@ -240,8 +245,6 @@ function sourceSymlogpdf()
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
 
         function proc(_m, st :: Sample)
-            # x = symvar(st)
-
             @q begin
                 _ℓ += symlogpdf($(st.rhs), $(st.x))
             end
@@ -255,7 +258,14 @@ function sourceSymlogpdf()
             end
 
             for st in map(v -> findStatement(_m,v), toposortvars(_m))
-                push!(q.args, :($(st.x) = Soss.symvar($st)))
+                x = st.x 
+                xname = QuoteNode(x)
+                rhs = st.rhs 
+                xsym = ifelse(rhs.args[1] ∈ [:For, :iid]
+                    , :(sympy.IndexedBase($xname))
+                    , :(sym($xname))
+                )
+                push!(q.args, :($x = $xsym))
             end
 
             q = @q begin
@@ -275,7 +285,7 @@ end
 
 export symlogpdf
 function symlogpdf(d::For{F,N,X}, x::Sym) where {F,N,X}
-    js = sym.(gensym.(Symbol.(:_j,1:N)))
+    js = sym.(Symbol.(:_j,1:N))
     x = sympy.IndexedBase(x)
     result = symlogpdf(d.f(js...), x[js...]) |> expandSums
 
@@ -288,6 +298,15 @@ end
 
 symlogpdf(d::For{F,N,X}, x::Symbol) where {F,N,X} = symlogpdf(d,sym(x))
 
+symlogpdf(d::Normal, x::Sym) = symlogpdf(Normal(sym(d.μ),sym(d.σ)), x)
+
+# @generated function symlogpdf(d,x::Sym)
+#     quote
+#         args = propertynames(d)
+
+#     end
+# end
+
 function symlogpdf(d::Sym, x::Sym) 
     result = d.pdf(x) |> log
     sympy.expand_log(result,force=true)
@@ -299,7 +318,7 @@ function symlogpdf(m::JointDistribution)
 end
 
 @gg function _symlogpdf(_m::Model)  
-    type2model(_m) |> sourceSymlogpdf() 
+    type2model(_m) |> canonical |> sourceSymlogpdf() 
 end
 
 
