@@ -8,6 +8,8 @@ using SymPy: Sym, sympy, symbols
 
 const symfuncs = Dict()
 
+_pow(a,b) = float(a)^b
+
 function __init__()
     stats = PyCall.pyimport_conda("sympy.stats", "sympy")
     SymPy.import_from(stats)
@@ -22,7 +24,7 @@ function __init__()
     # https://discourse.julialang.org/t/pyobjects-as-keys/26521/2
     merge!(symfuncs, Dict(
         sympy.log => log
-      , sympy.Pow => :^
+      , sympy.Pow => _pow
       , sympy.Abs => abs
       , sympy.Indexed => getindex
     ))
@@ -183,9 +185,9 @@ function maybesum(t::Sym, limits::Sym)
     # println("maybeSum")
     # @show t,limits
     # println()
-    j = limits.args[1]
-    thesum = sympy.Sum(t, limits)
-    ifelse(j in t, thesum, thesum.doit())
+    (ix, ixlo, ixhi) = limits.args
+    ix = limits.args[1]
+    ifelse(ix in t, sympy.Sum(t, limits), t * (ixhi - ixlo + 1))
 end
 
 # # integrate(exp(ℓ), (sym(:μ), -oo, oo), (sym(:logσ),-oo,oo))
@@ -270,22 +272,27 @@ function codegen(s::Sym)
         (ix, ixlo, ixhi) = s.args[2].args
 
         ex = @q begin
-            $sum = 0.0
-            $lo = $(codegen(ixlo))
-            $hi = $(codegen(ixhi))
-            @inbounds @simd for $(codegen(ix)) = $lo:$hi
-                $Δsum = $summand
-                $sum += $Δsum
-            end
+            let 
+                $sum = 0.0
+                $lo = $(codegen(ixlo))
+                $hi = $(codegen(ixhi))
+                for $(codegen(ix)) in $lo:$hi
+                    $Δsum = $summand
+                    $sum += $Δsum
+                end
             $sum
+            end
         end
 
-        return ex
+        return ex |> flatten
     end
     
     s.func == sympy.Symbol && return Symbol(string(s))
     s.func == sympy.Idx && return Symbol(string(s))        
     s.func == sympy.IndexedBase && return Symbol(string(s))
+
+    # @show s
+    return convert(Expr, s)
 end
 # logpdf(Normal(sym(:μ),sym(:σ)), :x) |> SymPy.cse
 
@@ -342,6 +349,8 @@ function symlogpdf(d::For{F,N,X}, x::Sym) where {F,N,X}
     end
     result
 end
+
+symlogpdf(d::For{F,N,X}, x::Symbol) where {F,N,X} = symlogpdf(d,sympy.IndexedBase(x))
 
 function symlogpdf(d::Sym, x::Sym) 
     result = d.pdf(x) |> log
