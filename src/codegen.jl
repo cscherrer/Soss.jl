@@ -1,4 +1,10 @@
 
+
+function codegen(m::JointDistribution)
+    return codegen(symlogpdf(m))    
+end
+
+
 export codegen
 function codegen(s::Sym)
     s.func == sympy.Add && begin
@@ -76,3 +82,12 @@ function codegen(s::Sym)
     # @show s
     return convert(Expr, s)
 end
+
+
+# julia> codegen(sym(:x) + sym(:y))
+# quote
+#     var"##add#407" = 0.0
+#     var"##add#407" += x
+#     var"##add#407" += y
+#     var"##add#407"
+# end
