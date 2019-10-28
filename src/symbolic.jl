@@ -15,6 +15,12 @@ function __init__()
     SymPy.import_from(stats)
     global stats = stats
     
+    for dist in [:Bernoulli]
+        @eval begin
+            Distributions.$dist(p::Sym) = SymDist(y -> y * log(p) + (1-y) * log(1-p))
+        end    
+    end
+
     for dist in [:Normal, :Cauchy, :Laplace, :Beta, :Uniform]
         @eval begin
             Distributions.$dist(μ::Sym, σ::Sym) = stats.$dist(:dist, μ,σ) |> SymPy.density
@@ -34,6 +40,11 @@ function __init__()
 
 end
 
+struct SymDist
+    logpdf :: Function
+end
+
+logpdf(d::SymDist, x) = d.logpdf(sym(x))
 
 
 
@@ -242,7 +253,12 @@ end
 export sourceSymlogpdf
 function sourceSymlogpdf()
     function(_m::Model)
-        proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
+        function proc(_m, st :: Assign) 
+            # :($(st.x) = $(st.rhs))
+            x = st.x 
+            xname = QuoteNode(x)
+            :($x = sym($xname))
+        end 
 
         function proc(_m, st :: Sample)
             @q begin
@@ -258,6 +274,8 @@ function sourceSymlogpdf()
             end
 
             for st in map(v -> findStatement(_m,v), toposortvars(_m))
+
+                typeof(st) == Sample || continue
                 x = st.x 
                 xname = QuoteNode(x)
                 rhs = st.rhs 
@@ -268,7 +286,7 @@ function sourceSymlogpdf()
                 push!(q.args, :($x = $xsym))
             end
 
-            q = @q begin
+            @q begin
                 $q 
                 $kernel
                 return _ℓ
@@ -281,24 +299,29 @@ function sourceSymlogpdf()
     end
 end
 
+For(f,n::Sym) = For(f,(n,))
+
 # logpdf(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logpdf(d,sym.(x))
 
 export symlogpdf
 function symlogpdf(d::For{F,N,X}, x::Sym) where {F,N,X}
     js = sym.(Symbol.(:_j,1:N))
     x = sympy.IndexedBase(x)
-    result = symlogpdf(d.f(js...), x[js...]) |> expandSums
+    result = symlogpdf(d.f(js...), x[js...]) # |> expandSums
 
 
     for k in N:-1:1
-        result = sympy.Sum(result, (js[k], 1, d.θ[k])) |> expandSums
+        result = sympy.Sum(result, (js[k], 1, d.θ[k])) # |> expandSums
     end
     result
 end
 
+symlogpdf(d::iid, x::Sym) = symlogpdf(For(j -> d.dist, d.size), x)
+
 symlogpdf(d::For{F,N,X}, x::Symbol) where {F,N,X} = symlogpdf(d,sym(x))
 
 symlogpdf(d::Normal, x::Sym) = symlogpdf(Normal(sym(d.μ),sym(d.σ)), x)
+symlogpdf(d::Beta, x::Sym) = symlogpdf(Beta(sym(d.α),sym(d.β)), x)
 
 # @generated function symlogpdf(d,x::Sym)
 #     quote
@@ -307,11 +330,15 @@ symlogpdf(d::Normal, x::Sym) = symlogpdf(Normal(sym(d.μ),sym(d.σ)), x)
 #     end
 # end
 
+logpdf(d::Sym, x::Sym) = symlogpdf(d,x)
+
 function symlogpdf(d::Sym, x::Sym) 
+    d.func
     result = d.pdf(x) |> log
     sympy.expand_log(result,force=true)
 end
 
+symlogpdf(d,x::Sym) = logpdf(d,x)
 
 function symlogpdf(m::JointDistribution)
     return _symlogpdf(m.model)    
@@ -352,5 +379,9 @@ end
 # # :(Sum(Indexed(IndexedBase(x), i), (:i, 1, :j)))
 
 
-
-
+export mylatex
+function mylatex(ℓ::SymPy.Sym)
+    r = r"_j(?<num>\d+)"
+    s = s"j_{\g<num>}"
+    Base.replace(sympy.latex(ℓ), r => s)
+end
