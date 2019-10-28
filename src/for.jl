@@ -4,12 +4,12 @@ import Distributions.logpdf
 export For
 struct For{F,N,X} 
     f :: F  
-    θ :: NTuple{N,Int}
+    θ :: NTuple{N}
 end
 
 For(f, θ::Int...) = For(f,θ)
 
-function For(f::F, θ::NTuple{N,Int}) where {F,N}
+function For(f::F, θ::NTuple{N}) where {F,N}
     X = f.(ones(Int, N)...) |> eltype
     For{F,N,X}(f,θ)
 end
@@ -23,10 +23,9 @@ function Base.rand(dist::For)
 end
 
 using Base.Cartesian
-
+using Base.Threads
 
 export logpdf
-
 
 @inline function logpdf(d::For{F,N,X1},xs::AbstractArray{X2,N}) where {F,N, X1,  X2 <: X1}
     s = 0.0
@@ -34,6 +33,31 @@ export logpdf
         s += logpdf(d.f(Tuple(θ)...), xs[θ])
     end
     s
+end
+
+export logpdf2
+@inline function logpdf2(d::For{F,N,X1},xs) where {F,N, X1, X2}
+    results = zeros(eltype(xs), nthreads())
+
+    θ = CartesianIndices(d.θ)
+
+    total = Threads.Atomic{Float64}(0.0)
+    @threads for tid in 1:nthreads()
+        # split work
+        start = 1 + ((tid - 1) * length(xs)) ÷ nthreads()
+        stop = (tid * length(xs)) ÷ nthreads()
+        domain = start:stop
+        
+        s = 0.0
+        for j in domain
+            @inbounds θj = θ[j]
+            @inbounds s += logpdf(d.f(Tuple(θj)...), xs[θj])
+        end
+
+        Threads.atomic_add!(total, s)
+    end
+
+    total.value
 end
 
 @inline function importanceSample(p::For{F1,N,X}, q::For{F2,N,X}) where {F1,F2,N,X}
