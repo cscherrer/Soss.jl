@@ -57,17 +57,29 @@ function codegen(s::Sym)
         @gensym hi
         
         summand = codegen(s.args[1])
-        (ix, ixlo, ixhi) = s.args[2].args
 
         ex = @q begin
-            let 
-                $sum = 0.0
+                    $Δsum = $summand
+                    $sum += $Δsum
+        end
+        
+        for limits in s.args[2:end]
+            (ix, ixlo, ixhi) = limits.args
+
+            ex = @q begin
                 $lo = $(codegen(ixlo))
                 $hi = $(codegen(ixhi))
                 for $(codegen(ix)) in $lo:$hi
                     $Δsum = $summand
                     $sum += $Δsum
                 end
+            end
+        end
+        
+        ex = @q begin
+            let 
+                $sum = 0.0
+                $ex
             $sum
             end
         end
