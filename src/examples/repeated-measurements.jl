@@ -18,6 +18,11 @@ end;
 
 using Random
 truth = rand(m());
+symlogpdf(m())
+codegen(m(),truth)
+
+
+
 logpdf(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)))
 
 

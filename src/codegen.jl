@@ -1,19 +1,30 @@
 
+using GeneralizedGenerated: runtime_eval
+function codegen(m::JointDistribution,x)
+    return _codegen(m.model, m.args, x)    
+end
 
-function codegen(m::JointDistribution)
-    return codegen(symlogpdf(m))    
+@gg function _codegen(_m::Model, _args, _data)  
+    type2model(_m) |> sourceCodegen() |> loadvals(_args, _data)
 end
 
 
+function sourceCodegen()
+    function(m::Model)
+        codegen(symlogpdf(m()))
+    end
+end
+
 export codegen
 function codegen(s::Sym)
+    r = codegen
     s.func == sympy.Add && begin
         @gensym add
         ex = @q begin 
             $add = 0.0
         end
         for arg in s.args
-            t = codegen(arg)
+            t = r(arg)
             push!(ex.args, :($add += $t))
         end
         push!(ex.args, add)
@@ -28,7 +39,7 @@ function codegen(s::Sym)
             $mul = 1.0
         end
         for arg in s.args
-            t = codegen(arg)
+            t = r(arg)
             push!(ex.args, :($mul *= $t))
         end
         push!(ex.args, mul)
@@ -39,7 +50,7 @@ function codegen(s::Sym)
         # @show s
         @gensym symfunc
         argnames = gensym.("arg" .* string.(1:length(s.args)))
-        argvals = codegen.(s.args)
+        argvals = r.(s.args)
         ex = @q begin end
         for (k,v) in zip(argnames, argvals)
             push!(ex.args, :($k = $v))
@@ -56,7 +67,7 @@ function codegen(s::Sym)
         @gensym lo 
         @gensym hi
         
-        summand = codegen(s.args[1])
+        summand = r(s.args[1])
 
         ex = @q begin
                     $Δsum = $summand
@@ -67,9 +78,9 @@ function codegen(s::Sym)
             (ix, ixlo, ixhi) = limits.args
 
             ex = @q begin
-                $lo = $(codegen(ixlo))
-                $hi = $(codegen(ixhi))
-                for $(codegen(ix)) in $lo:$hi
+                $lo = $(r(ixlo))
+                $hi = $(r(ixhi))
+                for $(r(ix)) in $lo:$hi
                     $Δsum = $summand
                     $sum += $Δsum
                 end
@@ -96,7 +107,7 @@ function codegen(s::Sym)
 end
 
 
-# julia> codegen(sym(:x) + sym(:y))
+# julia> r(sym(:x) + sym(:y))
 # quote
 #     var"##add#407" = 0.0
 #     var"##add#407" += x

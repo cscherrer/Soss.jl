@@ -3,7 +3,7 @@ import PyCall
 using MLStyle
 
 import SymPy
-using SymPy: Sym, sympy, symbols
+using SymPy: Sym, sympy, symbols, free_symbols
 import SymPy.sympy
 
 const symfuncs = Dict()
@@ -151,38 +151,54 @@ end
 function expandSums(s::Sym)
     s.args==() && return s
     if s.func==sympy.Sum
-        s2 = expandSum(s)
+        s2 = expandSum(s.args...)
         # Maybe it didn't simplify and we're done
         s2 == s && return s2
         # Or not, and we recurse
         s = s2
     end
     newargs = [expandSums(t) for t in s.args]
-    s.func(newargs...)
+    result = s.func(newargs...)
+    # @show result - s
+    # @assert sympy.simplify(result - s) == sym(0)
+    return result
 end
 
-function expandSum(s::Sym)
-    # println("expandSum")
-    # @show s
-    # println()
-    @assert s.func == sympy.Sum
-    sfunc = s.args[1].func
-    sargs = s.args[1].args
-    limits = s.args[2]
-    ix = limits.args[1]
-    if sfunc == sympy.Add
-        return sfunc([maybesum(t, limits) for t in sargs]...)
-    elseif sfunc == sympy.Mul
-        factors = sargs
-        constants = [fac for fac in factors if !(ix in fac)]
-        newconst = foldl(*,constants)
-        newfacs = foldl(*,setdiff(factors, constants))
-        newsum = sympy.Sum(newfacs, limits)
-        return newconst * newsum
+
+function expandSum(s::Sym, limits::Sym...)
+    isempty(free_symbols(s)) && return maybeSum(s, limits...)
+
+    func = s.func
+    args = s.args
+    args == () && return maybeSum(s,limits...)
+
+    if func == sympy.Add
+        return func([expandSum(t, limits...) for t in args]...)
+    elseif func == sympy.Mul
+        return expandMulSum(args, limits...)
     else
-        return s
+        return sympy.Sum(s, limits...)
     end
 
+end
+
+# Expand a sum of a `Mul`
+# Currently a greedy algorithm, may need to optimize later
+function expandMulSum(factors::NTuple{N,Sym}, limits::Sym...) where {N}
+    limits == () && return prod(factors)
+
+    for fac in factors 
+        for lim in limits 
+            (ix, ixlo, ixhi) = lim.args
+            if ix ∉ fac 
+                inSummand = prod(allbut(factors, fac))
+                inSum = expandSum(inSummand, lim)
+                outLims = allbut(limits, lim)
+                return expandSum(fac*inSum, outLims...)
+            end
+        end
+    end
+    return maybeSum(prod(factors), limits...)
 end
 
 import Base.in
@@ -195,15 +211,23 @@ function Base.in(j::Sym, s::Sym)
     return false
 end
 
-function maybesum(t::Sym, limits::Sym)
-    # println("maybeSum")
-    # @show t,limits
-    # println()
-    (ix, ixlo, ixhi) = limits.args
-    ix = limits.args[1]
-    ix ∉ t && return t * (ixhi - ixlo + 1)
-    # TODO: Force reduction of sums that don't include parameters
-    return sympy.Sum(t, limits)
+function allbut(tup, x) 
+    result = filter(collect(tup)) do v 
+        v ≠ x
+    end
+    tuple(result...)
+end
+
+# Force computation of sums that don't involve the index
+function maybeSum(t::Sym, limits::Sym...)
+    length(limits) > 0 || return t
+
+    for lim in limits
+        (ix, ixlo, ixhi) = lim.args
+        ix ∈ t || return maybeSum(t * (ixhi - ixlo + 1), allbut(limits, lim)...)
+    end 
+
+    return sympy.Sum(t, limits...)
 end
 
 # # integrate(exp(ℓ), (sym(:μ), -oo, oo), (sym(:logσ),-oo,oo))
@@ -342,6 +366,10 @@ symlogpdf(d,x::Sym) = logpdf(d,x)
 
 function symlogpdf(m::JointDistribution)
     return _symlogpdf(m.model)    
+end
+
+function symlogpdf(m::Model)
+    return _symlogpdf(m)    
 end
 
 @gg function _symlogpdf(_m::Model)  
