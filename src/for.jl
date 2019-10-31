@@ -2,10 +2,42 @@ using Distributions
 import Distributions.logpdf
 
 export For
-struct For{F,N,X} 
+struct For{F,T,D,X} 
     f :: F  
-    θ :: NTuple{N}
+    θ :: T
 end
+
+#########################################################
+# T <: Integer
+#########################################################
+
+For(f::F, θ::T) where {F, T <: Integer}
+
+#########################################################
+# T <: NTuple{N,J} where {J <: Integer}
+#########################################################
+
+For(f, θ::J...) where {J <: Integer} = For(f,θ)
+For(f::F, θ::T) where {F, T <: NTuple{N,J}, J <: Integer}
+
+
+#########################################################
+# T <: NTuple{N,J} where {J <: AbstractUnitRange}
+#########################################################
+
+For(f, θ::J...) where {J <: AbstractUnitRange} = For(f,θ)
+For(f::F, θ::T) where {F,  T <: NTuple{N,J}, J <: AbstractUnitRange}
+
+
+#########################################################
+# T <: Base.Generator
+#########################################################
+
+For(f::F, θ::T) where {F, T <: Base.Generator}
+
+#########################################################
+
+
 
 For(f, θ::Int...) = For(f,θ)
 
