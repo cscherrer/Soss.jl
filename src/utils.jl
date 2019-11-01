@@ -270,4 +270,3 @@ function tower(x)
     end
     return result
 end
-

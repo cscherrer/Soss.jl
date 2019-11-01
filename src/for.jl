@@ -41,6 +41,10 @@ For(f::F, θ::T) where {F, T <: Base.Generator}
 
 For(f, θ::Int...) = For(f,θ)
 
+# T <: Integer
+
+# T <: 
+
 function For(f::F, θ::NTuple{N}) where {F,N}
     X = f.(ones(Int, N)...) |> eltype
     For{F,N,X}(f,θ)
@@ -112,3 +116,4 @@ end
 #     end
 #     return complete(rf, val)
 # end
+
