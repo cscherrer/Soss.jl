@@ -1,5 +1,11 @@
 using Distributions
 import Distributions.logpdf
+using Base.Cartesian
+using Base.Threads
+
+
+export logpdf
+export rand
 
 export For
 struct For{F,T,D,X} 
@@ -8,49 +14,25 @@ struct For{F,T,D,X}
 end
 
 #########################################################
-# T <: Integer
-#########################################################
-
-For(f::F, θ::T) where {F, T <: Integer}
-
-#########################################################
 # T <: NTuple{N,J} where {J <: Integer}
 #########################################################
 
 For(f, θ::J...) where {J <: Integer} = For(f,θ)
-For(f::F, θ::T) where {F, T <: NTuple{N,J}, J <: Integer}
 
-
-#########################################################
-# T <: NTuple{N,J} where {J <: AbstractUnitRange}
-#########################################################
-
-For(f, θ::J...) where {J <: AbstractUnitRange} = For(f,θ)
-For(f::F, θ::T) where {F,  T <: NTuple{N,J}, J <: AbstractUnitRange}
-
-
-#########################################################
-# T <: Base.Generator
-#########################################################
-
-For(f::F, θ::T) where {F, T <: Base.Generator}
-
-#########################################################
-
-
-
-For(f, θ::Int...) = For(f,θ)
-
-# T <: Integer
-
-# T <: 
-
-function For(f::F, θ::NTuple{N}) where {F,N}
-    X = f.(ones(Int, N)...) |> eltype
-    For{F,N,X}(f,θ)
+function For(f::F, θ::T) where {F, N, J <: Integer, T <: NTuple{N,J}}
+    d = f.(ones(Int, N)...)
+    D = typeof(d)
+    X = eltype(d)
+    For{F, NTuple{N,J}, D, X}(f,θ)
 end
 
-export rand
+@inline function logpdf(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: Integer, T <: NTuple{N,J}, D,  X1,  X2 <: X1}
+    s = 0.0
+    @inbounds @simd for θ in CartesianIndices(d.θ)
+        s += logpdf(d.f(Tuple(θ)...), xs[θ])
+    end
+    s
+end
 
 function Base.rand(dist::For) 
     map(CartesianIndices(dist.θ)) do I
@@ -58,18 +40,69 @@ function Base.rand(dist::For)
     end
 end
 
-using Base.Cartesian
-using Base.Threads
+#########################################################
+# T <: NTuple{N,J} where {J <: AbstractUnitRange}
+#########################################################
 
-export logpdf
+For(f, θ::J...) where {J <: AbstractUnitRange} = For(f,θ)
 
-@inline function logpdf(d::For{F,N,X1},xs::AbstractArray{X2,N}) where {F,N, X1,  X2 <: X1}
+function For(f::F, θ::T) where {F, N, J <: AbstractRange, T <: NTuple{N,J}}
+    d = f.(ones(Int, N)...)
+    D = typeof(d)
+    X = eltype(d)
+    For{F, NTuple{N,J}, D, X}(f,θ)
+end
+
+
+@inline function logpdf(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: AbstractRange,  T <: NTuple{N,J}, D, X1, X2 <: X1}
     s = 0.0
     @inbounds @simd for θ in CartesianIndices(d.θ)
         s += logpdf(d.f(Tuple(θ)...), xs[θ])
     end
     s
 end
+
+
+function Base.rand(dist::For{F,T}) where {F,  N, J <: AbstractRange, T <: NTuple{N,J}}
+    map(CartesianIndices(dist.θ)) do I
+        (rand ∘ dist.f)(Tuple(I)...)
+    end
+end
+
+#########################################################
+# T <: Base.Generator
+#########################################################
+
+function For(f::F, θ::T) where {F, T <: Base.Generator}
+    d = f(θ.f(θ.iter[1]))
+    D = typeof(d)
+    X = eltype(d)
+    For{F, T, D, X}(f,θ)
+end
+
+
+@inline function logpdf(d :: For{F,T}, x) where {F,T <: Base.Generator}
+    s = 0.0
+    for (θj, xj) in zip(d.θ, x)
+        s += logpdf(d.f(θj), xj)
+    end
+    s
+end
+
+@inline function rand(d :: For{F,T,D,X}) where {F,T <: Base.Generator, D, X}
+    Base.Generator(rand ∘ d.θ.f, d.θ.iter)
+end
+
+#########################################################
+
+
+
+
+
+
+
+
+
 
 export logpdf2
 @inline function logpdf2(d::For{F,N,X1},xs) where {F,N, X1, X2}
