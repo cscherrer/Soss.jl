@@ -16,6 +16,14 @@ function canonical(expr :: Expr)
 
         Expr(:block, body...) => Expr(:block, canonical.(body)...)
 
+        Expr(:do, :(For($x)), :($f)) => begin
+            rf = r(f)
+            rx = r(x)
+
+            :(For($rf, $rx)) |> r
+        end        
+
+
         Expr(:do, :(For($(x...))), :($f)) => begin
             rf = r(f)
             rx = r.(x)
