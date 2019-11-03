@@ -376,26 +376,54 @@ function sourceSymlogpdf()
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
 
-        wrap(kernel) = @q begin
-            _ℓ = 0.0
-            $kernel
-            return _ℓ
+        function wrap(kernel)
+            q = @q begin
+                _ℓ = 0.0
+            end
+
+            for x in variables(_m)
+                xname = QuoteNode(x)
+                push!(q.args, :($x = sym($xname)))
+            end
+
+            for st in map(v -> findStatement(_m,v), toposortvars(_m))
+
+                typeof(st) == Sample || continue
+                x = st.x 
+                xname = QuoteNode(x)
+                rhs = st.rhs 
+                xsym = ifelse(rhs.args[1] ∈ [:For, :iid]
+                    , :(sympy.IndexedBase($xname))
+                    , :(sym($xname))
+                )
+                push!(q.args, :($x = $xsym))
+            end
+
+            @q begin
+                $q 
+                $kernel
+                return _ℓ
+            end
         end
 
         buildSource(_m, proc, wrap) |> flatten
     end
 end
 
+For(f, θ::Sym) = For(f, (θ,))
+
+function For(f::F, θ::NTuple{N,Sym}) where {F, N}
+    For{F,NTuple{N,Sym},Sym,Sym}(f,θ)
+end
+
+
 # logpdf(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logpdf(d,sym.(x))
 
 export symlogpdf
-function symlogpdf(d::For{F,N,T}, x::Sym) where {F,N,T}
-    @show d 
-    @show x 
-    js = sym.(gensym.(Symbol.(:_j,1:N)))
-    return d
-    @show js
-    result = symlogpdf(d.f(js...), x)
+function symlogpdf(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Integer, T <: NTuple{N,J}, D,  X}
+    js = sym.(Symbol.(:_j,1:N))
+    x = sympy.IndexedBase(x)
+    result = symlogpdf(d.f(js...), x[js...]) # |> expandSums
 
     @show result
 
@@ -405,7 +433,42 @@ function symlogpdf(d::For{F,N,T}, x::Sym) where {F,N,T}
     result
 end
 
-symlogpdf(d::Sym, x::Sym) = d.pdf(x)
+symlogpdf(d::iid, x::Sym) = symlogpdf(For(j -> d.dist, d.size), x)
+
+symlogpdf(d::For{F,T,D,X}, x::Symbol) where {F,T,D,X} = symlogpdf(d,sym(x))
+
+symlogpdf(d::Normal, x::Sym) = symlogpdf(Normal(sym(d.μ),sym(d.σ)), x)
+symlogpdf(d::Beta, x::Sym) = symlogpdf(Beta(sym(d.α),sym(d.β)), x)
+
+# @generated function symlogpdf(d,x::Sym)
+#     quote
+#         args = propertynames(d)
+
+#     end
+# end
+
+logpdf(d::Sym, x::Sym) = symlogpdf(d,x)
+
+function symlogpdf(d::Sym, x::Sym) 
+    d.func
+    result = d.pdf(x) |> log
+    sympy.expand_log(result,force=true)
+end
+
+symlogpdf(d,x::Sym) = logpdf(d,x)
+
+function symlogpdf(m::JointDistribution)
+    return _symlogpdf(m.model)    
+end
+
+function symlogpdf(m::Model)
+    return _symlogpdf(m)    
+end
+
+@gg function _symlogpdf(_m::Model)  
+    type2model(_m) |> canonical |> sourceSymlogpdf() 
+end
+
 
 # # s = symlogpdf(normalModel).args[7].args[3]
 
@@ -437,4 +500,9 @@ symlogpdf(d::Sym, x::Sym) = d.pdf(x)
 # # :(Sum(Indexed(IndexedBase(x), i), (:i, 1, :j)))
 
 
-
+export tolatex
+function tolatex(ℓ::SymPy.Sym)
+    r = r"_j(?<num>\d+)"
+    s = s"j_{\g<num>}"
+    Base.replace(sympy.latex(ℓ), r => s)
+end
