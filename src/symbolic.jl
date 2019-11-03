@@ -147,7 +147,7 @@ end
 # #     end
 # # end
 
-
+export expandSums
 function expandSums(s::Sym)
     s.args==() && return s
     if s.func==sympy.Sum
@@ -338,7 +338,7 @@ end
 # logpdf(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logpdf(d,sym.(x))
 
 export symlogpdf
-function symlogpdf(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Integer, T <: NTuple{N,J}, D,  X}
+function symlogpdf(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
     js = sym.(Symbol.(:_j,1:N))
     x = sympy.IndexedBase(x)
     result = symlogpdf(d.f(js...), x[js...]) # |> expandSums
