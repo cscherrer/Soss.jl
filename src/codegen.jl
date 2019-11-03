@@ -1,5 +1,7 @@
 
 using GeneralizedGenerated: runtime_eval
+using MacroTools: @q
+
 function codegen(m::JointDistribution,x)
     return _codegen(m.model, m.args, x)    
 end
@@ -8,10 +10,17 @@ end
     type2model(_m) |> sourceCodegen() |> loadvals(_args, _data)
 end
 
-
+export sourceCodegen
 function sourceCodegen()
     function(m::Model)
-        codegen(symlogpdf(m()))
+        body = @q begin end
+
+        for (x, rhs) in pairs(m.vals)
+            push!(body.args, :($x = $rhs))
+        end
+
+        push!(body.args, codegen(symlogpdf(m)))
+        return body
     end
 end
 
