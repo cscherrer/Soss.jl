@@ -33,40 +33,40 @@ Just a few of the things we can do in Soss:
 
 Let's use our model to build some fake data:
 ```julia
-truth = rand(m(x=randn(6)));
+julia> X = randn(6,2)
+6×2 Array{Float64,2}:
+  0.214743  -1.04389 
+ -0.809179  -0.580583
+  0.205876  -0.840331
+ -0.568996   1.02659 
+  1.19427    0.671222
+  0.392438  -0.232703
 
-julia> truth.X
-6×3 Array{Float64,2}:
-  0.571468   0.610267   0.571329 
- -1.77231   -0.69027    0.86766  
-  0.430517   0.862492   1.8123   
-  2.17841    1.52372    1.04112  
- -0.651006   0.95506    0.0898225
- -1.52253   -1.17613   -0.971853 
+julia> truth = rand(m(X=X));
 
 julia> truth.β
-3-element Array{Float64,1}:
- -0.053228214883879355
- -0.4392003338762938  
-  1.3778401407122243  
-
+2-element Array{Float64,1}:
+ 0.14338740065601344
+ 0.4233111052117538 
+ 
 julia> truth.y
 6-element Array{Float64,1}:
- -0.8955870975516593 
-  0.1657180493730872 
-  1.3436737223738442 
- -0.29564066790938537
- -0.9008897828368391 
- -0.4862385519011053 
+ -1.0438927843946528
+ -0.5805833500446688
+ -0.8403308441501461
+  1.0265870371601737
+  0.6712215914389901
+ -0.2327030992653677
 ```
 
-And now pretend we don't know `β`, and have the model figure it out
+And now pretend we don't know `β`, and have the model figure it out. 
+Often these are easier to work with in terms of `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl)):
 
 ```julia
 julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
 
 julia> particles(post)
-(β = Particles{Float64,1000}[0.142 ± 0.4, -0.462 ± 0.6, 0.488 ± 0.43],)
+(β = Particles{Float64,1000}[-0.0101 ± 0.55, 0.784 ± 0.47],)
 ```
 
 For model diagnostics and prediction, we need the _predictive distribution_:
@@ -83,11 +83,16 @@ This requires `X` and `β` as inputs, so we can do something like this to do a _
 
 ```julia
 ppc = [rand(pred(;X=truth.X, p...)).y for p in post];
-```
 
-Often these are easier to work with in terms of `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl))
+julia> particles(ppc)
+6-element Array{Particles{Float64,1000},1}:
+ -0.425 ± 0.63 
+ -0.697 ± 0.11 
+ -0.312 ± 0.52 
+  0.243 ± 0.8  
+  0.949 ± 0.26 
+  0.0774 ± 0.31
 
-```julia
 julia> truth.y - particles(ppc)
 6-element Array{Particles{Float64,1000},1}:
  -1.01 ± 1.0 
@@ -98,7 +103,7 @@ julia> truth.y - particles(ppc)
  -0.317 ± 1.1
 ```
 
-These play a role similar to that of residuals in a non-Bayesian approach (there's plenty more detail to go into, but that's fgor another time).
+These play a role similar to that of residuals in a non-Bayesian approach (there's plenty more detail to go into, but that's for another time).
 
 
 
@@ -124,14 +129,7 @@ julia> weightedSample(m(σ=1), (x=[-1,0,1],))
 
 Again, there's no runtime check needed for this. Each of these is compiled the first time it is called, so future calls are very fast. Functions like this are great to use in tight loops.
 
-## Inference
 
-
-
-```julia
-julia> nuts(m(σ=1),(x=[-1,0,1],)) |> particles
-(μ = -0.00502 ± 0.47,)
-```
 
 ## To Do
 

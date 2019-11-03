@@ -1,7 +1,6 @@
 using MLStyle
 
 export canonical
-using Lazy
 canonical(x) = x
 
 # TODO: Make sure local variables are handled properly (e.g. local function args)
@@ -16,6 +15,14 @@ function canonical(expr :: Expr)
         end
 
         Expr(:block, body...) => Expr(:block, canonical.(body)...)
+
+        Expr(:do, :(For($x)), :($f)) => begin
+            rf = r(f)
+            rx = r(x)
+
+            :(For($rf, $rx)) |> r
+        end        
+
 
         Expr(:do, :(For($(x...))), :($f)) => begin
             rf = r(f)

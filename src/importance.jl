@@ -33,6 +33,7 @@ function sourceImportanceSample()
                 return flatten(result)
             else return :($(st.x) = $(st.rhs))
             end
+            return flatten(result)
         end
         proc(m, st::Assign)     = :($(st.x) = $(st.rhs))
         proc(m, st::Return)  = :(return $(st.rhs))
@@ -58,7 +59,6 @@ function sourceImportanceSample()
     end
 end
 
-export imp
 @inline function importanceSample(p, q, _data)
     x = merge(rand(q), _data)
     ℓ = logpdf(p,x) - logpdf(q,x)

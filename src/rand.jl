@@ -8,8 +8,8 @@ EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
     return _rand(m.model, m.args)
 end
 
-@generated function rand(m::T) where {T <: Model}
-    type2model(T) |> sourceRand()
+@inline function rand(m::Model)
+    return _rand(m, NamedTuple())
 end
 
 @gg function _rand(_m::Model, _args) 

@@ -7,7 +7,7 @@ julia:
     - nightly
 env:
     global:
-    # - PYTHON=conda
+    - PYTHON=conda
     # matrix:
     # - MPMATH=true
     # - MPMATH=false
@@ -16,6 +16,3 @@ before_install:
 #   - if [ $MPMATH = "true" ]; then julia -e 'using Pkg; Pkg.add("Conda"); using Conda; Conda.add("mpmath")';fi
 after_success:
 - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
-
-
-

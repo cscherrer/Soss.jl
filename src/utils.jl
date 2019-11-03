@@ -1,5 +1,4 @@
 using MLStyle
-using DataStructures
 using SimpleGraphs
 using SimplePosets
 
@@ -91,7 +90,6 @@ import MacroTools: striplines, @q
 
 
 
-using DataStructures: counter
 
 # function arguments(model::Model)
 #     model.args
@@ -246,4 +244,29 @@ macro tuple2args(f)
     quote
         $f(m::Model, ()) = $f(m::Model, NamedTuple())
     end
+end
+
+
+# This is just handy for REPLing, no direct connection to Soss
+
+# julia> tower(Int)
+# 6-element Array{DataType,1}:
+#  Int64  
+#  Signed 
+#  Integer
+#  Real   
+#  Number 
+#  Any
+
+export tower
+
+function tower(x)
+    t0 = typeof(x)
+    result = [t0]
+    t1 = supertype(t0)
+    while t1 ≠ t0 
+        push!(result, t1)
+        t0, t1 = t1, supertype(t1)
+    end
+    return result
 end
