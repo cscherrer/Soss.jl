@@ -105,6 +105,48 @@ julia> truth.y - particles(ppc)
 
 These play a role similar to that of residuals in a non-Bayesian approach (there's plenty more detail to go into, but that's for another time).
 
+With some minor modifications, we can put this into a form that allows symbolic simplification:
+```julia
+m2 = @model X begin
+    N = size(X,2)
+    β ~ Normal() |> iid(N)
+    yhat = X * β
+    N = length(y)
+    y ~ For(N) do j
+            Normal(yhat[j], 1)
+        end
+end;
+
+julia> symlogpdf(m2)
+   N                                               N                                                         
+  ____                                            ____                                                       
+  ╲                                               ╲                                                          
+   ╲    ⎛                2                  ⎞      ╲    ⎛            2                       log(π)   log(2)⎞
+    ╲   ⎜  (-ŷ + y[_j1])    log(π)   log(2)⎟       ╲   ⎜- 0.5⋅β[_j1]  - 0.693147180559945 - ────── + ──────⎟
+    ╱   ⎜- ─────────────── - ────── - ──────⎟ +     ╱   ⎝                                      2        2   ⎠
+   ╱    ⎝         2            2        2   ⎠      ╱                                                         
+  ╱                                               ╱                                                          
+  ‾‾‾‾                                            ‾‾‾‾                                                       
+_j1 = 1                                         _j1 = 1                                                      
+```
+
+There's clearly some redundant computation within the sums, so it helps to expand:
+
+```julia
+julia> symlogpdf(m2) |> expandSums
+                                     N                                         
+                                    ___                                        
+                                    ╲                                          
+                                     ╲                  2                      
+                                     ╱    (-ŷ + y[_j1])           N           
+                                    ╱                             ___          
+                                    ‾‾‾                           ╲            
+                                  _j1 = 1                          ╲          2
+-N⋅log(π) - 0.693147180559945⋅N - ─────────────────────── - 0.5⋅   ╱    β[_j1] 
+                                             2                    ╱            
+                                                                  ‾‾‾          
+                                                                _j1 = 1        
+```
 
 
 ## What's Really Happening Here?
