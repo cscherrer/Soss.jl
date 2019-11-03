@@ -1,24 +1,62 @@
 using MacroTools: @q
 import PyCall
 using MLStyle
-# using Lazy
 
 import SymPy
-using SymPy: Sym, sympy, symbols
+using SymPy: Sym, sympy, symbols, free_symbols
+import SymPy.sympy
 
-stats = PyCall.pyimport_conda("sympy.stats", "sympy")
-SymPy.import_from(stats)
+const symfuncs = Dict()
+
+_pow(a,b) = float(a) ^ b
+
+function __init__()
+    stats = PyCall.pyimport_conda("sympy.stats", "sympy")
+    SymPy.import_from(stats)
+    global stats = stats
+    
+    for dist in [:Bernoulli]
+        @eval begin
+            Distributions.$dist(p::Sym) = SymDist(y -> y * log(p) + (1-y) * log(1-p))
+        end    
+    end
+
+    for dist in [:Normal, :Cauchy, :Laplace, :Beta, :Uniform]
+        @eval begin
+            Distributions.$dist(μ::Sym, σ::Sym) = stats.$dist(:dist, μ,σ) |> SymPy.density
+            Distributions.$dist(μ,σ) = $dist(promote(μ,σ)...)
+        end    
+    end
+
+
+
+    # https://discourse.julialang.org/t/pyobjects-as-keys/26521/2
+    merge!(symfuncs, Dict(
+        sympy.log => Base.log
+      , sympy.Pow => _pow
+      , sympy.Abs => Base.abs
+      , sympy.Indexed => getindex
+    ))
+
+end
+
+struct SymDist
+    logpdf :: Function
+end
+
+logpdf(d::SymDist, x) = d.logpdf(sym(x))
+
 
 
 export sym
-sym(s::Symbol) = SymPy.symbols(s)
+sym(s::Symbol) = SymPy.symbols(s, real=true)
 sym(s) = Base.convert(Sym, s)
 function sym(expr::Expr) 
     @match expr begin
         Expr(:call, f, args...) => :($f($(map(sym,args)...)))
         :($x[$j]) => begin
             j = symbols(:j, cls=sympy.Idx)
-            x = sympy.IndexedBase(x)
+            x = sympy.IndexedBase(x, real=true)
             return x[j]
         end
         _ => begin
@@ -110,70 +148,96 @@ end
 # # end
 
 
-# function expandSums(s::Sym)
-#     s.args==() && return s
-#     if s.func==sympy.Sum
-#         s2 = expandSum(s)
-#         # Maybe it didn't simplify and we're done
-#         s2 == s && return s2
-#         # Or not, and we recurse
-#         s = s2
-#     end
-#     newargs = [expandSums(t) for t in s.args]
-#     s.func(newargs...)
-# end
+function expandSums(s::Sym)
+    s.args==() && return s
+    if s.func==sympy.Sum
+        s2 = expandSum(s.args...)
+        # Maybe it didn't simplify and we're done
+        s2 == s && return s2
+        # Or not, and we recurse
+        s = s2
+    end
+    newargs = [expandSums(t) for t in s.args]
+    result = s.func(newargs...)
+    # @show result - s
+    # @assert sympy.simplify(result - s) == sym(0)
+    return result
+end
 
-# function expandSum(s::Sym)
-#     # println("expandSum")
-#     # @show s
-#     # println()
-#     @assert s.func == sympy.Sum
-#     sfunc = s.args[1].func
-#     sargs = s.args[1].args
-#     limits = s.args[2]
-#     ix = limits.args[1]
-#     if sfunc == sympy.Add
-#         return sfunc([maybesum(t, limits) for t in sargs]...)
-#     elseif sfunc == sympy.Mul
-#         factors = sargs
-#         constants = [fac for fac in factors if !(ix in fac)]
-#         newconst = foldl(*,constants)
-#         newfacs = foldl(*,setdiff(factors, constants))
-#         newsum = sympy.Sum(newfacs, limits)
-#         return newconst * newsum
-#     else
-#         return s
-#     end
 
-# end
+function expandSum(s::Sym, limits::Sym...)
+    isempty(free_symbols(s)) && return maybeSum(s, limits...)
 
-# import Base.in
-# function Base.in(j::Sym, s::Sym)
-#     for t in s.args
-#         if j==t || in(j,t)
-#             return true
-#         end
-#     end
-#     return false
-# end
+    func = s.func
+    args = s.args
+    args == () && return maybeSum(s,limits...)
 
-# function maybesum(t::Sym, limits::Sym)
-#     # println("maybeSum")
-#     # @show t,limits
-#     # println()
-#     j = limits.args[1]
-#     thesum = sympy.Sum(t, limits)
-#     ifelse(j in t, thesum, thesum.doit())
-# end
+    if func == sympy.Add
+        return func([expandSum(t, limits...) for t in args]...)
+    elseif func == sympy.Mul
+        return expandMulSum(args, limits...)
+    else
+        return sympy.Sum(s, limits...)
+    end
+
+end
+
+# Expand a sum of a `Mul`
+# Currently a greedy algorithm, may need to optimize later
+function expandMulSum(factors::NTuple{N,Sym}, limits::Sym...) where {N}
+    limits == () && return prod(factors)
+
+    for fac in factors 
+        for lim in limits 
+            (ix, ixlo, ixhi) = lim.args
+            if ix ∉ fac 
+                inSummand = prod(allbut(factors, fac))
+                inSum = expandSum(inSummand, lim)
+                outLims = allbut(limits, lim)
+                return expandSum(fac*inSum, outLims...)
+            end
+        end
+    end
+    return maybeSum(prod(factors), limits...)
+end
+
+import Base.in
+function Base.in(j::Sym, s::Sym)
+    for t in s.args
+        if j==t || in(j,t)
+            return true
+        end
+    end
+    return false
+end
+
+function allbut(tup, x) 
+    result = filter(collect(tup)) do v 
+        v ≠ x
+    end
+    tuple(result...)
+end
+
+# Force computation of sums that don't involve the index
+function maybeSum(t::Sym, limits::Sym...)
+    length(limits) > 0 || return t
+
+    for lim in limits
+        (ix, ixlo, ixhi) = lim.args
+        ix ∈ t || return maybeSum(t * (ixhi - ixlo + 1), allbut(limits, lim)...)
+    end 
+
+    return sympy.Sum(t, limits...)
+end
 
 # # integrate(exp(ℓ), (sym(:μ), -oo, oo), (sym(:logσ),-oo,oo))
-# export marginal
-# function marginal(ℓ,v)
-#     f = ℓ.func
-#     f == sympy.Add || return ℓ
-#     newargs = filter(t -> sym(v) in t, collect(ℓ.args))
-#     foldl(+,newargs)
-# end
+export marginal
+function marginal(ℓ,v)
+    f = ℓ.func
+    f == sympy.Add || return ℓ
+    newargs = filter(t -> sym(v) in t, collect(ℓ.args))
+    foldl(+,newargs)
+end
 
 # marginal(m::Model, v) = marginal(m |> symlogpdf, v)
 
@@ -190,158 +254,7 @@ end
 
 # dmarginal(m::Model, v) = dmarginal(m |> symlogpdf, v)
 
-# # https://discourse.julialang.org/t/pyobjects-as-keys/26521/2
-# # const symfuncs = Dict()
-# # function __init__()
-# #     merge!(symfuncs, Dict(
-# #           sympy.log => log
-# #         , sympy.Pow => :^
-# #         , sympy.Abs => abs
-# #         , sympy.Indexed => getindex
-# #     ))
-# # end
 
-
-# export codegen
-# function codegen(s::Sym)
-#     s.func == sympy.Add && begin
-#         @gensym add
-#         ex = @q begin 
-#             $add = 0.0
-#         end
-#         for arg in s.args
-#             t = codegen(arg)
-#             push!(ex.args, :($add += $t))
-#         end
-#         push!(ex.args, add)
-#         # @show ex
-#         return ex
-#     end
-
-
-#     s.func == sympy.Mul && begin
-#         @gensym mul
-#         ex = @q begin 
-#             $mul = 1.0
-#         end
-#         for arg in s.args
-#             t = codegen(arg)
-#             push!(ex.args, :($mul *= $t))
-#         end
-#         push!(ex.args, mul)
-#         return ex
-#     end
-
-#     # s.func == sympy.Sum && begin
-
-#     # end
-
-#     s.func ∈ keys(symfuncs) && begin
-#         # @show s
-#         @gensym symfunc
-#         argnames = gensym.("arg" .* string.(1:length(s.args)))
-#         argvals = codegen.(s.args)
-#         ex = @q begin end
-#         for (k,v) in zip(argnames, argvals)
-#             push!(ex.args, :($k = $v))
-#         end
-#         f = symfuncs[s.func]
-#         push!(ex.args, :($symfunc = $f($(argnames...))))
-#         push!(ex.args, symfunc)
-#         return ex
-#     end
-
-#     s.func == sympy.Sum && begin
-#         @gensym sum
-#         @gensym Δsum
-#         @gensym lo 
-#         @gensym hi
-        
-#         summand = codegen(s.args[1])
-#         (ix, ixlo, ixhi) = s.args[2].args
-
-#         ex = @q begin
-#             $sum = 0.0
-#             $lo = $(codegen(ixlo))
-#             $hi = $(codegen(ixhi))
-#             @inbounds @simd for $(codegen(ix)) = $lo:$hi
-#                 $Δsum = $summand
-#                 $sum += $Δsum
-#             end
-#             $sum
-#         end
-
-#         return ex
-#     end
-    
-#     s.func == sympy.Symbol && return Symbol(string(s))
-#     s.func == sympy.Idx && return Symbol(string(s))        
-#     s.func == sympy.IndexedBase && return Symbol(string(s))
-
-#     # @show s
-#     SymPy.is_real(s) && begin
-#         return SymPy.N(s)
-#     end
-
-
-#     @show s.func
-#     error("codegen")
-# end
-
-# codegen(s::AbstractFloat) = s
-
-# # export codegen
-# function codegen(m::Model)
-#     code = codegen(symlogpdf(m))
-#     unknowns = parameters(m) ∪ arguments(m)
-#     unkExpr = Expr(:tuple,unknowns...)
-#     @gensym logdensity
-#     result = @q begin
-#         function $logdensity(pars)
-#             @unpack $(unkExpr) = pars
-#             $code
-#         end
-#     end
-
-#     flatten(result)
-# end
-
-# # s = symlogpdf(normalModel).args[7].args[3]
-
-# # export fexpr
-# # fexpr = quote
-# #     f = function(μ,σ,x)
-# #         a = $(codegen(s))
-# #         return a
-# #     end
-# # end
-
-# # julia> i,j = sympy.symbols("i j", integer=True)
-# # (i, j)
-
-# # julia> x = sympy.IndexedBase("x")
-# # x
-
-# # julia> a = sympy.Sum(x[i], (i, 1, j))
-# #   j       
-# #  ___      
-# #  ╲        
-# #   ╲   x[i]
-# #   ╱       
-# #  ╱        
-# #  ‾‾‾      
-# # i = 1     
-
-# # julia> SymPy.walk_expression(a)
-# # :(Sum(Indexed(IndexedBase(x), i), (:i, 1, :j)))
-
-import Distributions.Normal
-Normal(μ::Sym, σ::Sym) = stats.Normal(:Normal, μ,σ) |> SymPy.density
-Normal(μ,σ) = Normal(promote(μ,σ)...)
-
-# import Distributions.logpdf
-# logpdf(d::Sym, x::Symbol) = logpdf(d, sym(x))
-# logpdf(d::Sym, x::Sym) = sympy.expand(SymPy.density(d).pdf(x) |> log, log=true, deep=false, force=true)
 
 
 # logpdf(Normal(sym(:μ),sym(:σ)), :x) |> SymPy.cse
@@ -357,55 +270,112 @@ Normal(μ,σ) = Normal(promote(μ,σ)...)
 # # @macroexpand @symdist(4,Normal)
 
 function symvar(st::Sample)
-    st.rhs.args[1] ∈ [:For, :iid] && return IndexedBase(sy.x)
+    st.rhs.args[1] ∈ [:For, :iid] && return IndexedBase(st.x)
     return sym(st.x)
 end
 
 export sourceSymlogpdf
 function sourceSymlogpdf()
     function(_m::Model)
-        proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
+        function proc(_m, st :: Assign) 
+            # :($(st.x) = $(st.rhs))
+            x = st.x 
+            xname = QuoteNode(x)
+            :($x = sym($xname))
+        end 
 
         function proc(_m, st :: Sample)
-            x = symvar(st)
-
             @q begin
-                _ℓ += symlogpdf($(st.rhs), $x)
+                _ℓ += symlogpdf($(st.rhs), $(st.x))
             end
         end
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
 
-        wrap(kernel) = @q begin
-            _ℓ = 0.0
-            $kernel
-            return _ℓ
+        function wrap(kernel)
+            q = @q begin
+                _ℓ = 0.0
+            end
+
+            for st in map(v -> findStatement(_m,v), toposortvars(_m))
+
+                typeof(st) == Sample || continue
+                x = st.x 
+                xname = QuoteNode(x)
+                rhs = st.rhs 
+                xsym = ifelse(rhs.args[1] ∈ [:For, :iid]
+                    , :(sympy.IndexedBase($xname))
+                    , :(sym($xname))
+                )
+                push!(q.args, :($x = $xsym))
+            end
+
+            @q begin
+                $q 
+                $kernel
+                return _ℓ
+            end
         end
+
+                
 
         buildSource(_m, proc, wrap) |> flatten
     end
 end
 
+For(f,n::Sym) = For(f,(n,))
+
 # logpdf(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logpdf(d,sym.(x))
 
 export symlogpdf
-function symlogpdf(d::For{F,N,T}, x::Sym) where {F,N,T}
-    @show d 
-    @show x 
-    js = sym.(gensym.(Symbol.(:_j,1:N)))
-    return d
-    @show js
-    result = symlogpdf(d.f(js...), x)
+function symlogpdf(d::For{F,N,X}, x::Sym) where {F,N,X}
+    js = sym.(Symbol.(:_j,1:N))
+    x = sympy.IndexedBase(x)
+    result = symlogpdf(d.f(js...), x[js...]) # |> expandSums
 
-    @show result
 
     for k in N:-1:1
-        result = sympy.Sum(result, (js[k], 1, d.θ[k]))
+        result = sympy.Sum(result, (js[k], 1, d.θ[k])) # |> expandSums
     end
     result
 end
 
-symlogpdf(d::Sym, x::Sym) = d.pdf(x)
+symlogpdf(d::iid, x::Sym) = symlogpdf(For(j -> d.dist, d.size), x)
+
+symlogpdf(d::For{F,N,X}, x::Symbol) where {F,N,X} = symlogpdf(d,sym(x))
+
+symlogpdf(d::Normal, x::Sym) = symlogpdf(Normal(sym(d.μ),sym(d.σ)), x)
+symlogpdf(d::Beta, x::Sym) = symlogpdf(Beta(sym(d.α),sym(d.β)), x)
+
+# @generated function symlogpdf(d,x::Sym)
+#     quote
+#         args = propertynames(d)
+
+#     end
+# end
+
+logpdf(d::Sym, x::Sym) = symlogpdf(d,x)
+
+function symlogpdf(d::Sym, x::Sym) 
+    d.func
+    result = d.pdf(x) |> log
+    sympy.expand_log(result,force=true)
+end
+
+symlogpdf(d,x::Sym) = logpdf(d,x)
+
+function symlogpdf(m::JointDistribution)
+    return _symlogpdf(m.model)    
+end
+
+function symlogpdf(m::Model)
+    return _symlogpdf(m)    
+end
+
+@gg function _symlogpdf(_m::Model)  
+    type2model(_m) |> canonical |> sourceSymlogpdf() 
+end
+
 
 # # s = symlogpdf(normalModel).args[7].args[3]
 
@@ -437,4 +407,9 @@ symlogpdf(d::Sym, x::Sym) = d.pdf(x)
 # # :(Sum(Indexed(IndexedBase(x), i), (:i, 1, :j)))
 
 
-
+export mylatex
+function mylatex(ℓ::SymPy.Sym)
+    r = r"_j(?<num>\d+)"
+    s = s"j_{\g<num>}"
+    Base.replace(sympy.latex(ℓ), r => s)
+end

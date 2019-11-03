@@ -1,9 +1,11 @@
 using Reexport
 
-# @reexport using DataFrames
 using MLStyle
 using Distributions
 
+
+# In Bijectors.jl,
+# logpdf_with_trans(dist, x, true) == logpdf(transformed(dist), link(dist, x))
 
 
 export xform
