@@ -103,7 +103,7 @@ julia> truth.y - particles(ppc)
  -0.317 ± 1.1
 ```
 
-These play a role similar to that of residuals in a non-Bayesian approach (there's plenty more detail to go into, but that's fgor another time).
+These play a role similar to that of residuals in a non-Bayesian approach (there's plenty more detail to go into, but that's for another time).
 
 
 
