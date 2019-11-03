@@ -23,7 +23,11 @@ function __init__()
 
     for dist in [:Normal, :Cauchy, :Laplace, :Beta, :Uniform]
         @eval begin
-            Distributions.$dist(μ::Sym, σ::Sym) = stats.$dist(:dist, μ,σ) |> SymPy.density
+            function Distributions.$dist(μ::Sym, σ::Sym)
+                println("Evaluating ",$dist, "(",μ," :: Sym, ", σ, " :: Sym)")
+                stats.$dist(:dist, μ,σ) |> SymPy.density
+            end
+
             Distributions.$dist(μ,σ) = $dist(promote(μ,σ)...)
         end    
     end
@@ -39,6 +43,7 @@ function __init__()
     ))
 
 end
+
 
 struct SymDist
     logpdf :: Function
@@ -355,6 +360,7 @@ symlogpdf(d::iid, x::Sym) = symlogpdf(For(j -> d.dist, d.size), x)
 symlogpdf(d::For{F,T,D,X}, x::Symbol) where {F,T,D,X} = symlogpdf(d,sym(x))
 
 symlogpdf(d::Normal, x::Sym) = symlogpdf(Normal(sym(d.μ),sym(d.σ)), x)
+
 symlogpdf(d::Beta, x::Sym) = symlogpdf(Beta(sym(d.α),sym(d.β)), x)
 
 # @generated function symlogpdf(d,x::Sym)
