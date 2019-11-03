@@ -423,3 +423,11 @@ function tolatex(ℓ::SymPy.Sym)
     s = s"j_{\g<num>}"
     Base.replace(sympy.latex(ℓ), r => s)
 end
+
+function foldConstants(s::Sym)
+    isempty(free_symbols(s)) && return SymPy.N(s)
+    s.func == sympy.IndexedBase && return s
+    s.func == sympy.Symbol && return s
+    newargs = foldConstants.(s.args)
+    return s.func(newargs...)
+end
