@@ -2,27 +2,58 @@
 using GeneralizedGenerated: runtime_eval
 using MacroTools: @q
 
-function codegen(m::JointDistribution,x)
-    return _codegen(m.model, m.args, x)    
+
+@gg function _codegen(_m::Model, _args, _data)
+    f = _codegen(type2model(_m))
+    :(f($args, _data))
 end
 
-@gg function _codegen(_m::Model, _args, _data)  
-    type2model(_m) |> sourceCodegen() |> loadvals(_args, _data)
-end
+function _codegen(m :: Model, expand_sums=true)
+    s = symlogpdf(m)
 
-export sourceCodegen
-function sourceCodegen()
-    function(m::Model)
-        body = @q begin end
+    if expand_sums
+        s = expandSums(s) 
+    end 
 
-        for (x, rhs) in pairs(m.vals)
-            push!(body.args, :($x = $rhs))
-        end
+    code = codegen(s)
 
-        push!(body.args, codegen(symlogpdf(m)))
-        return body
+    for (v, rhs) in pairs(m.vals)
+        pushfirst!(code.args, :($v = $rhs))
     end
+
+    for v in arguments(m)
+        vname = QuoteNode(v)
+        pushfirst!(code.args, :($v = getproperty(_args, $vname)))
+    end
+
+    for v in stochastic(m)
+        vname = QuoteNode(v)
+        pushfirst!(code.args, :($v = getproperty(_data, $vname)))
+    end
+
+
+    f = mk_function(:((_args, _data) -> $code))
+
+    return f
 end
+
+# @generated function _codegen(_m::Model, _args, _data)  
+#     type2model(_m) |> sourceCodegen() |> loadvals(_args, _data)
+# end
+
+# export sourceCodegen
+# function sourceCodegen()
+#     function(_m::Model)
+#         body = @q begin end
+
+#         for (x, rhs) in pairs(_m.vals)
+#             push!(body.args, :($x = $rhs))
+#         end
+
+#         push!(body.args, eval(:(codegen(symlogpdf($_m)))))
+#         return body
+#     end
+# end
 
 export codegen
 function codegen(s::Sym)
@@ -79,8 +110,8 @@ function codegen(s::Sym)
         summand = r(s.args[1])
 
         ex = @q begin
-                    $Δsum = $summand
-                    $sum += $Δsum
+            $Δsum = $summand
+            $sum += $Δsum
         end
         
         for limits in s.args[2:end]
@@ -89,9 +120,8 @@ function codegen(s::Sym)
             ex = @q begin
                 $lo = $(r(ixlo))
                 $hi = $(r(ixhi))
-                for $(r(ix)) in $lo:$hi
-                    $Δsum = $summand
-                    $sum += $Δsum
+                @inbounds for $(r(ix)) in $lo:$hi
+                    $ex
                 end
             end
         end
@@ -104,7 +134,7 @@ function codegen(s::Sym)
             end
         end
 
-        return ex |> flatten
+        return ex
     end
     
     s.func == sympy.Symbol && return Symbol(string(s))
