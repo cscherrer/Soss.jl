@@ -11,7 +11,7 @@ Soss is a library for _probabilistic programming_
 
 Let's jump right in with a simple linear model:
 
-```julia
+````julia
 using Soss 
 
 m = @model X begin
@@ -20,7 +20,11 @@ m = @model X begin
         Normal(x' * β, 1)
     end
 end;
-```
+````
+
+
+
+
 
 In Soss, models are _first-class_ and _function-like_, and "applying" a model to its arguments gives a _joint distribution_.
 
@@ -32,82 +36,120 @@ Just a few of the things we can do in Soss:
 - Build a new model for the _predictive_ distribution, for assigning parameters to particular values
 
 Let's use our model to build some fake data:
-```julia
+````julia
+julia> import Random; Random.seed!(3)
+
 julia> X = randn(6,2)
 6×2 Array{Float64,2}:
-  0.214743  -1.04389 
- -0.809179  -0.580583
-  0.205876  -0.840331
- -0.568996   1.02659 
-  1.19427    0.671222
-  0.392438  -0.232703
+  1.19156    0.100793  
+ -2.51973   -0.00197414
+  2.07481    1.00879   
+ -0.97325    0.844223  
+ -0.101607   1.15807   
+ -1.54251   -0.475159  
 
+````
+
+
+
+````julia
 julia> truth = rand(m(X=X));
 
+julia> pairs(truth)
+pairs(::NamedTuple) with 3 entries:
+  :X => [1.19156 0.100793; -2.51973 -0.00197414; … ; -0.101607 1.15807; -1.5425…
+  :β => [0.0718727, -0.51281]
+  :y => [0.100793, -2.51973, 2.07481, 0.844223, 1.15807, -0.475159]
+
+````
+
+
+
+````julia
 julia> truth.β
 2-element Array{Float64,1}:
- 0.14338740065601344
- 0.4233111052117538 
- 
+  0.07187269298745927
+ -0.5128103336795292 
+
+````
+
+
+
+````julia
 julia> truth.y
 6-element Array{Float64,1}:
- -1.0438927843946528
- -0.5805833500446688
- -0.8403308441501461
-  1.0265870371601737
-  0.6712215914389901
- -0.2327030992653677
-```
+  0.10079289135480324
+ -2.5197330871745263 
+  2.0748097755419757 
+  0.8442227439533416 
+  1.158074626662026  
+ -0.47515878362112707
+
+````
+
+
+
+
 
 And now pretend we don't know `β`, and have the model figure it out. 
 Often these are easier to work with in terms of `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl)):
 
-```julia
+````julia
 julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
 
 julia> particles(post)
-(β = Particles{Float64,1000}[-0.0101 ± 0.55, 0.784 ± 0.47],)
-```
+(β = Particles{Float64,1000}[0.543 ± 0.26, 0.746 ± 0.5],)
+
+````
+
+
+
+
 
 For model diagnostics and prediction, we need the _predictive distribution_:
-```julia
+````julia
 julia> pred = predictive(m,:β)
 @model (X, β) begin
         y ~ For(eachrow(X)) do x
                 Normal(x' * β, 1)
             end
     end
-```
+
+
+````
+
+
+
+
 
 This requires `X` and `β` as inputs, so we can do something like this to do a _posterior predictive check_
 
-```julia
+````julia
 ppc = [rand(pred(;X=truth.X, p...)).y for p in post];
 
-julia> particles(ppc)
-6-element Array{Particles{Float64,1000},1}:
- -0.425 ± 0.63 
- -0.697 ± 0.11 
- -0.312 ± 0.52 
-  0.243 ± 0.8  
-  0.949 ± 0.26 
-  0.0774 ± 0.31
+truth.y - particles(ppc)
+````
 
-julia> truth.y - particles(ppc)
+
+````
 6-element Array{Particles{Float64,1000},1}:
- -1.01 ± 1.0 
- -0.326 ± 1.2
-  0.817 ± 1.2
- -0.37 ± 1.2 
- -0.484 ± 1.3
- -0.317 ± 1.1
-```
+ -0.52 ± 0.55 
+ -1.21 ± 1.3  
+  0.57 ± 0.53 
+  0.951 ± 0.91
+  0.655 ± 0.63
+  0.534 ± 0.53
+````
+
+
+
+
 
 These play a role similar to that of residuals in a non-Bayesian approach (there's plenty more detail to go into, but that's for another time).
 
 With some minor modifications, we can put this into a form that allows symbolic simplification:
-```julia
-m2 = @model X begin
+````julia
+julia> m2 = @model X begin
     N = size(X,2)
     β ~ Normal() |> iid(N)
     yhat = X * β
@@ -117,7 +159,8 @@ m2 = @model X begin
         end
 end;
 
-julia> symlogpdf(m2)
+julia> 
+symlogpdf(m2)
    N                                               N                                                         
   ____                                            ____                                                       
   ╲                                               ╲                                                          
@@ -128,11 +171,16 @@ julia> symlogpdf(m2)
   ╱                                               ╱                                                          
   ‾‾‾‾                                            ‾‾‾‾                                                       
 _j1 = 1                                         _j1 = 1                                                      
-```
+
+````
+
+
+
+
 
 There's clearly some redundant computation within the sums, so it helps to expand:
 
-```julia
+````julia
 julia> symlogpdf(m2) |> expandSums
                                      N                                         
                                     ___                                        
@@ -146,7 +194,12 @@ julia> symlogpdf(m2) |> expandSums
                                              2                    ╱            
                                                                   ‾‾‾          
                                                                 _j1 = 1        
-```
+
+````
+
+
+
+
 
 
 ## What's Really Happening Here?
@@ -161,13 +214,22 @@ Note that I said "turns into" instead of "interprets". Soss uses [`GG.jl`](https
 
 This idea can be used in much more complex ways. `weightedSample` is a sort of hybrid between `rand` and `logpdf`. For data that are provided, it increments a `_ℓ` using `logpdf`. Unknown values are sampled using `rand`.
 
-```julia
-julia> weightedSample(m(σ=1), (μ=0.0,))
-(-0.9189385332046728, (σ = 1, μ = 0.0, x = [1.4022646662147151, 0.5619286714811451, 1.0666556455847045]))
+````julia
+julia> ℓ, proposal = weightedSample(m(X=X), (y=truth.y,));
 
-julia> weightedSample(m(σ=1), (x=[-1,0,1],))
-(-3.7839836623738043, (σ = 1, μ = 0.13458098617508069, x = [-1, 0, 1]))
-```
+julia> ℓ
+-41.48956445920402
+
+julia> proposal.β
+2-element Array{Float64,1}:
+ -0.3736471921582353
+ -2.5954806426320642
+
+````
+
+
+
+
 
 Again, there's no runtime check needed for this. Each of these is compiled the first time it is called, so future calls are very fast. Functions like this are great to use in tight loops.
 
