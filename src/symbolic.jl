@@ -461,8 +461,13 @@ function tolatex(ℓ::SymPy.Sym)
     Base.replace(sympy.latex(ℓ), r => s)
 end
 
+
+export foldConstants
 function foldConstants(s::Sym)
-    isempty(free_symbols(s)) && return SymPy.N(s)
+    s.func ==sympy.Integer && return s
+    isempty(free_symbols(s)) && return Float64(SymPy.N(s))
+    s.func == sympy.Sum && return sympy.Sum(foldConstants(s.args[1]), s.args[2:end]...)
+    s.func == sympy.Indexed && return s
     s.func == sympy.IndexedBase && return s
     s.func == sympy.Symbol && return s
     newargs = foldConstants.(s.args)
