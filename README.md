@@ -98,7 +98,7 @@ Often these are easier to work with in terms of `particles` (built using [MonteC
 julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
 
 julia> particles(post)
-(β = Particles{Float64,1000}[0.543 ± 0.26, 0.746 ± 0.5],)
+(β = Particles{Float64,1000}[0.561 ± 0.25, 0.755 ± 0.48],)
 
 ````
 
@@ -150,10 +150,10 @@ These play a role similar to that of residuals in a non-Bayesian approach (there
 With some minor modifications, we can put this into a form that allows symbolic simplification:
 ````julia
 julia> m2 = @model X begin
-    N = size(X,2)
-    β ~ Normal() |> iid(N)
+    N = size(X,1)
+    k = size(X,2)
+    β ~ Normal() |> iid(k)
     yhat = X * β
-    N = length(y)
     y ~ For(N) do j
             Normal(yhat[j], 1)
         end
@@ -161,16 +161,16 @@ end;
 
 julia> 
 symlogpdf(m2)
-   N                                               N                                                         
-  ____                                            ____                                                       
-  ╲                                               ╲                                                          
-   ╲    ⎛                2                  ⎞      ╲    ⎛            2                       log(π)   log(2)⎞
-    ╲   ⎜  (-ŷ + y[_j1])    log(π)   log(2)⎟       ╲   ⎜- 0.5⋅β[_j1]  - 0.693147180559945 - ────── + ──────⎟
-    ╱   ⎜- ─────────────── - ────── - ──────⎟ +     ╱   ⎝                                      2        2   ⎠
-   ╱    ⎝         2            2        2   ⎠      ╱                                                         
-  ╱                                               ╱                                                          
-  ‾‾‾‾                                            ‾‾‾‾                                                       
-_j1 = 1                                         _j1 = 1                                                      
+   N                                                     k                                                         
+  ____                                                  ____                                                       
+  ╲                                                     ╲                                                          
+   ╲    ⎛                      2                  ⎞      ╲    ⎛            2                       log(π)   log(2)⎞
+    ╲   ⎜  (y[_j1] - yhat[_j1])    log(π)   log(2)⎟       ╲   ⎜- 0.5⋅β[_j1]  - 0.693147180559945 - ────── + ──────⎟
+    ╱   ⎜- ───────────────────── - ────── - ──────⎟ +     ╱   ⎝                                      2        2   ⎠
+   ╱    ⎝            2               2        2   ⎠      ╱                                                         
+  ╱                                                     ╱                                                          
+  ‾‾‾‾                                                  ‾‾‾‾                                                       
+_j1 = 1                                               _j1 = 1                                                      
 
 ````
 
@@ -181,22 +181,37 @@ _j1 = 1                                         _j1 = 1
 There's clearly some redundant computation within the sums, so it helps to expand:
 
 ````julia
-julia> symlogpdf(m2) |> expandSums
-                                     N                                         
-                                    ___                                        
-                                    ╲                                          
-                                     ╲                  2                      
-                                     ╱    (-ŷ + y[_j1])           N           
-                                    ╱                             ___          
-                                    ‾‾‾                           ╲            
-                                  _j1 = 1                          ╲          2
--N⋅log(π) - 0.693147180559945⋅N - ─────────────────────── - 0.5⋅   ╱    β[_j1] 
-                                             2                    ╱            
-                                                                  ‾‾‾          
-                                                                _j1 = 1        
+julia> symlogpdf(m2) |> expandSums |> foldConstants
+                                                    N                                       k           
+                                                   ___                                     ___          
+                                                   ╲                                       ╲            
+                                                    ╲                            2          ╲          2
+-0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱    β[_j1] 
+                                                   ╱                                       ╱            
+                                                   ‾‾‾                                     ‾‾‾          
+                                                 _j1 = 1                                 _j1 = 1        
 
 ````
 
+
+
+
+
+We can use the symbolic simplification to speed up computations:
+
+````julia
+julia> using BenchmarkTools
+
+julia> 
+@btime logpdf($m2(X=X), $truth)
+  809.202 ns (15 allocations: 496 bytes)
+-15.84854642585797
+
+julia> @btime logpdf($m2(X=X), $truth, $codegen)
+  321.932 ns (5 allocations: 208 bytes)
+-15.848546425857968
+
+````
 
 
 

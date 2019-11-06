@@ -76,24 +76,32 @@ These play a role similar to that of residuals in a non-Bayesian approach (there
 With some minor modifications, we can put this into a form that allows symbolic simplification:
 ```julia; term=true; line_width=500
 m2 = @model X begin
-    N = size(X,2)
-    β ~ Normal() |> iid(N)
+    N = size(X,1)
+    k = size(X,2)
+    β ~ Normal() |> iid(k)
     yhat = X * β
-    N = length(y)
     y ~ For(N) do j
             Normal(yhat[j], 1)
         end
 end;
 
-symlogpdf(m2)
+symlogpdf(m2) 
 ```
 
 There's clearly some redundant computation within the sums, so it helps to expand:
 
 ```julia; term=true; line_width=500
-symlogpdf(m2) |> expandSums 
+symlogpdf(m2) |> expandSums |> foldConstants
 ```
 
+We can use the symbolic simplification to speed up computations:
+
+```julia; term=true
+using BenchmarkTools
+
+@btime logpdf($m2(X=X), $truth)
+@btime logpdf($m2(X=X), $truth, $codegen)
+```
 
 ## What's Really Happening Here?
 
