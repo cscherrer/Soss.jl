@@ -6,7 +6,7 @@ import SymPy
 using SymPy: Sym, sympy, symbols, free_symbols
 import SymPy.sympy
 
-using Distributions: params
+
 const symfuncs = Dict()
 
 _pow(a,b) = float(a) ^ b
@@ -39,6 +39,13 @@ function __init__()
       , sympy.Indexed => getindex
     ))
 
+    @eval begin
+    @gg function codegen(_m::Model, _args, _data)
+        f = _codegen(type2model(_m))
+        :($f(_args, _data))
+    end
+end
+
 end
 
 
@@ -49,25 +56,34 @@ end
 logpdf(d::SymDist, x) = d.logpdf(sym(x))
 
 
+Distributions.Bernoulli(p::Sym) = SymDist(y -> y * log(p) + (1-y) * log(1-p))
 
 for dist in [:Bernoulli]
     @eval begin
-        Distributions.$dist(p::Sym) = SymDist(y -> y * log(p) + (1-y) * log(1-p))
-        logpdf(d::$dist, x::Sym) = logpdf($dist(sym.(params(d))...), x)
+        logpdf(d::$dist, x::Sym) = logpdf($dist(sym.(Distributions.params(d))...), x)
 
     end    
 end
 
+"Half" distributions 
+for dist in [:Normal, :Cauchy]
+    let half = Symbol(:Half, dist)
+        @eval begin
+            logpdf(d::$half, x::Sym) = 2 * logpdf($dist(0, sym.(d.σ)), x)
+        end    
+    end
+end
 
 for dist in [:Normal, :Cauchy, :Laplace, :Beta, :Uniform]
     @eval begin
         function Distributions.$dist(μ::Sym, σ::Sym)
             stats.$dist(:dist, μ,σ) |> SymPy.density
-        end
+        end 
 
         Distributions.$dist(μ,σ) = $dist(promote(μ,σ)...)
     end    
 end
+
 
 export sym
 sym(s::Symbol) = sympy.IndexedBase(s, real=true)

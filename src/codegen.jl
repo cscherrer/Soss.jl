@@ -2,17 +2,19 @@
 using GeneralizedGenerated: runtime_eval
 using MacroTools: @q
 
+export codegen
 
-@gg function _codegen(_m::Model, _args, _data)
-    f = _codegen(type2model(_m))
-    :(f($args, _data))
-end
+# moved to __init__
+# @gg function codegen(_m::Model, _args, _data)
+#     f = _codegen(type2model(_m))
+#     :($f(_args, _data))
+# end
 
 function _codegen(m :: Model, expand_sums=true)
     s = symlogpdf(m)
 
     if expand_sums
-        s = expandSums(s) 
+        s = expandSums(s) |> foldConstants
     end 
 
     code = codegen(s)
