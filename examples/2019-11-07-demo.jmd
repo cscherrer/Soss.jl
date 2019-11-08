@@ -1,0 +1,226 @@
+Build this file from Julia with
+
+```
+using Weave
+weave("examples/2019-11-07-demo.jmd"
+    , doctype= "github"      # to produce github-friendly markdown
+    , cache=:refresh         # to force the cache to be refreshed
+    , mod=Main               # to evaluate in the Main module
+    , throw_errors=false     # to include any errors in the output (easier to troubleshoot)
+    , args=Dict(:seed => 6)  # to set the random seed
+    )
+```
+
+
+```julia
+using Revise, Soss, Plots, NamedTupleTools
+seed = WEAVE_ARGS[:seed]
+import Random; Random.seed!(seed)
+```
+
+# Make some fake data
+
+```julia
+mt = @model x begin
+    α = 1.0
+    β = 3.0
+    σ = 0.5
+    yhat = α .+ β .* x
+    n = length(x)
+    y ~ For(n) do j
+        Mix([Normal(yhat[j], σ), Normal(yhat[j],8σ)], [0.8,0.2])
+    end
+end;
+
+x = randn(100); 
+truth = rand(mt(x=x));
+```
+
+
+
+
+
+
+```julia
+xx = range(extrema(truth.x)...,length=100)
+scatter(truth.x,truth.y, legend=false, c=1)
+# plot!(xx, truth.α .+ truth.β .* xx, dpi=300,legend=false, lw=3, c=2)
+```
+
+
+```julia 
+m = @model x begin
+    α ~ Normal()
+    β ~ Normal()
+    σ ~ HalfNormal()
+    yhat = α .+ β .* x
+    n = length(x)
+    y ~ For(n) do j
+        Normal(yhat[j], σ)
+    end
+end;
+```
+
+```julia
+m(x=truth.x)
+```
+
+
+```julia
+post = dynamicHMC(m(x=truth.x), (y=truth.y,)) 
+ppost = particles(post)
+```
+
+```julia
+symlogpdf(m) |> foldConstants |> tolatex |> println
+```
+
+```julia
+symlogpdf(m) |> expandSums |> foldConstants |> tolatex |> println
+```
+
+```julia
+using BenchmarkTools
+@btime logpdf($m(x=x),$truth)
+```
+
+```julia
+@btime logpdf($(m(x=x)),$truth, codegen)
+```
+
+
+
+```julia 
+eachplot(xx, ppost.α .+ ppost.β .* xx, lw=3, dpi=300, color=:black)
+scatter!(truth.x,truth.y, legend=false, c=1)
+```
+
+```julia
+
+pred = predictive(m, :α, :β, :σ)
+```
+
+
+```julia
+
+postpred = map(post) do θ 
+    delete(rand(pred(θ)((x=x,))), :n, :x)
+end |> particles
+    
+
+pvals = mean.(truth.y .> postpred.y)
+
+
+# PPC vs x
+scatter(truth.x, pvals, legend=false, dpi=300)
+xlabel!("x")
+ylabel!("Bayesian p-value")
+```
+```julia
+
+# 
+# 
+# # PPC vs y
+scatter(truth.y, pvals, legend=false, dpi=300)
+xlabel!("y")
+ylabel!("Bayesian p-value")
+```
+
+
+
+```julia
+
+using AverageShiftedHistograms
+
+o = ash(pvals, rng=0:0.01:1, kernel=Kernels.cosine,m=8)
+plot(o, legend=false,dpi=300)
+xlabel!("Bayesian p-values")
+```
+
+
+```julia
+m2 = @model x begin
+    α ~ Normal()
+    β ~ Normal()
+    σ ~ HalfNormal()
+    yhat = α .+ β .* x
+    νinv ~ HalfNormal()
+    ν = 1/νinv
+    n = length(x)
+    y ~ For(n) do j
+            StudentT(ν,yhat[j],σ)
+        end
+end;
+```
+
+```julia
+post2 = dynamicHMC(m2(x=truth.x), (y=truth.y,))
+ppost2 = particles(post2)
+```
+
+
+```julia
+eachplot(xx, ppost.α .+ ppost.β .* xx, lw=3, dpi=300, color=2)
+eachplot!(xx, ppost2.α .+ ppost2.β .* xx, lw=3, dpi=300, color=:black)
+scatter!(truth.x,truth.y, legend=false, c=1)
+```
+
+```julia
+pred2 = predictive(m2, setdiff(stochastic(m2), [:y])...)
+```
+
+```julia
+post2pred = map(post2) do θ 
+    delete(rand(pred(θ)((x=x,))), :n, :x)
+end |> particles
+
+```
+
+```julia
+pvals2 = mean.(truth.y .> post2pred.y)
+```
+
+
+# PPC vs x
+```julia
+scatter(truth.x, pvals2, legend=false, dpi=300)
+xlabel!("x")
+ylabel!("Bayesian p-value")
+```
+
+
+# PPC vs y
+```julia
+scatter(truth.y, pvals2, legend=false, dpi=300)
+xlabel!("y")
+ylabel!("Bayesian p-value")
+```
+
+```julia
+o = ash(pvals2, rng=0:0.01:1, kernel=Kernels.cosine,m=8)
+plot(o, legend=false,dpi=300)
+xlabel!("Bayesian p-values")
+```
+
+
+
+using Soss
+
+m = @model begin
+    μ ~ Normal() |> iid(2)
+    σ ~ HalfNormal() |> iid(3)
+    x ~ For(1:2,1:3) do i,j
+        Normal(μ[i], σ[j])
+    end
+end;
+
+truth = rand(m())
+
+post = dynamicHMC(m(), (x=truth.x,)) |> particles
+
+pred = predictive(m,:μ,:σ) 
+
+predpost = pred(post) 
+
+rand(predpost)
+```

@@ -11,6 +11,9 @@ import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
 import MLStyle
 @reexport using MonteCarloMeasurements
 
+using LinearAlgebra
+using LazyArrays
+using FillArrays
 
 include("statement.jl")
 include("model.jl")
@@ -45,6 +48,6 @@ include("advancedhmc.jl")
 include("rand.jl")
 include("predictive.jl")
 include("mix.jl")
-# include("plots.jl")
+include("plots.jl")
 include("markovblanket.jl")
 end # module

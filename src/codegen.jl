@@ -122,7 +122,7 @@ function codegen(s::Sym)
             ex = @q begin
                 $lo = $(r(ixlo))
                 $hi = $(r(ixhi))
-                @inbounds for $(r(ix)) in $lo:$hi
+                @inbounds @fastmath for $(r(ix)) in $lo:$hi
                     $ex
                 end
             end

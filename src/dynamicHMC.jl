@@ -6,8 +6,8 @@ using Random
 export dynamicHMC
 
 # import Flux
-function dynamicHMC(m :: JointDistribution, _data, N=1000::Int) 
-    ℓ(pars) = logpdf(m, merge(pars, _data))
+function dynamicHMC(m :: JointDistribution, _data, method=logpdf, N=1000::Int) 
+    ℓ(pars) = logpdf(m, merge(pars, _data), method)
 
     t = xform(m,_data)
     P = TransformedLogDensity(t, ℓ)
