@@ -5,3 +5,5 @@ deps/deps.jl
 src/sandbox.jl
 Manifest.toml
 Soss.code-workspace
+tracefile*.info
+cache/
