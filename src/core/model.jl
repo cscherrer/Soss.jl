@@ -6,7 +6,7 @@ using SimpleGraphs
 using SimplePosets
 using GeneralizedGenerated
 
-struct Model{A,B} 
+struct Model{A,B,M} 
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
@@ -19,23 +19,28 @@ bodytype(::Model{A,B}) where {A,B} = B
 argstype(::Type{Model{A,B}}) where {A,B} = A
 bodytype(::Type{Model{A,B}}) where {A,B} = B
 
+getmodule(::Type{Model{A,B,M}}) where {A,B,M} = M
+getmodule(::Model{A,B,M}) where {A,B,M} = M
+
 function Model(args, vals, dists, retn)
+    M = expr2typelevel(@__MODULE__)
     A = NamedTuple{Tuple(args)}
-    m = Model{A,Any}(args, vals, dists, retn)
+    m = Model{A,Any,M}(args, vals, dists, retn)
     B = convert(Expr, m).args[end] |> to_type
-    Model{A,B}(args, vals, dists, retn)
+    Model{A,B,M}(args, vals, dists, retn)
 end
 
-function type2model(M::Type{Model{A,B}}) where {A,B}
+function type2model(::Type{Model{A,B,M}}) where {A,B,M}
     args = [fieldnames(A)...]
     body = interpret(B)
     Model(convert(Vector{Symbol},args), body)
 end
 
 const emptyModel = 
-    let A = NamedTuple{(),Tuple{}}                    
+    let M = expr2typelevel(@__MODULE__)
+        A = NamedTuple{(),Tuple{}}                    
         B = (@q begin end) |> to_type
-    Model{A,B}([], NamedTuple(), NamedTuple(), nothing)
+    Model{A,B,M}([], NamedTuple(), NamedTuple(), nothing)
 end
 
 
@@ -77,9 +82,9 @@ function Model(vs::Expr,expr::Expr)
     Model(Vector{Symbol}(vs.args), expr)
 end
 
-function Model{A,B}(args::Vector{Symbol}, expr::Expr) where {A,B}
-    m1 = Model{A,B}(args, NamedTuple(), NamedTuple(), nothing)
-    m2 = Model{A,B}(expr)
+function Model{A,B,M}(args::Vector{Symbol}, expr::Expr) where {A,B,M}
+    m1 = Model{A,B,M}(args, NamedTuple(), NamedTuple(), nothing)
+    m2 = Model{A,B,M}(expr)
     merge(m1, m2)
 end
 
