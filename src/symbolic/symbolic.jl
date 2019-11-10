@@ -9,7 +9,7 @@ import SymPy.sympy
 
 const symfuncs = Dict()
 
-_pow(a,b) = float(a) ^ b
+_pow(a,b) = Base.:^(float(a),b)
 
 function __init__()
     stats = PyCall.pyimport_conda("sympy.stats", "sympy")
@@ -64,6 +64,8 @@ for dist in [:Bernoulli]
 
     end    
 end
+
+
 
 "Half" distributions 
 for dist in [:Normal, :Cauchy]
@@ -405,7 +407,7 @@ symlogpdf(d::For{F,T,D,X}, x::Symbol) where {F,T,D,X} = symlogpdf(d,sym(x))
 
 symlogpdf(d::Normal, x::Sym) = symlogpdf(Normal(sym(d.μ),sym(d.σ)), x)
 
-
+symlogpdf(d::Cauchy, x::Sym) = symlogpdf(Cauchy(sym(d.μ),sym(d.σ)), x)
 
 
 symlogpdf(d::Beta, x::Sym) = symlogpdf(Beta(sym(d.α),sym(d.β)), x)

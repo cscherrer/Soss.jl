@@ -2,8 +2,8 @@ using Revise
 using Soss
 
 m = @model begin
-    n = 30 # number of samples
-    m = 50 # reviewers for each example
+    n = 10 # number of samples
+    m = 10 # reviewers for each example
 
     p_bad ~ Beta(1,3) |> iid(n)
     
@@ -19,6 +19,12 @@ end;
 using Random
 truth = rand(m());
 symlogpdf(m())
+
+@time logpdf(m(),truth, codegen)
+@time logpdf(m(),truth, codegen)
+
+
+
 codegen(m(),truth)
 
 
@@ -26,7 +32,7 @@ codegen(m(),truth)
 logpdf(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)))
 
 
-@time result = dynamicHMC(m(), (y=truth.y,)) ;
+@time result = dynamicHMC(m(), (y=truth.y,), codegen) ;
 
 # result = @time advancedHMC(m(), (y=truth.y,))
 

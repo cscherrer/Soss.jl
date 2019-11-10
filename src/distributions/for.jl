@@ -2,7 +2,7 @@ using Distributions
 import Distributions.logpdf
 using Base.Cartesian
 using Base.Threads
-
+using FillArrays
 
 export logpdf
 export rand
@@ -20,13 +20,13 @@ end
 For(f, θ::J...) where {J <: Integer} = For(f,θ)
 
 function For(f::F, θ::T) where {F, N, J <: Integer, T <: NTuple{N,J}}
-    d = f.(ones(Int, N)...)
+    d = f.(Ones{Int}(N)...)
     D = typeof(d)
     X = eltype(d)
     For{F, NTuple{N,J}, D, X}(f,θ)
 end
 
-@inline function logpdf(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: Integer, T <: NTuple{N,J}, D,  X1,  X2 <: X1}
+@inline function logpdf(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: Integer, T <: NTuple{N,J}, D,  X1,  X2}
     s = 0.0
     @inbounds @simd for θ in CartesianIndices(d.θ)
         s += logpdf(d.f(Tuple(θ)...), xs[θ])
@@ -54,7 +54,7 @@ function For(f::F, θ::T) where {F, N, J <: AbstractRange, T <: NTuple{N,J}}
 end
 
 
-@inline function logpdf(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: AbstractRange,  T <: NTuple{N,J}, D, X1, X2 <: X1}
+@inline function logpdf(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: AbstractRange,  T <: NTuple{N,J}, D, X1, X2}
     s = 0.0
     @inbounds @simd for θ in CartesianIndices(d.θ)
         s += logpdf(d.f(Tuple(θ)...), xs[θ])
