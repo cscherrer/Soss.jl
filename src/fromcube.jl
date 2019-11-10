@@ -29,6 +29,7 @@ function fromcube(m::Model, next, n::Int64; kwargs...)
 end
 
 
+export sourceFromcube
 function sourceFromcube(m::Model)
     m = canonical(m)
 

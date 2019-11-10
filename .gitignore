@@ -7,4 +7,3 @@ Manifest.toml
 Soss.code-workspace
 tracefile*.info
 cache/
-.vscode/*

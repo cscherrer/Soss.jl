@@ -43,7 +43,7 @@ end
 #     type2model(_m) |> sourceCodegen() |> loadvals(_args, _data)
 # end
 
-# Codegen
+# export sourceCodegen
 # function sourceCodegen()
 #     function(_m::Model)
 #         body = @q begin end

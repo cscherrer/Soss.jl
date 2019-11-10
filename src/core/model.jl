@@ -6,7 +6,7 @@ using SimpleGraphs
 using SimplePosets
 using GeneralizedGenerated
 
-struct Model{A,B,M} 
+struct Model{A,B} 
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
@@ -19,17 +19,14 @@ bodytype(::Model{A,B}) where {A,B} = B
 argstype(::Type{Model{A,B}}) where {A,B} = A
 bodytype(::Type{Model{A,B}}) where {A,B} = B
 
-getmodule(m::Module{A,B,M}) where {A,B,M} = M
-
 function Model(args, vals, dists, retn)
-    M = expr2typelevel(@__MODULE__)
     A = NamedTuple{Tuple(args)}
-    m = Model{A,Any,M}(args, vals, dists, retn)
+    m = Model{A,Any}(args, vals, dists, retn)
     B = convert(Expr, m).args[end] |> to_type
-    Model{A,B,M}(args, vals, dists, retn)
+    Model{A,B}(args, vals, dists, retn)
 end
 
-function type2model(M::Type{Model{A,B,M}}) where {A,B,M}
+function type2model(M::Type{Model{A,B}}) where {A,B}
     args = [fieldnames(A)...]
     body = interpret(B)
     Model(convert(Vector{Symbol},args), body)
@@ -38,8 +35,7 @@ end
 const emptyModel = 
     let A = NamedTuple{(),Tuple{}}                    
         B = (@q begin end) |> to_type
-        M = expr2typelevel(@__MODULE__)
-    Model{A,B,M}([], NamedTuple(), NamedTuple(), nothing)
+    Model{A,B}([], NamedTuple(), NamedTuple(), nothing)
 end
 
 
@@ -82,9 +78,8 @@ function Model(vs::Expr,expr::Expr)
 end
 
 function Model{A,B}(args::Vector{Symbol}, expr::Expr) where {A,B}
-    M = expr2typelevel(@__MODULE__)
-    m1 = Model{A,B,M}(args, NamedTuple(), NamedTuple(), nothing)
-    m2 = Model{A,B.M,M}(expr)
+    m1 = Model{A,B}(args, NamedTuple(), NamedTuple(), nothing)
+    m2 = Model{A,B}(expr)
     merge(m1, m2)
 end
 
@@ -173,6 +168,30 @@ Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 # export observe
 # observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
 # observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
+
+struct JointDistribution{A0,A,B}
+    model::Model{A,B}
+    args::A0
+end
+
+(jd::JointDistribution)(nt::NamedTuple) = JointDistribution(jd.model, merge(jd.args, nt))
+
+
+(m::Model)(;args...)= JointDistribution(m,(;args...))
+
+(m::Model)(nt::NamedTuple) = JointDistribution(m,nt)
+
+function Base.show(io::IO, d :: JointDistribution)
+    m = d.model
+    println(io, "Joint Distribution")
+    print(io, "    Bound arguments: [")
+    join(io, fieldnames(arguments(d)), ", ")
+    println(io, "]")
+    print(io, "    Variables: [")
+    join(io, setdiff(toposortvars(m),arguments(m)), ", ")
+    println(io, "]\n")
+    println(io, convert(Expr, m))
+end
 
 
 function findStatement(m::Model, x::Symbol)

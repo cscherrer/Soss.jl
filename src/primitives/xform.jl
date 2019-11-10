@@ -24,6 +24,7 @@ end
 # end
 
 
+export sourceXform
 
 function sourceXform(_data=NamedTuple())
     function(_m::Model)

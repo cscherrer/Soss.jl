@@ -13,6 +13,7 @@ end
     sourceImportanceSample()(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple())
 end
 
+export sourceImportanceSample
 function sourceImportanceSample()
     function(p::Model,q::Model)
         p = canonical(p)
@@ -67,6 +68,7 @@ end
 
 
 
+# export sourceParticleImportance
 # function sourceParticleImportance(p,q;ℓ=:ℓ)
 #     p = canonical(p)
 #     q = canonical(q)

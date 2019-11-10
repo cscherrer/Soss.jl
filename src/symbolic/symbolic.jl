@@ -324,6 +324,7 @@ function symvar(st::Sample)
     return sym(st.x)
 end
 
+export sourceSymlogpdf
 function sourceSymlogpdf()
     function(_m::Model)
         function proc(_m, st :: Assign) 

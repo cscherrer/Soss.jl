@@ -1,5 +1,6 @@
 
 
+export sourceParticles
 
 foreach([<=, >=, <, >]) do cmp
     MonteCarloMeasurements.register_primitive(cmp, eval)
@@ -69,6 +70,7 @@ end
     type2model(_m) |> sourceParticles()
 end
 
+export sourceParticles
 function sourceParticles() 
     function(m::Model)
         
