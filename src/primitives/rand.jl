@@ -20,7 +20,6 @@ end
     type2model(_m) |> sourceRand()
 end
 
-export sourceRand
 function sourceRand() 
     function(m::Model)
         

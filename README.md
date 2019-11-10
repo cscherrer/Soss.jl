@@ -23,6 +23,18 @@ end;
 ````
 
 
+````
+Error: LoadError: MethodError: no method matching Soss.Model{NamedTuple{(:X
+,),T} where T<:Tuple,Any,M} where M(::Array{Symbol,1}, ::NamedTuple{(),Tupl
+e{}}, ::NamedTuple{(),Tuple{}}, ::Nothing)
+Closest candidates are:
+  Soss.Model{NamedTuple{(:X,),T} where T<:Tuple,Any,M} where M(::Array{Symb
+ol,1}, !Matched::Expr) where {A, B} at /home/chad/git/jl/Soss/src/core/mode
+l.jl:83
+in expression starting at none:2
+````
+
+
 
 
 
@@ -54,12 +66,10 @@ julia> X = randn(6,2)
 
 ````julia
 julia> truth = rand(m(X=X));
+Error: UndefVarError: m not defined
 
 julia> pairs(truth)
-pairs(::NamedTuple) with 3 entries:
-  :X => [1.19156 0.100793; -2.51973 -0.00197414; … ; -0.101607 1.15807; -1.5425…
-  :β => [0.0718727, -0.51281]
-  :y => [0.100793, -2.51973, 2.07481, 0.844223, 1.15807, -0.475159]
+Error: UndefVarError: truth not defined
 
 ````
 
@@ -67,9 +77,7 @@ pairs(::NamedTuple) with 3 entries:
 
 ````julia
 julia> truth.β
-2-element Array{Float64,1}:
-  0.07187269298745927
- -0.5128103336795292 
+Error: UndefVarError: truth not defined
 
 ````
 
@@ -77,13 +85,7 @@ julia> truth.β
 
 ````julia
 julia> truth.y
-6-element Array{Float64,1}:
-  0.10079289135480324
- -2.5197330871745263 
-  2.0748097755419757 
-  0.8442227439533416 
-  1.158074626662026  
- -0.47515878362112707
+Error: UndefVarError: truth not defined
 
 ````
 
@@ -96,9 +98,10 @@ Often these are easier to work with in terms of `particles` (built using [MonteC
 
 ````julia
 julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
+Error: UndefVarError: truth not defined
 
 julia> particles(post)
-(β = Particles{Float64,1000}[0.558 ± 0.25, 0.768 ± 0.49],)
+Error: UndefVarError: post not defined
 
 ````
 
@@ -109,12 +112,7 @@ julia> particles(post)
 For model diagnostics and prediction, we need the _predictive distribution_:
 ````julia
 julia> pred = predictive(m,:β)
-@model (X, β) begin
-        y ~ For(eachrow(X)) do x
-                Normal(x' * β, 1)
-            end
-    end
-
+Error: UndefVarError: m not defined
 
 ````
 
@@ -126,19 +124,23 @@ This requires `X` and `β` as inputs, so we can do something like this to do a _
 
 ````julia
 ppc = [rand(pred(;X=truth.X, p...)).y for p in post];
+````
+
+
+````
+Error: UndefVarError: post not defined
+````
+
+
+
+````julia
 
 truth.y - particles(ppc)
 ````
 
 
 ````
-6-element Array{Particles{Float64,1000},1}:
- -0.52 ± 0.55 
- -1.21 ± 1.3  
-  0.57 ± 0.53 
-  0.951 ± 0.91
-  0.655 ± 0.63
-  0.534 ± 0.53
+Error: UndefVarError: truth not defined
 ````
 
 
@@ -158,19 +160,14 @@ julia> m2 = @model X begin
             Normal(yhat[j], 1)
         end
 end;
+Error: LoadError: MethodError: no method matching Soss.Model{NamedTuple{(:X,),T} where T<:Tuple,Any,M} where M(::Array{Symbol,1}, ::NamedTuple{(),Tuple{}}, ::NamedTuple{(),Tuple{}}, ::Nothing)
+Closest candidates are:
+  Soss.Model{NamedTuple{(:X,),T} where T<:Tuple,Any,M} where M(::Array{Symbol,1}, !Matched::Expr) where {A, B} at /home/chad/git/jl/Soss/src/core/model.jl:83
+in expression starting at none:1
 
 julia> 
 symlogpdf(m2)
-   N                                                     k                                                         
-  ____                                                  ____                                                       
-  ╲                                                     ╲                                                          
-   ╲    ⎛                      2                  ⎞      ╲    ⎛            2                       log(π)   log(2)⎞
-    ╲   ⎜  (y[_j1] - yhat[_j1])    log(π)   log(2)⎟       ╲   ⎜- 0.5⋅β[_j1]  - 0.693147180559945 - ────── + ──────⎟
-    ╱   ⎜- ───────────────────── - ────── - ──────⎟ +     ╱   ⎝                                      2        2   ⎠
-   ╱    ⎝            2               2        2   ⎠      ╱                                                         
-  ╱                                                     ╱                                                          
-  ‾‾‾‾                                                  ‾‾‾‾                                                       
-_j1 = 1                                               _j1 = 1                                                      
+Error: UndefVarError: m2 not defined
 
 ````
 
@@ -182,14 +179,7 @@ There's clearly some redundant computation within the sums, so it helps to expan
 
 ````julia
 julia> symlogpdf(m2) |> expandSums |> foldConstants
-                                                    N                                       k           
-                                                   ___                                     ___          
-                                                   ╲                                       ╲            
-                                                    ╲                            2          ╲          2
--0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱    β[_j1] 
-                                                   ╱                                       ╱            
-                                                   ‾‾‾                                     ‾‾‾          
-                                                 _j1 = 1                                 _j1 = 1        
+Error: UndefVarError: m2 not defined
 
 ````
 
@@ -204,12 +194,10 @@ julia> using BenchmarkTools
 
 julia> 
 @btime logpdf($m2(X=X), $truth)
-  802.533 ns (16 allocations: 464 bytes)
--15.84854642585797
+Error: UndefVarError: m2 not defined
 
 julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  324.463 ns (5 allocations: 208 bytes)
--15.848546425857968
+Error: UndefVarError: m2 not defined
 
 ````
 
@@ -231,14 +219,13 @@ This idea can be used in much more complex ways. `weightedSample` is a sort of h
 
 ````julia
 julia> ℓ, proposal = weightedSample(m(X=X), (y=truth.y,));
+Error: UndefVarError: m not defined
 
 julia> ℓ
--41.48956445920402
+Error: UndefVarError: ℓ not defined
 
 julia> proposal.β
-2-element Array{Float64,1}:
- -0.3736471921582353
- -2.5954806426320642
+Error: UndefVarError: proposal not defined
 
 ````
 
