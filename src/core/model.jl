@@ -169,30 +169,6 @@ Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 # observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
 # observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
 
-struct JointDistribution{A0,A,B}
-    model::Model{A,B}
-    args::A0
-end
-
-(jd::JointDistribution)(nt::NamedTuple) = JointDistribution(jd.model, merge(jd.args, nt))
-
-
-(m::Model)(;args...)= JointDistribution(m,(;args...))
-
-(m::Model)(nt::NamedTuple) = JointDistribution(m,nt)
-
-function Base.show(io::IO, d :: JointDistribution)
-    m = d.model
-    println(io, "Joint Distribution")
-    print(io, "    Bound arguments: [")
-    join(io, fieldnames(arguments(d)), ", ")
-    println(io, "]")
-    print(io, "    Variables: [")
-    join(io, setdiff(toposortvars(m),arguments(m)), ", ")
-    println(io, "]\n")
-    println(io, convert(Expr, m))
-end
-
 
 function findStatement(m::Model, x::Symbol)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
