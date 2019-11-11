@@ -19,11 +19,11 @@ bodytype(::Model{A,B}) where {A,B} = B
 argstype(::Type{Model{A,B}}) where {A,B} = A
 bodytype(::Type{Model{A,B}}) where {A,B} = B
 
-getmodule(::Type{Model{A,B,M}}) where {A,B,M} = M
-getmodule(::Model{A,B,M}) where {A,B,M} = M
+getmodule(::Type{Model{A,B,M}}) where {A,B,M} = from_type(M)
+getmodule(::Model{A,B,M}) where {A,B,M} = from_type(M)
 
-function Model(args, vals, dists, retn)
-    M = expr2typelevel(@__MODULE__)
+function Model(theModule::Module, args, vals, dists, retn)
+    M = to_type(theModule)
     A = NamedTuple{Tuple(args)}
     m = Model{A,Any,M}(args, vals, dists, retn)
     B = convert(Expr, m).args[end] |> to_type
@@ -36,39 +36,43 @@ function type2model(::Type{Model{A,B,M}}) where {A,B,M}
     Model(convert(Vector{Symbol},args), body)
 end
 
-const emptyModel = 
-    let M = expr2typelevel(@__MODULE__)
-        A = NamedTuple{(),Tuple{}}                    
-        B = (@q begin end) |> to_type
+function emptyModel(theModule::Module)
+    M = to_type(theModule)
+    A = NamedTuple{(),Tuple{}}                    
+    B = (@q begin end) |> to_type
     Model{A,B,M}([], NamedTuple(), NamedTuple(), nothing)
 end
 
 
 function Base.merge(m1::Model, m2::Model) 
+    theModule = getmodule(m1)
+    @assert theModule == getmodule(m2)
     vals = merge(m1.vals, m2.vals)
     args = setdiff(union(m1.args, m2.args), keys(vals))
     dists = merge(m1.dists, m2.dists)
     retn = maybesomething(m2.retn, m1.retn) # m2 first so it gets priority
   
-    Model(args, vals, dists, retn)
+    Model(theModule, args, vals, dists, retn)
 end
 
 Base.merge(m::Model, ::Nothing) = m
 
-Model(st::Assign) = Model(Symbol[], namedtuple(st.x)([st.rhs]), NamedTuple(), nothing)
-Model(st::Sample) = Model(Symbol[], NamedTuple(), namedtuple(st.x)([st.rhs]), nothing)
-Model(st::Return) = Model(Symbol[], NamedTuple(), NamedTuple(), st.rhs)
-Model(st::LineNumber) = emptyModel
+Model(theModule::Module, st::Assign) = Model(theModule, Symbol[], namedtuple(st.x)([st.rhs]), NamedTuple(), nothing)
+Model(theModule::Module, st::Sample) = Model(theModule, Symbol[], NamedTuple(), namedtuple(st.x)([st.rhs]), nothing)
+Model(theModule::Module, st::Return) = Model(theModule, Symbol[], NamedTuple(), NamedTuple(), st.rhs)
+Model(theModule::Module, st::LineNumber) = emptyModel(theModule)
 
-function Model(expr :: Expr)
+Model(theModule::Module, ::LineNumberNode) = emptyModel(theModule)
+
+function Model(theModule::Module, expr :: Expr)
     nt = NamedTuple()
     @match expr begin
-        :($k = $v)   => Model(Assign(k,v))
-        :($k ~ $v)   => Model(Sample(k,v))
-        Expr(:return, x...) => Model(Return(x[1]))
-        Expr(:block, body...) => foldl(merge, Model.(body))
-        :(@model $lnn $body) => Model(body)
-        :(@model $lnn $args $body) => Model(args.args, body)
+        :($k = $v)   => Model(theModule, Assign(k,v))
+        :($k ~ $v)   => Model(theModule, Sample(k,v))
+        Expr(:return, x...) => Model(theModule, Return(x[1]))
+        Expr(:block, body...) => foldl(merge, map(body) do line Model(theModule, line) end)
+        :(@model $lnn $body) => Model(theModule, body)
+        :(@model $lnn $args $body) => Model(theModule, args.args, body)
 
         x => begin
             @error "Bad argument to Model(::Expr)" expr=x
@@ -88,9 +92,9 @@ function Model{A,B,M}(args::Vector{Symbol}, expr::Expr) where {A,B,M}
     merge(m1, m2)
 end
 
-function Model(args::Vector{Symbol}, expr::Expr)
-    m1 = Model(args, NamedTuple(), NamedTuple(), nothing)
-    m2 = Model(expr)
+function Model(theModule::Module, args::Vector{Symbol}, expr::Expr)
+    m1 = Model(theModule, args, NamedTuple(), NamedTuple(), nothing)
+    m2 = Model(theModule, expr)
     merge(m1, m2)
 end
 
@@ -105,17 +109,20 @@ toargs(vs :: NTuple{N,Symbol} where {N}) = vs
 
 
 macro model(vs::Expr,expr::Expr)
+    theModule = __module__
     @assert vs.head == :tuple
     @assert expr.head == :block
-    Model(Vector{Symbol}(vs.args), expr)
+    Model(theModule,Vector{Symbol}(vs.args), expr)
 end
 
 macro model(v::Symbol, expr::Expr)
-    Model([v], expr)
+    theModule = __module__
+    Model(theModule,[v], expr)
 end
 
 macro model(expr :: Expr)
-    Model(Vector{Symbol}(), expr) 
+    theModule = __module__
+    Model(theModule,Vector{Symbol}(), expr) 
 end
 
 
