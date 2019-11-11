@@ -3,7 +3,7 @@ using Test
 using Weave
 
 function buildREADME() 
-    weave("../README.jmd", doctype= "github", cache=:refresh, args=Dict(:seed => 6))
+    weave("../README.jmd", doctype= "github", throw_errors=true, cache=:refresh, args=Dict(:seed => 6))
     return true
 end
 
