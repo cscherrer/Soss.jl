@@ -174,7 +174,6 @@ Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 # observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
 # observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
 
-
 function findStatement(m::Model, x::Symbol)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
     x ∈ keys(m.dists) && return Sample(x,m.dists[x])
