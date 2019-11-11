@@ -33,7 +33,7 @@ end
 function type2model(::Type{Model{A,B,M}}) where {A,B,M}
     args = [fieldnames(A)...]
     body = interpret(B)
-    Model(convert(Vector{Symbol},args), body)
+    Model(from_type(M), convert(Vector{Symbol},args), body)
 end
 
 function emptyModel(theModule::Module)

@@ -27,10 +27,10 @@ function predictive(m::Model, x :: Symbol)
     newargs = (arguments(m) ∪ [x]) ∩ part
     setdiff!(part, newargs)
 
-
-    m_init = Model(newargs, NamedTuple(), NamedTuple(), nothing)
+    theModule = getmodule(m)
+    m_init = Model(theModule, newargs, NamedTuple(), NamedTuple(), nothing)
     m = foldl(part; init=m_init) do m0,v
-        merge(m0, Model(findStatement(m, v)))
+        merge(m0, Model(theModule, findStatement(m, v)))
     end
 end
 
