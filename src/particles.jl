@@ -59,14 +59,14 @@ parts(d::iid; N=1000) = map(1:d.size) do j parts(d.dist) end
 
 
 @inline function particles(m::JointDistribution)
-    return _particles(m.model, m.args)
+    return _particles(getmodule(m.model), m.model, m.args)
 end
 
-@gg function _particles(_m::Model, _args) 
+@gg M function _particles(M::Module, _m::Model, _args) 
     type2model(_m) |> sourceParticles() |> loadvals(_args, NamedTuple())
 end
 
-@gg function _particles(_m::Model, _args::NamedTuple{()})
+@gg M function _particles(M::Module, _m::Model, _args::NamedTuple{()})
     type2model(_m) |> sourceParticles()
 end
 

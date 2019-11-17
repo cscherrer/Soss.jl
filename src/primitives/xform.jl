@@ -12,10 +12,10 @@ export xform
 
 
 function xform(m::JointDistribution{A, B}, _data) where {A,B}
-    return _xform(m.model, m.args, _data)    
+    return _xform(getmodule(m.model), m.model, m.args, _data)    
 end
 
-@gg function _xform(_m::Model{Asub,B}, _args::A, _data) where {Asub, A,B} 
+@gg M function _xform(M::Module, _m::Model{Asub,B}, _args::A, _data) where {Asub, A,B} 
     type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
 end
 

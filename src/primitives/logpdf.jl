@@ -2,10 +2,10 @@
 export logpdf
 
 function logpdf(m::JointDistribution,x, method=logpdf)
-    return method(m.model, m.args, x)    
+    return method(getmodule(m.model), m.model, m.args, x)    
 end
 
-@gg function logpdf(_m::Model, _args, _data)  
+@gg M function logpdf(M::Module, _m::Model, _args, _data)  
     type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data)
 end
 

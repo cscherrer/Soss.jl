@@ -2,10 +2,10 @@
 export weightedSample
 
 function weightedSample(m::JointDistribution, _data) 
-    return _weightedSample(m.model, m.args, _data)    
+    return _weightedSample(getmodule(m.model), m.model, m.args, _data)    
 end
 
-@gg function _weightedSample(_m::Model, _args, _data) 
+@gg M function _weightedSample(M::Module, _m::Model, _args, _data) 
     type2model(_m) |> sourceWeightedSample(_data) |> loadvals(_args, _data)
 end
 

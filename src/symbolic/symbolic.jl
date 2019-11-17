@@ -40,7 +40,7 @@ function __init__()
     ))
 
     @eval begin
-    @gg function codegen(_m::Model, _args, _data)
+    @gg M function codegen(M::Module, _m::Model, _args, _data)
         f = _codegen(type2model(_m))
         :($f(_args, _data))
     end
@@ -430,14 +430,14 @@ end
 symlogpdf(d,x::Sym) = logpdf(d,x)
 
 function symlogpdf(m::JointDistribution)
-    return _symlogpdf(m.model)    
+    return _symlogpdf(getmodule(m.model), m.model)    
 end
 
 function symlogpdf(m::Model)
-    return _symlogpdf(m)    
+    return _symlogpdf(getmodule(m), m)    
 end
 
-@gg function _symlogpdf(_m::Model)  
+@gg M function _symlogpdf(M::Module, _m::Model)  
     type2model(_m) |> canonical |> sourceSymlogpdf() 
 end
 

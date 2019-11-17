@@ -5,18 +5,19 @@ export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
 @inline function rand(m::JointDistribution)
-    return _rand(m.model, m.args)
+    @show getmodule(m.model)
+    return _rand(getmodule(m.model), m.model, m.args)
 end
 
 @inline function rand(m::Model)
-    return _rand(m, NamedTuple())
+    return _rand(getmodule(m), m, NamedTuple())
 end
 
-@gg function _rand(_m::Model, _args) 
+@gg M function _rand(M::Module, _m::Model, _args) 
     type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple())
 end
 
-@gg function _rand(_m::Model, _args::NamedTuple{()})
+@gg M function _rand(M::Module, _m::Model, _args::NamedTuple{()})
     type2model(_m) |> sourceRand()
 end
 

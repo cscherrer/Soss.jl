@@ -3,10 +3,10 @@ using MonteCarloMeasurements
 
 export importanceSample
 @inline function importanceSample(p::JointDistribution, q::JointDistribution, _data)
-    return _importanceSample(p.model, p.args, q.model, q.args, _data)    
+    return _importanceSample(getmodule(p.model), p.model, p.args, q.model, q.args, _data)    
 end
 
-@gg function _importanceSample(p::Model, _pargs, q::Model, _qargs, _data)  
+@gg M function _importanceSample(M::Module, p::Model, _pargs, q::Model, _qargs, _data)  
     p = type2model(p)
     q = type2model(q)
 

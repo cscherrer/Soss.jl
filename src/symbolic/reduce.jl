@@ -12,10 +12,10 @@ end
 export reduce
 
 function reduce(m::JointDistribution,x)
-    return _reduce(m.model, m.args, x)    
+    return _reduce(getmodule(m.model), m.model, m.args, x)    
 end
 
-@gg function _reduce(_m::Model, _args, _data)  
+@gg M function _reduce(M::Module, _m::Model, _args, _data)  
     type2model(_m) |> sourceReduce() |> loadvals(_args, _data)
 end
 
