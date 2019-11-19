@@ -5,7 +5,6 @@ export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
 @inline function rand(m::JointDistribution)
-    @show getmodule(m.model)
     return _rand(getmodule(m.model), m.model, m.args)
 end
 

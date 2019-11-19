@@ -53,7 +53,7 @@ function sourceXform(_data=NamedTuple())
         wrap(kernel) = @q begin
             _result = NamedTuple()
             $kernel
-            as(_result)
+            $as(_result)
         end
 
         buildSource(_m, proc, wrap) |> flatten
