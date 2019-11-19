@@ -98,7 +98,7 @@ Often these are easier to work with in terms of `particles` (built using [MonteC
 julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
 
 julia> particles(post)
-(β = Particles{Float64,1000}[0.558 ± 0.25, 0.768 ± 0.49],)
+(β = Particles{Float64,1000}[0.555 ± 0.26, 0.747 ± 0.47],)
 
 ````
 
@@ -204,11 +204,11 @@ julia> using BenchmarkTools
 
 julia> 
 @btime logpdf($m2(X=X), $truth)
-  802.533 ns (16 allocations: 464 bytes)
+  14.209 μs (52 allocations: 1.25 KiB)
 -15.84854642585797
 
 julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  324.463 ns (5 allocations: 208 bytes)
+  313.663 ns (5 allocations: 208 bytes)
 -15.848546425857968
 
 ````

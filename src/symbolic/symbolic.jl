@@ -1,11 +1,21 @@
 using MacroTools: @q
+using GeneralizedGenerated
 import PyCall
 using MLStyle
 
 import SymPy
-using SymPy: Sym, sympy, symbols, free_symbols
-import SymPy.sympy
+using SymPy: Sym, symbols, free_symbols
 
+
+"""As type encoding a PyObject is unsafe without some hard
+works with reference counting, we simply use a Julia proxy
+to imitate the `sympy` module, e.g.,
+    `sympy.attr = _pysympy.attr`
+"""
+struct PySymPyModule end
+GeneralizedGenerated.NGG.@implement GeneralizedGenerated.NGG.Typeable{PySymPyModule}
+const sympy = PySymPyModule()
+Base.getproperty(::PySymPyModule, s::Symbol) = Base.getproperty(_pysympy, s)
 
 const symfuncs = Dict()
 
@@ -15,7 +25,8 @@ function __init__()
     stats = PyCall.pyimport_conda("sympy.stats", "sympy")
     SymPy.import_from(stats)
     global stats = stats
-    
+    global _pysympy = SymPy.sympy
+
 
 
     # for dist in [:Normal, :Cauchy, :Laplace, :Beta, :Uniform]
@@ -331,7 +342,7 @@ function sourceSymlogpdf()
             # :($(st.x) = $(st.rhs))
             x = st.x 
             xname = QuoteNode(x)
-            :($x = sympy.IndexedBase($xname))
+            :($x = $sympy.IndexedBase($xname))
         end 
 
         function proc(_m, st :: Sample)
@@ -349,7 +360,7 @@ function sourceSymlogpdf()
 
             for x in variables(_m)
                 xname = QuoteNode(x)
-                push!(q.args, :($x = sympy.IndexedBase($xname)))
+                push!(q.args, :($x = $sympy.IndexedBase($xname)))
             end
 
             for st in map(v -> findStatement(_m,v), toposortvars(_m))
@@ -359,8 +370,8 @@ function sourceSymlogpdf()
                 xname = QuoteNode(x)
                 rhs = st.rhs 
                 xsym = ifelse(rhs.args[1] ∈ [:For, :iid]
-                    , :(sympy.IndexedBase($xname))
-                    , :(sym($xname))
+                    , :($sympy.IndexedBase($xname))
+                    , :($sym($xname))
                 )
                 # push!(q.args, :($x = $xsym))
             end
