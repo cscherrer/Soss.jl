@@ -5,6 +5,10 @@ function logpdf(m::JointDistribution{A0,A,B,M},x) where {A0,A,B,M}
     _logpdf(from_type(M), m.model, m.args, x)
 end
 
+function logpdf(m::JointDistribution{A0,A,B,M},x, ::typeof(logpdf)) where {A0,A,B,M}
+    _logpdf(from_type(M), m.model, m.args, x)
+end
+
 
 
 @gg M function _logpdf(M::Module, _m::Model, _args, _data)  
