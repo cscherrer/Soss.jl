@@ -13,7 +13,7 @@ weave("examples/2019-11-07-demo.jmd"
 
 
 ```julia
-using Revise, Soss, Plots, NamedTupleTools
+using Soss, Plots, NamedTupleTools
 seed = WEAVE_ARGS[:seed]
 import Random; Random.seed!(seed)
 ```
