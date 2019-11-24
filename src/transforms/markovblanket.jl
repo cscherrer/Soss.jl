@@ -7,10 +7,35 @@ parents(g::SimpleDigraph, v) = g.NN[v] |> collect
 export children
 children(g::SimpleDigraph, v) = g.N[v] |> collect
 
-export partners
-function partners(g::SimpleDigraph, v)
-    s = map(collect(children(g,v))) do x 
-        parents(g,x) 
+
+
+
+function stochParents(m::Model, g::SimpleDigraph, v::Symbol)
+    union([], [stochParents(m, g, findStatement(m,p)) for p in parents(g,v)]...)
+end
+
+stochParents(m::Model, g::SimpleDigraph, st::Sample) = [st.x]
+stochParents(m::Model, g::SimpleDigraph, st::Assign) = stochParents(m, g, st.x)
+
+stochParents(m::Model, g::SimpleDigraph, st::Bool) = []
+
+
+####################
+
+function stochChildren(m::Model, g::SimpleDigraph, v::Symbol)
+    union([], [stochChildren(m, g, findStatement(m,p)) for p in children(g,v)]...)
+end
+
+stochChildren(m::Model, g::SimpleDigraph, st::Sample) = [st.x]
+stochChildren(m::Model, g::SimpleDigraph, st::Assign) = stochChildren(m, g, st.x)
+
+stochChildren(m::Model, g::SimpleDigraph, st::Bool) = []
+
+########################
+
+function stochPartners(m::Model, g::SimpleDigraph, v::Symbol)
+    s = map(collect(stochChildren(m,g,v))) do x 
+        stochParents(m,g,x) 
     end
 
     isempty(s) && return []
@@ -18,7 +43,22 @@ function partners(g::SimpleDigraph, v)
     setdiff(union(s...),[v]) |> collect
 end
 
-markovBlanket(g,v) = [v] ∪ parents(g,v) ∪ children(g,v) ∪ partners(g,v)
+function markovBlanketVars(m::Model,v::Symbol)
+    p = poset(m)
+    g = digraph(m)
+
+    args = union(stochParents(m,g,v), stochPartners(m,g,v))
+    args_to_end = union([],map(arg -> above(p,arg), args)...)
+
+    ys = stochChildren(m,g,v)
+    start_to_ys = union(ys, map(y -> below(p,y), ys)...)
+    
+    body = intersect(args_to_end, start_to_ys)
+
+    (args, body)
+end
+
+# markovBlanket(g,v) = [v] ∪ stochParents(g,v) ∪ stochChildren(g,v) ∪ stochPartners(g,v)
 
 # function Base.convert(::Type{SimpleGraph}, d::SimpleDigraph)
 #     g = SimpleGraph{Symbol}()
