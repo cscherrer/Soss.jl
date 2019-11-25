@@ -7,23 +7,32 @@ parents(g::SimpleDigraph, v) = g.NN[v] |> collect
 export children
 children(g::SimpleDigraph, v) = g.N[v] |> collect
 
-
-
-
-function stochParents(m::Model, g::SimpleDigraph, v::Symbol, acc=Symbol[])
-    pars = parents(g,v)
-
-    result = union(pars, acc)
-    for p in pars
-        union!(result, _stochParents(m, g, findStatement(m,p)))
+export partners
+function partners(g::SimpleDigraph, v::Symbol)
+    s = map(collect(children(g,v))) do x 
+        parents(g,x) 
     end
-    result
+
+    isempty(s) && return []
+
+    setdiff(union(s...),[v]) |> collect
 end
 
-_stochParents(m::Model, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
-_stochParents(m::Model, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochParents(m, g, st.x, union([st.x],acc))
-_stochParents(m::Model, g::SimpleDigraph, st::Arg, acc=Symbol[]) = [st.x]
-_stochParents(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
+
+# function stochParents(m::Model, g::SimpleDigraph, v::Symbol, acc=Symbol[])
+#     pars = parents(g,v)
+
+#     result = union(pars, acc)
+#     for p in pars
+#         union!(result, _stochParents(m, g, findStatement(m,p)))
+#     end
+#     result
+# end
+
+# _stochParents(m::Model, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
+# _stochParents(m::Model, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochParents(m, g, st.x, union([st.x],acc))
+# _stochParents(m::Model, g::SimpleDigraph, st::Arg, acc=Symbol[]) = [st.x]
+# _stochParents(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
 
 
 ####################
@@ -40,7 +49,6 @@ end
 
 _stochChildren(m::Model, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
 _stochChildren(m::Model, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochChildren(m, g, st.x, union([st.x],acc))
-_stochChildren(m::Model, g::SimpleDigraph, st::Arg, acc=Symbol[]) = [st.x]
 _stochChildren(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
 
 
@@ -48,7 +56,7 @@ _stochChildren(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
 
 function stochPartners(m::Model, g::SimpleDigraph, v::Symbol)
     s = map(collect(stochChildren(m,g,v))) do x 
-        stochParents(m,g,x) 
+        parents(g,x) 
     end
 
     isempty(s) && return []
@@ -56,20 +64,35 @@ function stochPartners(m::Model, g::SimpleDigraph, v::Symbol)
     setdiff(union(s...),[v]) |> collect
 end
 
-function markovBlanketVars(m::Model,v::Symbol)
+function markovBlanketVars(m::Model, g::SimpleDigraph, v::Symbol)
+    markovBlanketVars(m,g,findStatement(m,v))
+end
+
+function markovBlanketVars(m::Model, g::SimpleDigraph,st::Sample)
     p = poset(m)
     g = digraph(m)
 
-    args = union(stochParents(m,g,v), stochPartners(m,g,v))
-    args_to_end = union([],map(arg -> above(p,arg), args)...)
-
-    ys = stochChildren(m,g,v)
-    start_to_ys = union(ys, map(y -> below(p,y), ys)...)
+    body = Symbol[st.x]
     
-    body = intersect(args_to_end, start_to_ys)
+    args = union(parents(g,st.x), stochPartners(m,g,st.x))
+    for arg in args
+        union!(body, interval(p, arg, st.x))
+    end
 
+    ys = stochChildren(m,g,st.x)
+    union!(body, ys)
+    for y in ys
+        union!(body, interval(p, st.x, y))
+    end
+
+    setdiff!(args, body)
     (args, body)
 end
+
+function markovBlanketVars(m::Model, g::SimpleDigraph,st::Assign)
+    (parents(g,st.x), Symbol[st.x])
+end
+
 
 # markovBlanket(g,v) = [v] ∪ stochParents(g,v) ∪ stochChildren(g,v) ∪ stochPartners(g,v)
 
@@ -94,7 +117,7 @@ function markovBlanket(m::Model, x :: Symbol)
     # newargs = (arguments(m) ∪ [x]) ∩ part
     # setdiff!(part, newargs)
 
-    (args, vars) = markovBlanketVars(m,x)
+    (args, vars) = markovBlanketVars(m,g,x)
 
     M = getmodule(m)
     m_init = Model(M, args, NamedTuple(), NamedTuple(), nothing)
