@@ -10,26 +10,39 @@ children(g::SimpleDigraph, v) = g.N[v] |> collect
 
 
 
-function stochParents(m::Model, g::SimpleDigraph, v::Symbol)
-    union([], [stochParents(m, g, findStatement(m,p)) for p in parents(g,v)]...)
+function stochParents(m::Model, g::SimpleDigraph, v::Symbol, acc=Symbol[])
+    pars = parents(g,v)
+
+    result = union(pars, acc)
+    for p in pars
+        union!(result, _stochParents(m, g, findStatement(m,p)))
+    end
+    result
 end
 
-stochParents(m::Model, g::SimpleDigraph, st::Sample) = [st.x]
-stochParents(m::Model, g::SimpleDigraph, st::Assign) = stochParents(m, g, st.x)
-
-stochParents(m::Model, g::SimpleDigraph, st::Bool) = []
+_stochParents(m::Model, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
+_stochParents(m::Model, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochParents(m, g, st.x, union([st.x],acc))
+_stochParents(m::Model, g::SimpleDigraph, st::Arg, acc=Symbol[]) = [st.x]
+_stochParents(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
 
 
 ####################
 
-function stochChildren(m::Model, g::SimpleDigraph, v::Symbol)
-    union([], [stochChildren(m, g, findStatement(m,p)) for p in children(g,v)]...)
+function stochChildren(m::Model, g::SimpleDigraph, v::Symbol, acc=Symbol[])
+    pars = children(g,v)
+
+    result = union(pars, acc)
+    for p in pars
+        union!(result, _stochChildren(m, g, findStatement(m,p)))
+    end
+    result
 end
 
-stochChildren(m::Model, g::SimpleDigraph, st::Sample) = [st.x]
-stochChildren(m::Model, g::SimpleDigraph, st::Assign) = stochChildren(m, g, st.x)
+_stochChildren(m::Model, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
+_stochChildren(m::Model, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochChildren(m, g, st.x, union([st.x],acc))
+_stochChildren(m::Model, g::SimpleDigraph, st::Arg, acc=Symbol[]) = [st.x]
+_stochChildren(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
 
-stochChildren(m::Model, g::SimpleDigraph, st::Bool) = []
 
 ########################
 
@@ -81,14 +94,15 @@ function markovBlanket(m::Model, x :: Symbol)
     # newargs = (arguments(m) ∪ [x]) ∩ part
     # setdiff!(part, newargs)
 
-    newargs = parents(g,x) ∪ partners(g,x)
+    (args, vars) = markovBlanketVars(m,x)
 
-    m_init = Model(newargs, NamedTuple(), NamedTuple(), nothing)
-    m_init = merge(m_init, Model(findStatement(m,x)))
-    m = foldl(children(g,x); init= m_init) do m0,v
-        merge(m0, Model(findStatement(m, v)))
+    M = getmodule(m)
+    m_init = Model(M, args, NamedTuple(), NamedTuple(), nothing)
+    m_init = merge(m_init, Model(M,findStatement(m,x)))
+    m = foldl(vars; init= m_init) do m0,v
+        merge(m0, Model(M,findStatement(m, v)))
     end
-    m = merge(m, Model(findStatement(m,x)))
+    m = merge(m, Model(M,findStatement(m,x)))
     
 end
 

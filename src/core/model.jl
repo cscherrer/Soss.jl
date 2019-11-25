@@ -184,4 +184,6 @@ Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 function findStatement(m::Model, x::Symbol)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
     x ∈ keys(m.dists) && return Sample(x,m.dists[x])
+    x ∈ arguments(m) && return Arg(x)
+    error("statement not found")
 end
