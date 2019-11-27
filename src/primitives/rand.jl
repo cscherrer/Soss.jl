@@ -11,15 +11,15 @@ end
     return _rand(getmoduletypencoding(m), m, NamedTuple())
 end
 
-@gg M function _rand(M::MT, _m::Model, _args) where MT <: TypeLevel{Module}
+@gg M function _rand(_::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
     Expr(:let,
-        Expr(:(=), :M, from_type(MT)),
+        Expr(:(=), :M, from_type(M)),
         type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple()))
 end
 
-@gg M function _rand(M::MT, _m::Model, _args::NamedTuple{()}) where MT <: TypeLevel{Module}
+@gg M function _rand(_::Type{M}, _m::Model, _args::NamedTuple{()}) where M <: TypeLevel{Module}
     Expr(:let,
-        Expr(:(=), :M, from_type(MT)),
+        Expr(:(=), :M, from_type(M)),
         type2model(_m) |> sourceRand())
 end
 

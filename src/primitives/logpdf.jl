@@ -11,9 +11,9 @@ end
 
 
 
-@gg M function _logpdf(M::MT, _m::Model, _args, _data) where MT <: TypeLevel{Module}
+@gg M function _logpdf(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
     Expr(:let,
-        Expr(:(=), :M, from_type(MT)),
+        Expr(:(=), :M, from_type(M)),
         type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data))
 end
 

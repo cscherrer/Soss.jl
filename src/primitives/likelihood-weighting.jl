@@ -5,9 +5,9 @@ function weightedSample(m::JointDistribution, _data)
     return _weightedSample(getmoduletypencoding(m.model), m.model, m.args, _data)    
 end
 
-@gg M function _weightedSample(M::MT, _m::Model, _args, _data) where MT <: TypeLevel{Module}
+@gg M function _weightedSample(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
     Expr(:let,
-        Expr(:(=), :M, from_type(MT)),
+        Expr(:(=), :M, from_type(M)),
         type2model(_m) |> sourceWeightedSample(_data) |> loadvals(_args, _data))
 end
 

@@ -51,10 +51,10 @@ function __init__()
     ))
 
     @eval begin
-    @gg M function codegen(M::MT, _m::Model, _args, _data) where MT <: TypeLevel{Module}
+    @gg M function codegen(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
         f = _codegen(type2model(_m))
         Expr(:let,
-            Expr(:(=), :M, from_type(MT)),
+            Expr(:(=), :M, from_type(M)),
             :($f(_args, _data)))
     end
 end
@@ -450,9 +450,9 @@ function symlogpdf(m::Model)
     return _symlogpdf(getmoduletypencoding(m), m)
 end
 
-@gg M function _symlogpdf(M::MT, _m::Model) where MT <: TypeLevel{Module}
+@gg M function _symlogpdf(_::Type{M}, _m::Model) where M <: TypeLevel{Module}
     Expr(:let,
-        Expr(:(=), :M, from_type(MT)),
+        Expr(:(=), :M, from_type(M)),
         type2model(_m) |> canonical |> sourceSymlogpdf())
 end
 

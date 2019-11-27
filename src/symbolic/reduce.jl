@@ -15,9 +15,9 @@ function reduce(m::JointDistribution,x)
     return _reduce(getmoduletypencoding(m.model), m.model, m.args, x)
 end
 
-@gg M function _reduce(M::MT, _m::Model, _args, _data) where MT <: TypeLevel{Module}
+@gg M function _reduce(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
     Expr(:let,
-        Expr(:(=), :M, from_type(MT)),
+        Expr(:(=), :M, from_type(M)),
         type2model(_m) |> sourceReduce() |> loadvals(_args, _data))
 end
 
