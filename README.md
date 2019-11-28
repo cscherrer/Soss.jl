@@ -244,11 +244,11 @@ julia> using BenchmarkTools
 
 julia> 
 @btime logpdf($m2(X=X), $truth)
-  13.155 μs (51 allocations: 1.14 KiB)
+  1.989 μs (47 allocations: 1.05 KiB)
 -15.84854642585797
 
 julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  320.060 ns (5 allocations: 208 bytes)
+  313.860 ns (5 allocations: 208 bytes)
 -15.848546425857968
 
 ````
