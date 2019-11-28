@@ -98,7 +98,7 @@ Often these are easier to work with in terms of `particles` (built using [MonteC
 julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
 
 julia> particles(post)
-(β = Particles{Float64,1000}[0.549 ± 0.25, 0.771 ± 0.47],)
+(β = MonteCarloMeasurements.Particles{Float64,1000}[0.568 ± 0.26, 0.742 ± 0.52],)
 
 ````
 
@@ -132,7 +132,7 @@ truth.y - particles(ppc)
 
 
 ````
-6-element Array{Particles{Float64,1000},1}:
+6-element Array{MonteCarloMeasurements.Particles{Float64,1000},1}:
  -0.52 ± 0.55 
  -1.21 ± 1.3  
   0.57 ± 0.53 
@@ -161,38 +161,16 @@ end;
 
 julia> 
 symlogpdf(m2)
-   N                                      
-  ____                                    
-  ╲                                       
-   ╲    ⎛                      2          
-    ╲   ⎜  (y[_j1] - yhat[_j1])    log(π) 
-    ╱   ⎜- ───────────────────── - ────── 
-   ╱    ⎝            2               2    
-  ╱                                       
-  ‾‾‾‾                                    
-_j1 = 1                                   
-
-               k                          
-              ____                        
-              ╲                           
-        ⎞      ╲    ⎛            2        
-  log(2)⎟       ╲   ⎜- 0.5⋅β[_j1]  - 0.693
-- ──────⎟ +     ╱   ⎝                     
-    2   ⎠      ╱                          
-              ╱                           
-              ‾‾‾‾                        
-            _j1 = 1                       
-
-                               
-                               
-                               
-               log(π)   log(2)⎞
-147180559945 - ────── + ──────⎟
-                 2        2   ⎠
-                               
-                               
-                               
-                               
+   N                                                     k                                                         
+  ____                                                  ____                                                       
+  ╲                                                     ╲                                                          
+   ╲    ⎛                      2                  ⎞      ╲    ⎛            2                       log(π)   log(2)⎞
+    ╲   ⎜  (y[_j1] - yhat[_j1])    log(π)   log(2)⎟       ╲   ⎜- 0.5⋅β[_j1]  - 0.693147180559945 - ────── + ──────⎟
+    ╱   ⎜- ───────────────────── - ────── - ──────⎟ +     ╱   ⎝                                      2        2   ⎠
+   ╱    ⎝            2               2        2   ⎠      ╱                                                         
+  ╱                                                     ╱                                                          
+  ‾‾‾‾                                                  ‾‾‾‾                                                       
+_j1 = 1                                               _j1 = 1                                                      
 
 ````
 
@@ -204,32 +182,14 @@ There's clearly some redundant computation within the sums, so it helps to expan
 
 ````julia
 julia> symlogpdf(m2) |> expandSums |> foldConstants
-                                          
-                                          
-                                          
-                                          
--0.918938533204673⋅N - 0.918938533204673⋅k
-                                          
-                                          
-                                          
-
-          N                               
-         ___                              
-         ╲                                
-          ╲                            2  
- - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  -
-         ╱                                
-         ‾‾‾                              
-       _j1 = 1                            
-
-        k           
-       ___          
-       ╲            
-        ╲          2
- 0.5⋅   ╱    β[_j1] 
-       ╱            
-       ‾‾‾          
-     _j1 = 1        
+                                                    N                                       k           
+                                                   ___                                     ___          
+                                                   ╲                                       ╲            
+                                                    ╲                            2          ╲          2
+-0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱    β[_j1] 
+                                                   ╱                                       ╱            
+                                                   ‾‾‾                                     ‾‾‾          
+                                                 _j1 = 1                                 _j1 = 1        
 
 ````
 
