@@ -37,7 +37,7 @@ function __init__()
     #         end
 
     #         Distributions.$dist(μ,σ) = $dist(promote(μ,σ)...)
-    #     end    
+    #     end
     # end
 
 
@@ -73,17 +73,17 @@ for dist in [:Bernoulli]
     @eval begin
         logpdf(d::$dist, x::Sym) = logpdf($dist(sym.(Distributions.params(d))...), x)
 
-    end    
+    end
 end
 
 
 
-"Half" distributions 
+"Half" distributions
 for dist in [:Normal, :Cauchy]
     let half = Symbol(:Half, dist)
         @eval begin
             logpdf(d::$half, x::Sym) = 2 * logpdf($dist(0, sym.(d.σ)), x)
-        end    
+        end
     end
 end
 
@@ -91,17 +91,17 @@ for dist in [:Normal, :Cauchy, :Laplace, :Beta, :Uniform]
     @eval begin
         function Distributions.$dist(μ::Sym, σ::Sym)
             stats.$dist(:dist, μ,σ) |> SymPy.density
-        end 
+        end
 
         Distributions.$dist(μ,σ) = $dist(promote(μ,σ)...)
-    end    
+    end
 end
 
 
 export sym
 sym(s::Symbol) = sympy.IndexedBase(s, real=true)
 sym(s) = Base.convert(Sym, s)
-function sym(expr::Expr) 
+function sym(expr::Expr)
     @match expr begin
         Expr(:call, f, args...) => :($f($(map(sym,args)...)))
         :($x[$j]) => begin
@@ -116,7 +116,7 @@ function sym(expr::Expr)
     end
 end
 
-    
+
 
 # export symlogpdf
 # # function symlogpdf(m::Model)
@@ -137,7 +137,7 @@ end
 
 # #     append!(result.args, exprs)
 
-    
+
 # #     # result
 
 # #     push!(result.args, :(ctx,ℓ))
@@ -185,14 +185,14 @@ end
 # #                             x = sympy.IndexedBase(x)
 # #                             return :(Soss.sympy.Sum(logpdf($dist,$x[$j]), ($j,1,$n)))
 # #                 end
-                   
+
 
 # #                 f => begin
 # #                     @show f
 # #                     error("symlogpdf: bad argument")
 # #                 end
 # #             end
-            
+
 # #         end
 
 # #         _ => :(logpdf($(sym(d)), $(sym(x))))
@@ -240,10 +240,10 @@ end
 function expandMulSum(factors::NTuple{N,Sym}, limits::Sym...) where {N}
     limits == () && return prod(factors)
 
-    for fac in factors 
-        for lim in limits 
+    for fac in factors
+        for lim in limits
             (ix, ixlo, ixhi) = lim.args
-            if ix ∉ fac 
+            if !insym(ix, fac)
                 inSummand = prod(allbut(factors, fac))
                 inSum = expandSum(inSummand, lim)
                 outLims = allbut(limits, lim)
@@ -259,8 +259,7 @@ function atoms(s::Sym)
     union(result, map(x -> x.args, result)...)
 end
 
-import Base.in
-function Base.in(j::Sym, s::Sym)
+function insym(j::Sym, s::Sym)
     j ∈ atoms(s)
     # for t in s.args
     #     if j==t || in(j,t)
@@ -272,8 +271,8 @@ end
 
 hasIdx(s::Sym) = any(startswith.(getproperty.(Soss.atoms(s), :name), "_j"))
 
-function allbut(tup, x) 
-    result = filter(collect(tup)) do v 
+function allbut(tup, x)
+    result = filter(collect(tup)) do v
         v ≠ x
     end
     tuple(result...)
@@ -285,8 +284,8 @@ function maybeSum(t::Sym, limits::Sym...)
 
     for lim in limits
         (ix, ixlo, ixhi) = lim.args
-        ix ∈ t || return maybeSum(t * (ixhi - ixlo + 1), allbut(limits, lim)...)
-    end 
+        insym(ix, t) || return maybeSum(t * (ixhi - ixlo + 1), allbut(limits, lim)...)
+    end
 
     return sympy.Sum(t, limits...)
 end
@@ -338,12 +337,12 @@ end
 export sourceSymlogpdf
 function sourceSymlogpdf()
     function(_m::Model)
-        function proc(_m, st :: Assign) 
+        function proc(_m, st :: Assign)
             # :($(st.x) = $(st.rhs))
-            x = st.x 
+            x = st.x
             xname = QuoteNode(x)
             :($x = $sympy.IndexedBase($xname))
-        end 
+        end
 
         function proc(_m, st :: Sample)
             @q begin
@@ -366,9 +365,9 @@ function sourceSymlogpdf()
             for st in map(v -> findStatement(_m,v), toposortvars(_m))
 
                 typeof(st) == Sample || continue
-                x = st.x 
+                x = st.x
                 xname = QuoteNode(x)
-                rhs = st.rhs 
+                rhs = st.rhs
                 xsym = ifelse(rhs.args[1] ∈ [:For, :iid]
                     , :($sympy.IndexedBase($xname))
                     , :($sym($xname))
@@ -377,13 +376,13 @@ function sourceSymlogpdf()
             end
 
             @q begin
-                $q 
+                $q
                 $kernel
                 return _ℓ
             end
         end
 
-                
+
 
         buildSource(_m, proc, wrap) |> flatten
     end
@@ -404,10 +403,10 @@ export symlogpdf
 function symlogpdf(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
     js = symbols.(Symbol.(:_j,1:N), cls=sympy.Idx)
     x = sympy.IndexedBase(x)
-    result = symlogpdf(d.f(js...), x[js...]) 
+    result = symlogpdf(d.f(js...), x[js...])
 
     for k in N:-1:1
-        result = sympy.Sum(result, (js[k], 1, d.θ[k])) 
+        result = sympy.Sum(result, (js[k], 1, d.θ[k]))
     end
     result
 end
@@ -432,7 +431,7 @@ symlogpdf(d::Beta, x::Sym) = symlogpdf(Beta(sym(d.α),sym(d.β)), x)
 
 logpdf(d::Sym, x::Sym) = symlogpdf(d,x)
 
-function symlogpdf(d::Sym, x::Sym) 
+function symlogpdf(d::Sym, x::Sym)
     d.func
     result = d.pdf(x) |> log
     sympy.expand_log(result,force=true)
@@ -441,15 +440,15 @@ end
 symlogpdf(d,x::Sym) = logpdf(d,x)
 
 function symlogpdf(m::JointDistribution)
-    return _symlogpdf(getmodule(m.model), m.model)    
+    return _symlogpdf(getmodule(m.model), m.model)
 end
 
 function symlogpdf(m::Model)
-    return _symlogpdf(getmodule(m), m)    
+    return _symlogpdf(getmodule(m), m)
 end
 
-@gg M function _symlogpdf(M::Module, _m::Model)  
-    type2model(_m) |> canonical |> sourceSymlogpdf() 
+@gg M function _symlogpdf(M::Module, _m::Model)
+    type2model(_m) |> canonical |> sourceSymlogpdf()
 end
 
 
@@ -470,14 +469,14 @@ end
 # # x
 
 # # julia> a = sympy.Sum(x[i], (i, 1, j))
-# #   j       
-# #  ___      
-# #  ╲        
+# #   j
+# #  ___
+# #  ╲
 # #   ╲   x[i]
-# #   ╱       
-# #  ╱        
-# #  ‾‾‾      
-# # i = 1     
+# #   ╱
+# #  ╱
+# #  ‾‾‾
+# # i = 1
 
 # # julia> SymPy.walk_expression(a)
 # # :(Sum(Indexed(IndexedBase(x), i), (:i, 1, :j)))
