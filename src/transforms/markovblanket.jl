@@ -8,7 +8,7 @@ export children
 children(g::SimpleDigraph, v) = g.N[v] |> collect
 
 export partners
-function partners(g::SimpleDigraph, v)
+function partners(g::SimpleDigraph, v::Symbol)
     s = map(collect(children(g,v))) do x 
         parents(g,x) 
     end
@@ -18,7 +18,83 @@ function partners(g::SimpleDigraph, v)
     setdiff(union(s...),[v]) |> collect
 end
 
-markovBlanket(g,v) = [v] ∪ parents(g,v) ∪ children(g,v) ∪ partners(g,v)
+
+# function stochParents(m::Model, g::SimpleDigraph, v::Symbol, acc=Symbol[])
+#     pars = parents(g,v)
+
+#     result = union(pars, acc)
+#     for p in pars
+#         union!(result, _stochParents(m, g, findStatement(m,p)))
+#     end
+#     result
+# end
+
+# _stochParents(m::Model, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
+# _stochParents(m::Model, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochParents(m, g, st.x, union([st.x],acc))
+# _stochParents(m::Model, g::SimpleDigraph, st::Arg, acc=Symbol[]) = [st.x]
+# _stochParents(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
+
+
+####################
+
+function stochChildren(m::Model, g::SimpleDigraph, v::Symbol, acc=Symbol[])
+    pars = children(g,v)
+
+    result = union(pars, acc)
+    for p in pars
+        union!(result, _stochChildren(m, g, findStatement(m,p)))
+    end
+    result
+end
+
+_stochChildren(m::Model, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
+_stochChildren(m::Model, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochChildren(m, g, st.x, union([st.x],acc))
+_stochChildren(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
+
+
+########################
+
+function stochPartners(m::Model, g::SimpleDigraph, v::Symbol)
+    s = map(collect(stochChildren(m,g,v))) do x 
+        parents(g,x) 
+    end
+
+    isempty(s) && return []
+
+    setdiff(union(s...),[v]) |> collect
+end
+
+function markovBlanketVars(m::Model, g::SimpleDigraph, v::Symbol)
+    markovBlanketVars(m,g,findStatement(m,v))
+end
+
+function markovBlanketVars(m::Model, g::SimpleDigraph,st::Sample)
+    p = poset(m)
+    g = digraph(m)
+
+    body = Symbol[st.x]
+    
+    args = union(parents(g,st.x), stochPartners(m,g,st.x))
+    for arg in args
+        union!(body, interval(p, arg, st.x))
+    end
+
+    ys = stochChildren(m,g,st.x)
+    union!(body, ys)
+    for y in ys
+        union!(body, interval(p, st.x, y))
+    end
+
+    setdiff!(args, body)
+    (args, body)
+end
+
+function markovBlanketVars(m::Model, g::SimpleDigraph,st::Assign)
+    (parents(g,st.x), Symbol[st.x])
+end
+
+
+# markovBlanket(g,v) = [v] ∪ stochParents(g,v) ∪ stochChildren(g,v) ∪ stochPartners(g,v)
 
 # function Base.convert(::Type{SimpleGraph}, d::SimpleDigraph)
 #     g = SimpleGraph{Symbol}()
@@ -41,14 +117,15 @@ function markovBlanket(m::Model, x :: Symbol)
     # newargs = (arguments(m) ∪ [x]) ∩ part
     # setdiff!(part, newargs)
 
-    newargs = parents(g,x) ∪ partners(g,x)
+    (args, vars) = markovBlanketVars(m,g,x)
 
-    m_init = Model(newargs, NamedTuple(), NamedTuple(), nothing)
-    m_init = merge(m_init, Model(findStatement(m,x)))
-    m = foldl(children(g,x); init= m_init) do m0,v
-        merge(m0, Model(findStatement(m, v)))
+    M = getmodule(m)
+    m_init = Model(M, args, NamedTuple(), NamedTuple(), nothing)
+    m_init = merge(m_init, Model(M,findStatement(m,x)))
+    m = foldl(vars; init= m_init) do m0,v
+        merge(m0, Model(M,findStatement(m, v)))
     end
-    m = merge(m, Model(findStatement(m,x)))
+    m = merge(m, Model(M,findStatement(m,x)))
     
 end
 

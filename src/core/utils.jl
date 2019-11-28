@@ -44,6 +44,8 @@ stochastic(m::Model) = keys(m.dists)
 export bound
 bound(m::Model) = keys(m.vals)
 
+export bodyVariables
+bodyVariables(m::Model) = setdiff(variables(m), arguments(m))
 
 # TODO: Fix these broken methods
 # export observed
@@ -55,10 +57,7 @@ bound(m::Model) = keys(m.vals)
 #     observed(m)
 # )
 
-export freeVariables
-function freeVariables(m::Model)
-    setdiff(arguments(m), stochastic(m))
-end
+
 
 export foldall
 function foldall(leaf, branch; kwargs...) 
@@ -270,3 +269,5 @@ function tower(x)
     end
     return result
 end
+
+TypeLevel = GeneralizedGenerated.TypeLevel

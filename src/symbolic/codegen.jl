@@ -155,3 +155,8 @@ end
 #     var"##add#407" += y
 #     var"##add#407"
 # end
+
+
+function logpdf(m::JointDistribution{A0,A,B,M},x,::typeof(codegen)) where {A0,A,B,M}
+    codegen(M, m.model, m.args, x)
+end

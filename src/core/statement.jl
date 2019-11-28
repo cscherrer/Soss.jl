@@ -2,6 +2,10 @@ using MLStyle
 
 abstract type Statement end
 
+struct Arg <: Statement
+    x :: Symbol
+end
+
 struct Assign <: Statement
     x :: Symbol
     rhs

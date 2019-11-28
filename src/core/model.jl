@@ -22,6 +22,9 @@ bodytype(::Type{Model{A,B}}) where {A,B} = B
 getmodule(::Type{Model{A,B,M}}) where {A,B,M} = from_type(M)
 getmodule(::Model{A,B,M}) where {A,B,M} = from_type(M)
 
+getmoduletypencoding(::Type{Model{A,B,M}}) where {A, B, M} = M
+getmoduletypencoding(::Model{A,B,M}) where {A,B,M} = M
+
 function Model(theModule::Module, args, vals, dists, retn)
     M = to_type(theModule)
     A = NamedTuple{Tuple(args)}
@@ -184,4 +187,6 @@ Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 function findStatement(m::Model, x::Symbol)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
     x ∈ keys(m.dists) && return Sample(x,m.dists[x])
+    x ∈ arguments(m) && return Arg(x)
+    error("statement not found")
 end
