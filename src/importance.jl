@@ -3,14 +3,16 @@ using MonteCarloMeasurements
 
 export importanceSample
 @inline function importanceSample(p::JointDistribution, q::JointDistribution, _data)
-    return _importanceSample(getmodule(p.model), p.model, p.args, q.model, q.args, _data)    
+    return _importanceSample(getmoduletypencoding(p.model), p.model, p.args, q.model, q.args, _data)
 end
 
-@gg M function _importanceSample(M::Module, p::Model, _pargs, q::Model, _qargs, _data)  
+@gg M function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
     p = type2model(p)
     q = type2model(q)
 
-    sourceImportanceSample()(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple())
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        sourceImportanceSample()(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()))
 end
 
 export sourceImportanceSample
