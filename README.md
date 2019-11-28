@@ -98,7 +98,7 @@ Often these are easier to work with in terms of `particles` (built using [MonteC
 julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
 
 julia> particles(post)
-(β = MonteCarloMeasurements.Particles{Float64,1000}[0.568 ± 0.26, 0.742 ± 0.52],)
+(β = Particles{Float64,1000}[0.548 ± 0.24, 0.751 ± 0.5],)
 
 ````
 
@@ -132,7 +132,7 @@ truth.y - particles(ppc)
 
 
 ````
-6-element Array{MonteCarloMeasurements.Particles{Float64,1000},1}:
+6-element Array{Particles{Float64,1000},1}:
  -0.52 ± 0.55 
  -1.21 ± 1.3  
   0.57 ± 0.53 
