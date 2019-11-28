@@ -158,5 +158,5 @@ end
 
 
 function logpdf(m::JointDistribution{A0,A,B,M},x,::typeof(codegen)) where {A0,A,B,M}
-    codegen(from_type(M), m.model, m.args, x)
+    codegen(M, m.model, m.args, x)
 end

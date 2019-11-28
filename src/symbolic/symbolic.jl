@@ -51,9 +51,11 @@ function __init__()
     ))
 
     @eval begin
-    @gg M function codegen(M::Module, _m::Model, _args, _data)
+    @gg M function codegen(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
         f = _codegen(type2model(_m))
-        :($f(_args, _data))
+        Expr(:let,
+            Expr(:(=), :M, from_type(M)),
+            :($f(_args, _data)))
     end
 end
 
@@ -432,7 +434,7 @@ symlogpdf(d::Beta, x::Sym) = symlogpdf(Beta(sym(d.α),sym(d.β)), x)
 
 logpdf(d::Sym, x::Sym) = symlogpdf(d,x)
 
-function symlogpdf(d::Sym, x::Sym) 
+function symlogpdf(d::Sym, x::Sym)
     d.func
     result = d.pdf(x) |> log
     sympy.expand_log(result,force=true)
@@ -441,15 +443,17 @@ end
 symlogpdf(d,x::Sym) = logpdf(d,x)
 
 function symlogpdf(m::JointDistribution)
-    return _symlogpdf(getmodule(m.model), m.model)    
+    return _symlogpdf(getmoduletypencoding(m.model), m.model)
 end
 
 function symlogpdf(m::Model)
-    return _symlogpdf(getmodule(m), m)    
+    return _symlogpdf(getmoduletypencoding(m), m)
 end
 
-@gg M function _symlogpdf(M::Module, _m::Model)  
-    type2model(_m) |> canonical |> sourceSymlogpdf() 
+@gg M function _symlogpdf(_::Type{M}, _m::Model) where M <: TypeLevel{Module}
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> canonical |> sourceSymlogpdf())
 end
 
 

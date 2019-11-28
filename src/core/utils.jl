@@ -269,3 +269,5 @@ function tower(x)
     end
     return result
 end
+
+TypeLevel = GeneralizedGenerated.TypeLevel

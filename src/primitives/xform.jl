@@ -12,11 +12,13 @@ export xform
 
 
 function xform(m::JointDistribution{A, B}, _data) where {A,B}
-    return _xform(getmodule(m.model), m.model, m.args, _data)    
+    return _xform(getmoduletypencoding(m.model), m.model, m.args, _data)
 end
 
-@gg M function _xform(M::Module, _m::Model{Asub,B}, _args::A, _data) where {Asub, A,B} 
-    type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
+@gg M function _xform(_::Type{M}, _m::Model{Asub,B}, _args::A, _data) where {M <: TypeLevel{Module}, Asub, A,B}
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data))
 end
 
 # function xform(m::Model{EmptyNTtype, B}) where {B}
