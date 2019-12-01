@@ -257,8 +257,18 @@ function expandMulSum(factors::NTuple{N,Sym}, limits::Sym...) where {N}
 end
 
 function atoms(s::Sym)
-    result = free_symbols(s)
-    union(result, map(x -> x.args, result)...)
+    s.func == sympy.Symbol && return [s]
+    s.func == sympy.Idx && return [s]
+    isempty(free_symbols(s)) && return []
+
+    s.func == sympy.Sum && begin
+        summand = s.args[1]
+        ixs = [j.args[1] for j in s.args[2:end]]
+        bounds = union([j.args[2:3] for j in s.args[2:end]]...)
+        return setdiff(union(atoms(summand), atoms.(bounds)...), ixs)
+    end 
+    result = union(map(atoms, s.args)...)
+    return result
 end
 
 function insym(j::Sym, s::Sym)
