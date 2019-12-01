@@ -242,6 +242,9 @@ end
 function expandMulSum(factors::NTuple{N,Sym}, limits::Sym...) where {N}
     limits == () && return prod(factors)
 
+    p = sympy.expand_mul(prod(factors))
+    p.func == sympy.Mul || return expandSum(p, limits...)
+    factors = p.args
     for fac in factors
         for lim in limits
             (ix, ixlo, ixhi) = lim.args
@@ -296,7 +299,9 @@ function maybeSum(t::Sym, limits::Sym...)
 
     for lim in limits
         (ix, ixlo, ixhi) = lim.args
-        insym(ix, t) || return maybeSum(t * (ixhi - ixlo + 1), allbut(limits, lim)...)
+        insym(ix, t) || begin
+            return maybeSum(t * (ixhi - ixlo + 1), allbut(limits, lim)...)
+        end
     end
 
     return sympy.Sum(t, limits...)
