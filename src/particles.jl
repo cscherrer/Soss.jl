@@ -1,4 +1,4 @@
-
+const DEFAULT_SAMPLE_SIZE = 1000
 
 export sourceParticles
 
