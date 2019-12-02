@@ -9,9 +9,7 @@ end
 export particles
 
 particles(v::Vector{<:Real}) = Particles(v)
-particles(d) = begin
-    Particles(1000, d)
-end
+particles(d; N=DEFAULT_SAMPLE_SIZE) = Particles(N, d)
 
 # particles(n :: NUTS_result) = particles(n.samples)
 using IterTools
