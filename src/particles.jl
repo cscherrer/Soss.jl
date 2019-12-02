@@ -9,7 +9,7 @@ end
 export particles
 
 particles(v::Vector{<:Real}) = Particles(v)
-particles(d; N=DEFAULT_SAMPLE_SIZE) = Particles(N, d)
+particles(d, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(N, d)
 
 # particles(n :: NUTS_result) = particles(n.samples)
 using IterTools
@@ -31,18 +31,18 @@ export parts
 
 # Just a little helper function for particles
 # https://github.com/baggepinnen/MonteCarloMeasurements.jl/issues/22
-parts(d; N=DEFAULT_SAMPLE_SIZE) = particles(d; N=N)
-parts(x::Normal{P} where {P <: AbstractParticles}; N=DEFAULT_SAMPLE_SIZE) = Particles(length(x.μ), Normal()) * x.σ + x.μ
-parts(x::Sampleable{F,S}; N=DEFAULT_SAMPLE_SIZE) where {F,S} = Particles(N,x)
-parts(x::Integer; N=DEFAULT_SAMPLE_SIZE) = parts(float(x))
-parts(x::Real; N=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
-parts(x::AbstractArray; N=DEFAULT_SAMPLE_SIZE) = Particles(x)
-parts(p::Particles; N=DEFAULT_SAMPLE_SIZE) = p
-parts(d::For; N=DEFAULT_SAMPLE_SIZE) = parts.(d.f.(d.θ...); N=N)
+parts(d, N::Int=DEFAULT_SAMPLE_SIZE) = particles(d, N)
+parts(x::Normal{P} where {P <: AbstractParticles}, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(length(x.μ), Normal()) * x.σ + x.μ
+parts(x::Sampleable{F,S}, N::Int=DEFAULT_SAMPLE_SIZE) where {F,S} = Particles(N,x)
+parts(x::Integer, N::Int=DEFAULT_SAMPLE_SIZE) = parts(float(x))
+parts(x::Real, N::Int=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
+parts(x::AbstractArray, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(x)
+parts(p::Particles, N::Int=DEFAULT_SAMPLE_SIZE) = p
+parts(d::For, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(d.f.(d.θ...), N)
 
 
 
-parts(d::iid; N=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist; N=N) end
+parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist, N) end
 # size
 # dist 
 
@@ -56,29 +56,29 @@ parts(d::iid; N=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist; N=N) end
 # promote_rule(::Type{B}, ::Type{A}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
 
 
-@inline function particles(m::JointDistribution; N=DEFAULT_SAMPLE_SIZE)
+@inline function particles(m::JointDistribution, N::Int=DEFAULT_SAMPLE_SIZE)
     return _particles(getmoduletypencoding(m.model), m.model, m.args, Val(N))
 end
 
 @gg M function _particles(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        sourceParticles()(type2model(_m), _N) |> loadvals(_args, NamedTuple()))
+        sourceParticles()(type2model(_m), _n) |> loadvals(_args, NamedTuple()))
 end
 
 @gg M function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        sourceParticles()(type2model(_m), _N))
+        sourceParticles()(type2model(_m), _n))
 end
 
 export sourceParticles
 function sourceParticles() 
         
-    function(m::Model, N::Int)
+    function(m::Model, ::Type{Val{_N}}) where {_N}
         _m = canonical(m)
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
-        proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs); N=N))
+        proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs), $_N))
         proc(_m, st::Return)  = :(return $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
