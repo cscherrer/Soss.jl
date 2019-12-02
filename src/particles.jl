@@ -38,11 +38,11 @@ parts(x::Integer; N=DEFAULT_SAMPLE_SIZE) = parts(float(x))
 parts(x::Real; N=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
 parts(x::AbstractArray; N=DEFAULT_SAMPLE_SIZE) = Particles(x)
 parts(p::Particles; N=DEFAULT_SAMPLE_SIZE) = p
-parts(d::For; N=DEFAULT_SAMPLE_SIZE) = parts.(d.f.(d.θ...))
+parts(d::For; N=DEFAULT_SAMPLE_SIZE) = parts.(d.f.(d.θ...); N=N)
 
 
 
-parts(d::iid; N=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist) end
+parts(d::iid; N=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist; N=N) end
 # size
 # dist 
 
