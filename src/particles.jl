@@ -60,16 +60,16 @@ parts(d::iid; N=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist; N=N) end
     return _particles(getmoduletypencoding(m.model), m.model, m.args, Val(N))
 end
 
-@gg M function _particles(_::Type{M}, _m::Model, _args, _n::Val{N}) where {M <: TypeLevel{Module},N}
+@gg M function _particles(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        sourceParticles()(type2model(_m), N) |> loadvals(_args, NamedTuple()))
+        sourceParticles()(type2model(_m), _N) |> loadvals(_args, NamedTuple()))
 end
 
-@gg M function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{N}) where {M <: TypeLevel{Module},N}
+@gg M function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        sourceParticles()(type2model(_m), N))
+        sourceParticles()(type2model(_m), _N))
 end
 
 export sourceParticles
