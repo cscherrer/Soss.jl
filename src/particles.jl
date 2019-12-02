@@ -31,14 +31,14 @@ export parts
 
 # Just a little helper function for particles
 # https://github.com/baggepinnen/MonteCarloMeasurements.jl/issues/22
-parts(d; N=1000) = particles(m)
-parts(x::Normal{P} where {P <: AbstractParticles}; N=1000) = Particles(length(x.μ), Normal()) * x.σ + x.μ
-parts(x::Sampleable{F,S}; N=1000) where {F,S} = Particles(N,x)
-parts(x::Integer; N=1000) = parts(float(x))
-parts(x::Real; N=1000) = parts(repeat([x],N))
-parts(x::AbstractArray; N=1000) = Particles(x)
-parts(p::Particles; N=1000) = p 
-parts(d::For; N=1000) = parts.(d.f.(d.θ...))
+parts(d; N=DEFAULT_SAMPLE_SIZE) = particles(d; N=N)
+parts(x::Normal{P} where {P <: AbstractParticles}; N=DEFAULT_SAMPLE_SIZE) = Particles(length(x.μ), Normal()) * x.σ + x.μ
+parts(x::Sampleable{F,S}; N=DEFAULT_SAMPLE_SIZE) where {F,S} = Particles(N,x)
+parts(x::Integer; N=DEFAULT_SAMPLE_SIZE) = parts(float(x))
+parts(x::Real; N=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
+parts(x::AbstractArray; N=DEFAULT_SAMPLE_SIZE) = Particles(x)
+parts(p::Particles; N=DEFAULT_SAMPLE_SIZE) = p
+parts(d::For; N=DEFAULT_SAMPLE_SIZE) = parts.(d.f.(d.θ...))
 
 
 
