@@ -42,7 +42,7 @@ parts(d::For; N=DEFAULT_SAMPLE_SIZE) = parts.(d.f.(d.θ...))
 
 
 
-parts(d::iid; N=1000) = map(1:d.size) do j parts(d.dist) end
+parts(d::iid; N=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist) end
 # size
 # dist 
 
@@ -56,29 +56,29 @@ parts(d::iid; N=1000) = map(1:d.size) do j parts(d.dist) end
 # promote_rule(::Type{B}, ::Type{A}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
 
 
-@inline function particles(m::JointDistribution)
-    return _particles(getmoduletypencoding(m.model), m.model, m.args)
+@inline function particles(m::JointDistribution; N=DEFAULT_SAMPLE_SIZE)
+    return _particles(getmoduletypencoding(m.model), m.model, m.args, Val(N))
 end
 
-@gg M function _particles(_::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
+@gg M function _particles(_::Type{M}, _m::Model, _args, _n::Val{N}) where {M <: TypeLevel{Module},N}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceParticles() |> loadvals(_args, NamedTuple()))
+        sourceParticles()(type2model(_m), N) |> loadvals(_args, NamedTuple()))
 end
 
-@gg M function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}) where M <: TypeLevel{Module}
+@gg M function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{N}) where {M <: TypeLevel{Module},N}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceParticles())
+        sourceParticles()(type2model(_m), N))
 end
 
 export sourceParticles
 function sourceParticles() 
-    function(m::Model)
         
+    function(m::Model, N::Int)
         _m = canonical(m)
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
-        proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs)))
+        proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs); N=N))
         proc(_m, st::Return)  = :(return $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
