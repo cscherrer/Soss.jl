@@ -248,7 +248,7 @@ function expandMulSum(factors::NTuple{N,Sym}, limits::Sym...) where {N}
     for fac in factors
         for lim in limits
             (ix, ixlo, ixhi) = lim.args
-            if !insym(ix, fac)
+            if ix ∉ atoms(fac)
                 inSummand = prod(allbut(factors, fac))
                 inSum = expandSum(inSummand, lim)
                 outLims = allbut(limits, lim)
@@ -274,16 +274,6 @@ function atoms(s::Sym)
     return result
 end
 
-function insym(j::Sym, s::Sym)
-    j ∈ atoms(s)
-    # for t in s.args
-    #     if j==t || in(j,t)
-    #         return true
-    #     end
-    # end
-    # return false
-end
-
 hasIdx(s::Sym) = any(startswith.(getproperty.(Soss.atoms(s), :name), "_j"))
 
 function allbut(tup, x)
@@ -299,7 +289,7 @@ function maybeSum(t::Sym, limits::Sym...)
 
     for lim in limits
         (ix, ixlo, ixhi) = lim.args
-        insym(ix, t) || begin
+        ix ∈ atoms(t) || begin
             return maybeSum(t * (ixhi - ixlo + 1), allbut(limits, lim)...)
         end
     end
