@@ -11,7 +11,6 @@ import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
 import MLStyle
 @reexport using MonteCarloMeasurements
 
-using LinearAlgebra
 using LazyArrays
 using FillArrays
 
