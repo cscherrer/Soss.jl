@@ -39,8 +39,9 @@ parts(x::Real, N::Int=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
 parts(x::AbstractArray, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(x)
 parts(p::Particles, N::Int=DEFAULT_SAMPLE_SIZE) = p
 parts(d::For, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(d.f.(d.θ...), N)
-
-
+function parts(d::For{F,Tuple{I}}, N::Int=DEFAULT_SAMPLE_SIZE) where {F <: Function, I <: Integer}
+    parts.(d.f.(Base.OneTo.(d.θ)...), N)
+end
 
 parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist, N) end
 # size
