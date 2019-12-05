@@ -17,8 +17,22 @@ argtuple(m) = arguments(m) |> astuple
 astuple(x) = Expr(:tuple,x...)
 astuple(x::Symbol) = Expr(:tuple,x)
 
+
+
+export arguments
+arguments(m::Model) = m.args
+
+export sampled
+sampled(m::Model) = keys(m.dists) |> collect
+
+export assigned
+assigned(m::Model) = keys(m.vals) |> collect
+
+export parameters
+parameters(m::Model) = union(assigned(m), sampled(m))
+
 export variables
-variables(m::Model) = m.args ∪ keys(m.vals) ∪ keys(m.dists)
+variables(m::Model) = union(arguments(m), parameters(m))
 
 function variables(expr :: Expr) 
     leaf(x::Symbol) = begin
@@ -34,29 +48,13 @@ end
 variables(s::Symbol) = [s]
 variables(x) = []
 
-
-export arguments
-arguments(m) = m.args
-
-export stochastic
-stochastic(m::Model) = keys(m.dists)
-
-export bound
-bound(m::Model) = keys(m.vals)
-
-export bodyVariables
-bodyVariables(m::Model) = setdiff(variables(m), arguments(m))
-
-# TODO: Fix these broken methods
-# export observed
-# observed(m::Model) = keys(m.data)
-
-# export parameters
-# parameters(m::Model) = setdiff(
-#     stochastic(m), 
-#     observed(m)
-# )
-
+for f in [:arguments, :assigned, :sampled, :parameters, :variables]
+    @eval function $f(m::Model, nt::NamedTuple) 
+        vs = $f(m)
+        isempty(vs) && return NamedTuple()
+        return select(nt, $f(m))
+    end
+end
 
 
 export foldall

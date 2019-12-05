@@ -166,7 +166,7 @@ scatter!(truth.x,truth.y, legend=false, c=1)
 ```
 
 ```julia
-pred2 = predictive(m2, setdiff(stochastic(m2), [:y])...)
+pred2 = predictive(m2, setdiff(sampled(m2), [:y])...)
 ```
 
 ```julia
