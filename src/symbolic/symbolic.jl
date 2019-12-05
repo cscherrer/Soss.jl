@@ -141,19 +141,15 @@ end
 
 function expandSum(s::Sym, limits::Sym...)
 
-    hasIdx(s) || return maybeSum(s, limits...)
-
     func = s.func
     args = s.args
     args == () && return maybeSum(s,limits...)
 
-    if func == sympy.Add
-        return func([expandSum(t, limits...) for t in args]...)
-    elseif func == sympy.Mul
-        return expandMulSum(args, limits...)
-    else
-        return sympy.Sum(s, limits...)
-    end
+
+    func == sympy.Add && return func([expandSum(t, limits...) for t in args]...)
+    func == sympy.Mul && return expandMulSum(args, limits...)
+
+    return maybeSum(s, limits...)
 
 end
 
@@ -194,7 +190,6 @@ function atoms(s::Sym)
     return result
 end
 
-hasIdx(s::Sym) = any(startswith.(getproperty.(Soss.atoms(s), :name), "_j"))
 
 function allbut(tup, x)
     result = filter(collect(tup)) do v
@@ -341,8 +336,8 @@ end
 
 symlogpdf(d,x::Sym) = logpdf(d,x)
 
-function symlogpdf(m::JointDistribution)
-    return _symlogpdf(getmoduletypencoding(m.model), m.model)
+function symlogpdf(d::JointDistribution, simplify=true)
+    symlogpdf(d.model)
 end
 
 function symlogpdf(m::Model, simplify=true)
