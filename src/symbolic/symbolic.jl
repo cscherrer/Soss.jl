@@ -101,7 +101,7 @@ end
 
 
 export sym
-sym(s::Symbol) = sympy.IndexedBase(s, real=true)
+sym(s::Symbol) = sympy.symbols(s, real=true)
 sym(s) = Base.convert(Sym, s)
 function sym(expr::Expr)
     @match expr begin
@@ -302,9 +302,13 @@ export marginal
 function marginal(ℓ,v)
     f = ℓ.func
     f == sympy.Add || return ℓ
-    newargs = filter(t -> sym(v) in t, collect(ℓ.args))
+    newargs = filter(t -> sym(v) in atoms(t), collect(ℓ.args))
     foldl(+,newargs)
 end
+
+export score
+score(ℓ::Sym, v) = diff(ℓ, sym(v))
+
 
 # marginal(m::Model, v) = marginal(m |> symlogpdf, v)
 
@@ -352,8 +356,11 @@ function sourceSymlogpdf()
         end
 
         function proc(_m, st :: Sample)
+            # x = st.x
+            # xname = QuoteNode(x)
+            xsym = symvar(st)
             @q begin
-                _ℓ += symlogpdf($(st.rhs), $(st.x))
+                _ℓ += symlogpdf($(st.rhs), $xsym)
             end
         end
         proc(_m, st :: Return)     = nothing
@@ -364,10 +371,10 @@ function sourceSymlogpdf()
                 _ℓ = 0.0
             end
 
-            for x in variables(_m)
-                xname = QuoteNode(x)
-                push!(q.args, :($x = $sympy.IndexedBase($xname)))
-            end
+            # for x in variables(_m)
+            #     xname = QuoteNode(x)
+            #     push!(q.args, :($x = $sympy.IndexedBase($xname)))
+            # end
 
             for st in map(v -> findStatement(_m,v), toposortvars(_m))
 
@@ -495,7 +502,8 @@ export tolatex
 function tolatex(ℓ::SymPy.Sym)
     r = r"_j(?<num>\d+)"
     s = s"j_{\g<num>}"
-    Base.replace(sympy.latex(ℓ), r => s)
+    result = Base.replace(sympy.latex(ℓ), r => s)
+    print()
 end
 
 
