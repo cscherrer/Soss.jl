@@ -240,15 +240,12 @@ export sourceSymlogpdf
 function sourceSymlogpdf()
     function(_m::Model)
         function proc(_m, st :: Assign)
-            # :($(st.x) = $(st.rhs))
             x = st.x
             xname = QuoteNode(x)
             return :($x = $sympy.IndexedBase($xname))
         end
 
         function proc(_m, st :: Sample)
-            # x = st.x
-            # xname = QuoteNode(x)
             s = :(_ℓ += symlogpdf($(st.rhs), $(symvar(st))))
             end
         proc(_m, st :: Return)     = nothing
@@ -258,12 +255,6 @@ function sourceSymlogpdf()
             q = @q begin
                 _ℓ = 0.0
             end
-
-            # for x in variables(_m)
-            #     xname = QuoteNode(x)
-            #     xsym = symvar(findStatement(_m,x))
-            #     push!(q.args, :($x = $symvar))
-            # end
 
             for st in map(v -> findStatement(_m,v), toposortvars(_m))
 
@@ -284,8 +275,6 @@ function sourceSymlogpdf()
                 return _ℓ
             end
         end
-
-
 
         buildSource(_m, proc, wrap) |> flatten
     end
