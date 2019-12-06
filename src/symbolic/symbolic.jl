@@ -80,7 +80,7 @@ end
 
 
 
-"Half" distributions
+# "Half" distributions
 for dist in [:Normal, :Cauchy]
     let half = Symbol(:Half, dist)
         @eval begin
@@ -254,6 +254,12 @@ function sourceSymlogpdf()
         function wrap(kernel)
             q = @q begin
                 _ℓ = 0.0
+            end
+
+            for x in arguments(_m)
+                xname = QuoteNode(x)
+                xsym = :($sympy.IndexedBase($xname))
+                push!(q.args, :($x = $xsym))
             end
 
             for st in map(v -> findStatement(_m,v), toposortvars(_m))
