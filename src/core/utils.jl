@@ -21,6 +21,7 @@ astuple(x::Symbol) = Expr(:tuple,x)
 
 export arguments
 arguments(m::Model) = m.args
+arguments(d::JointDistribution) = d.args
 
 export sampled
 sampled(m::Model) = keys(m.dists) |> collect
