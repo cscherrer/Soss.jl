@@ -1,44 +1,88 @@
-using TransformVariables, LogDensityProblems, DynamicHMC, 
-    Distributions, Statistics, StatsFuns, ForwardDiff
+using TransformVariables,
+      LogDensityProblems,
+      DynamicHMC,
+      Distributions,
+      Statistics,
+      StatsFuns,
+      ForwardDiff
+import LogDensityProblems: ADgradient
 
 using Random
 
 export dynamicHMC
 
-# import Flux
-function dynamicHMC(m :: JointDistribution, _data, method=logpdf, N=1000::Int) 
+function dynamicHMC(
+    rng::AbstractRNG,
+    m::JointDistribution,
+    _data,
+    N::Int = 1000;
+    method = logpdf,
+    ad_backend = Val(:ForwardDiff),
+    reporter = DynamicHMC.NoProgressReport(),
+    kwargs...,
+)
     ℓ(pars) = logpdf(m, merge(pars, _data), method)
+    t = xform(m, _data)
+    P = LogDensityProblems.TransformedLogDensity(t, ℓ)
+    ∇P = LogDensityProblems.ADgradient(ad_backend, P)
 
-    t = xform(m,_data)
-    P = TransformedLogDensity(t, ℓ)
-    ∇P = ADgradient(Val(:ForwardDiff), P)
-    results = mcmc_with_warmup(MersenneTwister(), ∇P, N; reporter=DynamicHMC.NoProgressReport());
-    samples = TransformVariables.transform.(parent(∇P).transformation, results.chain)
+    results = DynamicHMC.mcmc_with_warmup(
+        rng,
+        ∇P,
+        N;
+        reporter = reporter,
+        kwargs...,
+    )
+    samples = TransformVariables.transform.(t, results.chain)
+    return samples
 end
 
+function dynamicHMC(
+    rng::AbstractRNG,
+    m::JointDistribution,
+    _data,
+    ::Val{Inf};
+    method = logpdf,
+    ad_backend = Val(:ForwardDiff),
+    reporter = DynamicHMC.NoProgressReport(),
+    kwargs...,
+)
+    ℓ(pars) = logpdf(m, merge(pars, _data), method)
+    t = xform(m, _data)
+    P = LogDensityProblems.TransformedLogDensity(t, ℓ)
+    ∇P = LogDensityProblems.ADgradient(ad_backend, P)
 
-function dynamicHMC(m :: JointDistribution, _data, ::Val{Inf}) 
-    ℓ(pars) = logpdf(m, merge(pars, _data))
+    results = DynamicHMC.mcmc_keep_warmup(
+        rng,
+        ∇P,
+        0;
+        reporter = reporter,
+        kwargs...,
+    )
+    steps = DynamicHMC.mcmc_steps(
+        results.sampling_logdensity,
+        results.final_warmup_state,
+    )
+    return results, steps
+end
 
-    t = xform(m,_data)
-    P = TransformedLogDensity(t, ℓ)
-    ∇P = ADgradient(Val(:ForwardDiff), P)
-    
-    # initialization
-    rng = MersenneTwister()
-    results = DynamicHMC.mcmc_keep_warmup(rng, ∇P, 0; reporter = NoProgressReport())
-    steps = DynamicHMC.mcmc_steps(results.sampling_logdensity, results.final_warmup_state)
-
-    (results, steps)
+function dynamicHMC(m::JointDistribution, args...; kwargs...)
+    return dynamicHMC(Random.GLOBAL_RNG, m, args...; kwargs...)
 end
 
 
 using ResumableFunctions
 
 export stream
-@resumable function stream(f::typeof(dynamicHMC), m :: JointDistribution, _data::NamedTuple) 
+
+@resumable function stream(
+    rng::AbstractRNG,
+    f::typeof(dynamicHMC),
+    m::JointDistribution,
+    _data::NamedTuple,
+)
     t = xform(m, _data)
-    (results, steps) = dynamicHMC(m, _data, Val(Inf))
+    (results, steps) = dynamicHMC(rng, m, _data, Val(Inf))
     Q = results.final_warmup_state.Q
     while true
         Q, tree_stats = DynamicHMC.mcmc_next_step(steps, Q)
@@ -46,3 +90,11 @@ export stream
     end
 end
 
+function stream(
+    f::typeof(dynamicHMC),
+    m::JointDistribution,
+    _data::NamedTuple;
+    kwargs...,
+)
+    return stream(Random.GLOBAL_RNG, f, m, _data; kwargs...)
+end
