@@ -45,6 +45,8 @@ Given this, a user can do things like
 - Find the symbolic log-density, using `SymPy.jl`
 - Use the result of symbolic simplification to optimize 
 
+At the time of this writing, Soss can connect (through the main library or optional add-ons) with Gen `[Cusumano-Towner:2019:GGP:3314221.3314642]`, MLJ `[anthony_blaom_2019_3541506]`, SymPy `[10.7717/peerj-cs.103]` (via `SymPy.jl`).
+
 # Citations
 <!-- 
 Citations to entries in paper.bib should be in
