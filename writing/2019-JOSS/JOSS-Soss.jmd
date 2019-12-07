@@ -45,7 +45,7 @@ m = @model n begin
             Normal(yhat[j], σ)
         end
 end;
- ```
+```
 
 # Mathematics
 

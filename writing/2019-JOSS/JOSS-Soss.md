@@ -10,7 +10,7 @@ weave("writing/2019-JOSS/JOSS-Soss.jmd", cache=:refresh, doctype="github")
 # Summary
 
 
-
+````julia
 m = @model n begin
     σ ~ HalfNormal(1)
     β ~ Normal(0, 1)
@@ -21,7 +21,11 @@ m = @model n begin
             Normal(yhat[j], σ)
         end
 end;
- ```
+````
+
+
+
+
 
 # Mathematics
 
