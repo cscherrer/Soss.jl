@@ -1,43 +1,49 @@
-Temporary note: here's how to build this
-````julia
-
-weave("writing/2019-JOSS/JOSS-Soss.jmd", cache=:refresh, doctype="github")
-````
-
-
-
+---
+title: 'Soss: Code Generation for Probabilistic Programming in Julia'
+tags:
+  - Julia language
+  - probabilistic programming
+  - Bayesian statistics
+  - code generation
+  - metaprogramming
+authors:
+  - name: Chad Scherrer
+    orcid: 0000-0002-1490-0304
+    affiliation: "1, 2" # (Multiple affiliations must be quoted)
+  - name: Taine Zhao
+    affiliation: 2
+affiliations:
+ - name: Senior Data Scientist, Metis
+   index: 1
+ - name: Institution 2
+   index: 2
+date: 7 Dec 2019
+bibliography: bibliography.bib
+---
 
 # Summary
 
+Probabilistic programming is a rapidly growing field, but is still far from mainstream use, due at least in part to a common diconnect between performance and ease of use. Soss aims to achieve the best of both worlds, by offering a simple mathematical syntax and specialized code generation behind the scenes.
 
-````julia
-m = @model n begin
-    σ ~ HalfNormal(1)
-    β ~ Normal(0, 1)
-    α ~ Normal(0, 1)
-    x ~ Normal(0, 1)
-    yhat = α .+ β .* x
-    y ~ For(n) do j
-            Normal(yhat[j], σ)
+For example, here's a simple Gaussian model:
+
+```julia
+m = @model σ,n begin
+    μ ~ Cauchy(0,1)
+    x ~ For(n) do j
+            Normal(μ,σ)
         end
-end;
-````
+end
+```
 
+Given this, a user can do things like
 
-
-
-
-# Mathematics
-
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
-
-Double dollars make self-standing equations:
-
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
-
+- Specify the $\sigma$ and $n$ arguments, and "forward sample" from the model (`rand`)
+- Compute the log-density (`logpdf`)
+- Call to external inference libraries that use these or other included methods
+- Build new models from `m`, for example using a known value for $\mu$
+- Find the symbolic log-density, using `SymPy.jl`
+- Use the result of symbolic simplification to optimize 
 
 # Citations
 
