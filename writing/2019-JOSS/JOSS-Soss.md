@@ -1,40 +1,16 @@
----
-title: 'Soss: Code Generation for Probabilistic Programming in Julia'
-tags:
-  - Julia language
-  - probabilistic programming
-  - Bayesian statistics
-  - code generation
-  - metaprogramming
-authors:
-  - name: Chad Scherrer
-    orcid: 0000-0002-1490-0304
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Taine Zhao
-    affiliation: 2
-affiliations:
- - name: Senior Data Scientist, Metis
-   index: 1
- - name: Institution 2
-   index: 2
-date: 7 Dec 2019
-bibliography: paper.bib
-
----
-
 Temporary note: here's how to build this
-```julia; eval=false
+````julia
+
 weave("writing/2019-JOSS/JOSS-Soss.jmd", cache=:refresh, doctype="github")
-```
+````
+
+
+
 
 # Summary
 
-```julia; echo=false
-using Revise, Soss
-```
 
 
-```julia
 m = @model n begin
     σ ~ HalfNormal(1)
     β ~ Normal(0, 1)
