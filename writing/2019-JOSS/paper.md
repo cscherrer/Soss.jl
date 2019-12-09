@@ -18,7 +18,7 @@ affiliations:
  - name: Institution 2
    index: 2
 date: 7 Dec 2019
-bibliography: bibliography.bib
+bibliography: paper.bib
 ---
 
 # Summary
