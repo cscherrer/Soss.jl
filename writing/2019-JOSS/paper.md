@@ -9,11 +9,11 @@ tags:
 authors:
   - name: Chad Scherrer
     orcid: 0000-0002-1490-0304
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
+    affiliation: 1 # "1, 2" # (Multiple affiliations must be quoted)
   - name: Taine Zhao
     affiliation: 2
 affiliations:
- - name: Senior Data Scientist, Metis
+ - name: Metis
    index: 1
  - name: Department of Computer Science, University of Tsukuba
    index: 2
