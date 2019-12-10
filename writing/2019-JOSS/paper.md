@@ -41,13 +41,12 @@ Given this, a user can do things like
 - Specify the `sigma` and `N` arguments, and "forward sample" from the model (`rand`)
 - Compute the log-density (`logpdf`)
 - Call to external inference libraries that use these or other included methods
-- Build new models from `m`, for example using a known value for $\mu$
+- Build new models from `m`, for example using a known value for $mu$ or computing the Markov blanket at a node
 - Find the symbolic log-density, using `SymPy.jl`
-- Use the result of symbolic simplification to optimize 
+- Use the result of symbolic simplification to generated optimized code, often with significant performance benefits
 
-At the time of this writing, Soss can connect (through the main library or optional add-ons) with Gen `[Cusumano-Towner:2019:GGP:3314221.3314642]`, MLJ `[anthony_blaom_2019_3541506]`, SymPy `[10.7717/peerj-cs.103]` (via `SymPy.jl`).
+At the time of this writing, Soss can connect (through the main library or optional add-ons) with Gen `[Cusumano-Towner2019]`,  SymPy `[Meurer2017]`, and MLJ `[Blaom_2019]`.
 
-# Citations
 <!-- 
 Citations to entries in paper.bib should be in
 [rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
@@ -58,11 +57,9 @@ For a quick reference, the following citation commands can be used:
 - `[@author:2001]` -> "(Author et al., 2001)"
 - `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)" -->
 
-# Figures
-<!-- 
-Figures can be included like this: ![Example figure.](figure.png) -->
-
 # Acknowledgements
+
+The authors are grateful for 
 
 We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
 Oh, and support from Kathryn Johnston during the genesis of this project.
