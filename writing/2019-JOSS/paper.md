@@ -28,17 +28,17 @@ Probabilistic programming is a rapidly growing field, but is still far from main
 For example, here's a simple Gaussian model:
 
 ```julia
-m = @model σ,n begin
-    μ ~ Cauchy(0,1)
-    x ~ For(n) do j
-            Normal(μ,σ)
+m = @model sigma,N begin
+    mu ~ Cauchy(0,1)
+    y ~ For(N) do j
+            Normal(mu,s)
         end
 end
 ```
 
 Given this, a user can do things like
 
-- Specify the $\sigma$ and $n$ arguments, and "forward sample" from the model (`rand`)
+- Specify the `sigma` and `N` arguments, and "forward sample" from the model (`rand`)
 - Compute the log-density (`logpdf`)
 - Call to external inference libraries that use these or other included methods
 - Build new models from `m`, for example using a known value for $\mu$
