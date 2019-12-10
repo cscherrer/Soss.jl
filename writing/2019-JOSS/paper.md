@@ -45,7 +45,7 @@ Given this, a user can do things like
 - Find the symbolic log-density, using `SymPy.jl`
 - Use the result of symbolic simplification to generated optimized code, often with significant performance benefits
 
-At the time of this writing, Soss can connect (through the main library or optional add-ons) with Gen `[Cusumano-Towner2019]`,  SymPy `[Meurer2017]`, and MLJ `[Blaom_2019]`.
+At the time of this writing, Soss can connect (through the main library or optional add-ons) with Gen `[Cusumano-Towner:2019]`,  SymPy `[Meurer:2017]`, and MLJ `[Blaom:2019]`.
 
 <!-- 
 Citations to entries in paper.bib should be in
