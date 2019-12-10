@@ -31,7 +31,7 @@ For example, here's a simple Gaussian model:
 m = @model sigma,N begin
     mu ~ Cauchy(0,1)
     y ~ For(N) do j
-            Normal(mu,s)
+            Normal(mu,sigma)
         end
     end
 ```
