@@ -41,7 +41,7 @@ Given this, a user can do things like
 - Specify the `sigma` and `N` arguments, and "forward sample" from the model (`rand`)
 - Compute the log-density (`logpdf`)
 - Call to external inference libraries that use these or other included methods
-- Build new models from `m`, for example using a known value for $mu$ or computing the Markov blanket at a node
+- Build new models from `m`, for example using a known value for `mu` or computing the Markov blanket at a node
 - Find the symbolic log-density, using `SymPy.jl`
 - Use the result of symbolic simplification to generated optimized code, often with significant performance benefits
 
