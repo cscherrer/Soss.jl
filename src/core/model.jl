@@ -13,11 +13,11 @@ struct Model{A,B,M}
     retn  :: Union{Nothing, Symbol, Expr}
 end
 
-argstype(::Model{A,B}) where {A,B} = A
-bodytype(::Model{A,B}) where {A,B} = B
+argstype(::Model{A,B,M}) where {A,B,M} = A
+bodytype(::Model{A,B,M}) where {A,B,M} = B
 
-argstype(::Type{Model{A,B}}) where {A,B} = A
-bodytype(::Type{Model{A,B}}) where {A,B} = B
+argstype(::Type{Model{A,B,M}}) where {A,B,M} = A
+bodytype(::Type{Model{A,B,M}}) where {A,B,M} = B
 
 getmodule(::Type{Model{A,B,M}}) where {A,B,M} = from_type(M)
 getmodule(::Model{A,B,M}) where {A,B,M} = from_type(M)

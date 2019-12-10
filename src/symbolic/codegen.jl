@@ -28,7 +28,7 @@ function _codegen(m :: Model, expand_sums=true)
         pushfirst!(code.args, :($v = getproperty(_args, $vname)))
     end
 
-    for v in stochastic(m)
+    for v in sampled(m)
         vname = QuoteNode(v)
         pushfirst!(code.args, :($v = getproperty(_data, $vname)))
     end

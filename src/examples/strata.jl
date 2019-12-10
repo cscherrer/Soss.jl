@@ -109,7 +109,7 @@ scatter!(truth.x,truth.y, legend=false, c=1)
 plot!(xx, truth.α .+ truth.β .* xx, legend=false, lw=3, c=2)
 savefig("fit2.png")
 
-pred2 = predictive(m2, setdiff(stochastic(m2), [:y])...)
+pred2 = predictive(m2, setdiff(sampled(m2), [:y])...)
 
 post2pred= [rand(pred2(θ)((x=x,))) for θ ∈ post2]  |> particles
 
