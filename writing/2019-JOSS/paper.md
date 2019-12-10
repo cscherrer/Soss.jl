@@ -33,7 +33,7 @@ m = @model sigma,N begin
     y ~ For(N) do j
             Normal(mu,s)
         end
-end
+    end
 ```
 
 Given this, a user can do things like
