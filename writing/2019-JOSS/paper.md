@@ -15,7 +15,7 @@ authors:
 affiliations:
  - name: Senior Data Scientist, Metis
    index: 1
- - name: Institution 2
+ - name: Department of Computer Science, University of Tsukuba
    index: 2
 date: 7 Dec 2019
 bibliography: paper.bib
