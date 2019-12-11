@@ -2,6 +2,7 @@ import TransformVariables
 using Bijectors
 
 const TV = TransformVariables
+const B = Bijectors
 
 struct Transform{N,T} <: Bijector{N}
     t::T
@@ -28,12 +29,20 @@ as(T, args...) = Transform(TV.as(T, args...))
 
 using Soss
 
-m = @model μ begin
-x ~ Normal(μ,1)
-end
+m = @model x,N begin
+    μ ~ Normal()
+    α ~ Normal()
+    β ~ Normal()
+    σ ~ HalfNormal()
+    yhat = α .+ β .* x
+    y ~ For(N) do j
+            Normal(yhat[j], σ)
+        end
+end;
 
-t = xform(m(μ=10), NamedTuple())
+x = randn(5)
+t = xform(m(x=x,N=5), NamedTuple())
 
 b = Transform(t)
 
-b(randn(1))
+b(randn(B.dimension(b)))
