@@ -65,7 +65,7 @@ Thanks to the Julia language's [@Julia-2017] excellent support for modularity, l
 - Ed Scheinerman for the [`SimpleWorld.jl`](https://github.com/scheinerman/SimpleWorld.jl) ecosystem, which we use to track and reason about variable dependencies within a model
 - Mathieu Besançon for ongoing work on [`Distributions.jl`](https://github.com/JuliaStats/Distributions.jl) [@Distributions.jl-2019], and for his patient tolerance for PPL-related nitpicks of this library
 
-We would also like to thank Seth Axen for helpful discussions and recent contributions including connection to ArviZ [@arviz_2019], and the Turing [@ge2018t], Gen [@Cusumano-Towner:2019], and MLJ [@Blaom:2019] teams for helpful discussions, and for making their libraries modular and open-source.
+We would also like to thank Seth Axen for helpful discussions and recent contributions including connection to [ArviZ](https://github.com/arviz-devs/ArviZ.jl) [@arviz_2019], and the [Turing](https://github.com/TuringLang/Turing.jl) [@ge2018t], [Gen](https://github.com/probcomp/Gen) [@Cusumano-Towner:2019], and [MLJ](https://github.com/alan-turing-institute/MLJ.jl) [@Blaom:2019] teams for helpful discussions, and for making their libraries modular and open-source.
 
 
 # References
