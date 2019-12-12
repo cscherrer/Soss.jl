@@ -41,11 +41,11 @@ Given this, a user can do things like
 - Specify the `sigma` and `N` arguments, and "forward sample" from the model (`rand`)
 - Compute the log-density (`logpdf`)
 - Call to external inference libraries that use these or other included methods
-- Build new models from `m`, for example using a known value for `mu` or computing the Markov blanket at a node
+- Transform `m` to yield new models, for example using a known value for `mu` or computing the Markov blanket at a node
 - Find the symbolic log-density, using `SymPy.jl`
 - Use the result of symbolic simplification to generated optimized code, often with significant performance benefits
 
-At the time of this writing, Soss can connect (through the main library or optional add-ons) with Gen [@Cusumano-Towner:2019],  SymPy [@eurer:2017], and MLJ [@Blaom:2019].
+At the time of this writing, Soss can connect (through the main library or optional add-ons) with Gen [@Cusumano-Towner:2019],  SymPy [@Meurer:2017], and MLJ [@Blaom:2019].
 
 <!-- 
 Citations to entries in paper.bib should be in
