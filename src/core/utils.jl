@@ -270,3 +270,6 @@ function tower(x)
 end
 
 TypeLevel = GeneralizedGenerated.TypeLevel
+
+unVal(::Type{Val{T}}) where {T} = T
+unVal(::Val{T}) where {T} = T
