@@ -40,9 +40,9 @@ Given this, a user can do things like
 
 - Specify the `sigma` and `N` arguments, and "forward sample" from the model (`rand`)
 - Compute the log-density (`logpdf`)
-- Call to external inference libraries that use these or other included methods
-- Transform `m` to yield new models, for example using a known value for `mu` or computing the Markov blanket at a node
-- Find the symbolic log-density, using `SymPy.jl`
+- Call to external inference libraries that benefit from these or other inference primitives
+- Transform the model to yield new models, for example using a known value for `mu` or computing the Markov blanket at a node
+- Find the symbolic log-density, using John Verzani's [`SymPy.jl`](https://github.com/JuliaPy/SymPy.jl) bindings to SymPy [@10.7717/peerj-cs.103]
 - Use the result of symbolic simplification to generated optimized code, often with significant performance benefits
 
 At the time of this writing, Soss can connect (through the main library or optional add-ons) with Gen [@Cusumano-Towner:2019],  SymPy [@Meurer:2017], and MLJ [@Blaom:2019].
@@ -59,6 +59,13 @@ For a quick reference, the following citation commands can be used:
 
 # Acknowledgements
 
-The authors are grateful for 
+Thanks to the Julia language's [@Julia-2017] excellent support for modularity, libraries like Soss can be built without the need to re-implement existing capabilities. For extensive libaries that made early Soss development possible, the authors would like to acknowledge
+
+- Tamas Papp for [`DynamicHMC.jl`](https://github.com/tpapp/DynamicHMC.jl) and associated libraries
+- Ed Scheinerman for the [`SimpleWorld.jl`](https://github.com/scheinerman/SimpleWorld.jl) ecosystem, which we use to track and reason about variable dependencies within a model
+- Mathieu Besançon for ongoing work on [`Distributions.jl`](https://github.com/JuliaStats/Distributions.jl) [@Distributions.jl-2019], and for his patient tolerance for PPL-related nitpicks of this library
+
+We would also like to thank Seth Axen for helpful discussions and recent contributions including connection to ArviZ [@arviz_2019], and the Turing [@ge2018t], Gen [@Cusumano-Towner:2019], and MLJ [@Blaom:2019] teams for helpful discussions, and for making their libraries modular and open-source.
+
 
 # References
