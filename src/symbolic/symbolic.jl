@@ -5,7 +5,8 @@ using MLStyle
 
 import SymPy
 using SymPy: Sym, symbols, free_symbols
-
+import SpecialFunctions
+using SpecialFunctions: logfactorial
 
 """As type encoding a PyObject is unsafe without some hard
 works with reference counting, we simply use a Julia proxy
@@ -69,12 +70,17 @@ end
 logpdf(d::SymDist, x) = d.logpdf(sym(x))
 
 
+# julia> logpdf(SymPy.density(Soss.stats.Poisson(:Poisson,sym(:λ))), sym(:x))
+# x⋅log(λ) - λ - log(x!)
+
+SpecialFunctions.logfactorial(x::Sym) = log(sympy.factorial(x))
+
+Distributions.Poisson(λ::Sym) = SymDist(x -> x * log(λ) - λ - logfactorial(x))
 Distributions.Bernoulli(p::Sym) = SymDist(y -> y * log(p) + (1-y) * log(1-p))
 
-for dist in [:Bernoulli]
+for dist in [:Bernoulli, :Poisson]
     @eval begin
         logpdf(d::$dist, x::Sym) = logpdf($dist(sym.(Distributions.params(d))...), x)
-
     end
 end
 
@@ -320,6 +326,7 @@ symlogpdf(d::Cauchy, x::Sym) = symlogpdf(Cauchy(sym(d.μ),sym(d.σ)), x)
 
 symlogpdf(d::Beta, x::Sym) = symlogpdf(Beta(sym(d.α),sym(d.β)), x)
 
+symlogpdf(d::Poisson, x::Sym) = symlogpdf(Poisson(sym(d.λ)), x)
 
 logpdf(d::Sym, x::Sym) = symlogpdf(d,x)
 
