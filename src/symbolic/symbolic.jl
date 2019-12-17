@@ -73,7 +73,7 @@ logpdf(d::SymDist, x) = d.logpdf(sym(x))
 # julia> logpdf(SymPy.density(Soss.stats.Poisson(:Poisson,sym(:λ))), sym(:x))
 # x⋅log(λ) - λ - log(x!)
 
-SpecialFunctions.logfactorial(x::Sym) = log(sympy.factorial(x))
+SpecialFunctions.logfactorial(x::Sym) = sympy.loggamma(x+1)
 
 Distributions.Poisson(λ::Sym) = SymDist(x -> x * log(λ) - λ - logfactorial(x))
 Distributions.Bernoulli(p::Sym) = SymDist(y -> y * log(p) + (1-y) * log(1-p))
