@@ -65,7 +65,3 @@ function predict(m::Model, post::NamedTuple{N,T}) where {N,T}
     pred = predictive(m, keys(post)...)
     rand(pred(post))
 end
-
-Do(m::Model, args::Symbol...) = predictive(m, args...)
-
-Do(m::Model; kwargs...) = Do(m,keys(kwargs)...)(;kwargs...)
