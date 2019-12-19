@@ -3,6 +3,8 @@ using GeneralizedGenerated
 export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
+rand(d::JointDistribution, N::Int) = [rand(d) for n in 1:N]
+
 @inline function rand(m::JointDistribution)
     return _rand(getmoduletypencoding(m.model), m.model, m.args)
 end

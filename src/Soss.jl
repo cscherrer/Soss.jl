@@ -33,10 +33,12 @@ include("primitives/rand.jl")
 include("primitives/logpdf.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")
+# include("primitives/bijectors.jl")
 
 
 include("transforms/predictive.jl")
 include("transforms/markovblanket.jl")
+include("transforms/do.jl")
 
 include("symbolic/symbolic.jl")
 include("symbolic/codegen.jl")
