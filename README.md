@@ -132,7 +132,7 @@ truth.y - particles(ppc)
 
 
 ````
-6-element Array{Particles{Float64,1000},1}:
+6-element Array{MonteCarloMeasurements.Particles{Float64,1000},1}:
  -0.52 ± 0.55 
  -1.21 ± 1.3  
   0.57 ± 0.53 
