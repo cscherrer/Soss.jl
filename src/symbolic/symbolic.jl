@@ -360,8 +360,7 @@ export tolatex
 function tolatex(ℓ::SymPy.Sym)
     r = r"_j(?<num>\d+)"
     s = s"j_{\g<num>}"
-    result = Base.replace(sympy.latex(ℓ), r => s)
-    print()
+    Base.replace(sympy.latex(ℓ), r => s)
 end
 
 
