@@ -18,6 +18,11 @@ function particles(v::Vector{Vector{T} }) where {T}
     map(eachindex(v[1])) do j particles([x[j] for x in v]) end
 end
 
+function particles(v::Vector{Array{T,N} }) where {T,N}
+    map(CartesianIndices(v[1])) do j particles([x[j] for x in v]) end
+end
+
+
 function particles(s::Vector{NamedTuple{vs, T}}) where {vs, T}
     nt = NamedTuple()
     for k in keys(s[1])
