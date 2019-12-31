@@ -358,9 +358,9 @@ end
 
 export tolatex
 function tolatex(ℓ::SymPy.Sym)
-    r = r"_j(?<num>\d+)"
-    s = s"j_{\g<num>}"
-    Base.replace(sympy.latex(ℓ), r => s)
+    r = r"Idx\\left\(_j(?<num>\d+)\\right\)"
+    s = s"j_\g<num>"
+    x = Base.replace(sympy.latex(ℓ), r => s)
 end
 
 
