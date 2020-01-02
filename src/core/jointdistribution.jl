@@ -18,7 +18,7 @@ function Base.show(io::IO, d :: JointDistribution)
     join(io, fieldnames(arguments(d)), ", ")
     println(io, "]")
     print(io, "    Variables: [")
-    join(io, setdiff(toposortvars(m),arguments(m)), ", ")
+    join(io, setdiff(toposort(m),arguments(m)), ", ")
     println(io, "]\n")
     println(io, convert(Expr, m))
 end

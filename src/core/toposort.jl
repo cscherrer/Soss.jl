@@ -30,8 +30,8 @@ function convert_simple(G::AbstractSimpleGraph)
     return (H,d,dinv)
 end
 
-export toposortvars
-function toposortvars(m::Model)
+export toposort
+function toposort(m::Model)
     (g, _, names) = poset(m).D |> convert_simple
     setdiff(map(v -> names[v], Graphs.topological_sort_by_dfs(g)), arguments(m))
 end

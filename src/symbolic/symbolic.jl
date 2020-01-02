@@ -268,7 +268,7 @@ function sourceSymlogpdf()
                 push!(q.args, :($x = $xsym))
             end
 
-            for st in map(v -> findStatement(_m,v), toposortvars(_m))
+            for st in map(v -> findStatement(_m,v), toposort(_m))
 
                 typeof(st) == Sample || continue
                 x = st.x
