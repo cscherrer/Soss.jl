@@ -65,3 +65,5 @@ function predict(m::Model, post::NamedTuple{N,T}) where {N,T}
     pred = predictive(m, keys(post)...)
     rand(pred(post))
 end
+
+predict(m::Model; kwargs...) = predict(m,(;kwargs...))
