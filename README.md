@@ -132,7 +132,7 @@ truth.y - particles(ppc)
 
 
 ````
-6-element Array{Particles{Float64,1000},1}:
+6-element Array{MonteCarloMeasurements.Particles{Float64,1000},1}:
  -0.52 ± 0.55 
  -1.21 ± 1.3  
   0.57 ± 0.53 
@@ -276,5 +276,4 @@ We need ways to interact with Turing and Gen. Some ideas:
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/cscherrer/Soss.jl.svg)](https://starchart.cc/cscherrer/Soss.jl)
-
 

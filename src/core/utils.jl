@@ -126,7 +126,7 @@ function buildSource(m, proc, wrap=identity; kwargs...)
 
     kernel = @q begin end
 
-    for st in map(v -> findStatement(m,v), toposortvars(m))
+    for st in map(v -> findStatement(m,v), toposort(m))
         ex = proc(m, st; kwargs...)
         isnothing(ex) || push!(kernel.args, ex)
     end
@@ -269,4 +269,7 @@ function tower(x)
     return result
 end
 
-TypeLevel = GeneralizedGenerated.TypeLevel
+const TypeLevel = GeneralizedGenerated.TypeLevel
+
+unVal(::Type{Val{T}}) where {T} = T
+unVal(::Val{T}) where {T} = T

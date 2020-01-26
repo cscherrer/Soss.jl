@@ -141,7 +141,7 @@ function Base.convert(::Type{Expr}, m::Model{T} where T)
 
     body = @q begin end
 
-    for v ∈ setdiff(toposortvars(m), arguments(m))
+    for v ∈ setdiff(toposort(m), arguments(m))
         push!(body.args, Expr(m,v))
     end
 
