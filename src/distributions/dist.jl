@@ -55,7 +55,7 @@ Base.rand(rng::AbstractRNG, m::EqualMix) = rand(rng, rand(rng, m.components))
 xform(d::EqualMix, _data) = xform(d.components[1], _data)
 
 
-StudentT(ν, μ=0.0, σ=1.0) = LocationScale(μ, σ, TDist(ν))
+StudentT(ν, μ = 0.0, σ = 1.0) = LocationScale(μ, σ, TDist(ν))
 
 
 xform(d::Dirichlet, _data) = UnitSimplex(length(d.alpha))
