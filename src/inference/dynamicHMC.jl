@@ -7,8 +7,6 @@ using TransformVariables,
       ForwardDiff
 import LogDensityProblems: ADgradient
 
-using Random
-
 export dynamicHMC
 
 function dynamicHMC(

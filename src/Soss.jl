@@ -1,6 +1,7 @@
 module Soss
 
 import Base.rand
+using Random
 using Reexport: @reexport
 
 @reexport using Distributions
@@ -52,11 +53,11 @@ include("inference/advancedhmc.jl")
 
 
 # include("weighted.jl")
-# 
+#
 # # include("graph.jl")
 # # # include("optim.jl")
 # include("importance.jl")
-# 
+#
 # # # include("sobols.jl")
 # # # include("fromcube.jl")
 # # # include("tocube.jl")

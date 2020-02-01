@@ -1,73 +1,61 @@
-export LogisticBinomial, HalfCauchy, HalfNormal
+export LogisticBinomial, HalfCauchy, HalfNormal, EqualMix, StudentT
 import Distributions.logpdf
 # using SymPy
 
-struct HalfCauchy{T} <: Distribution{Univariate,Continuous}
+struct HalfCauchy{T<:Real} <: Distribution{Univariate,Continuous}
     σ::T
-
-    function HalfCauchy{T}(σ::T) where T
-        new{T}(σ)
-    end
 end
 
-HalfCauchy(σ::T) where {T<:Real} = HalfCauchy{T}(σ)
-HalfCauchy(σ::Integer) = HalfCauchy(Float64(σ))
-HalfCauchy() = HalfCauchy(1.0)
+HalfCauchy(σ::Integer = 1) = HalfCauchy(float(σ))
 
-Distributions.params(d::HalfCauchy) = (d.σ, )
+Distributions.params(d::HalfCauchy) = (d.σ,)
 
-Distributions.logpdf(d::HalfCauchy{T} ,x::Real) where {T}  = log(2.0) + logpdf(Cauchy(0.0,d.σ),x)
+Distributions.logpdf(d::HalfCauchy, x::Real) = log(2) + logpdf(Cauchy(0, d.σ), x)
 
-Distributions.pdf(d::HalfCauchy,x) = 2 * pdf(Cauchy(0,d.σ),x)
+Distributions.pdf(d::HalfCauchy, x) = 2 * pdf(Cauchy(0, d.σ), x)
 
-Distributions.rand(d::HalfCauchy) = abs(rand(Cauchy(0,d.σ)))
+Distributions.rand(rng::AbstractRNG, d::HalfCauchy) = abs(rand(rng, Cauchy(0, d.σ)))
 
-Distributions.quantile(d::HalfCauchy, p) = quantile(Cauchy(0, d.σ), (p+1)/2)
+Distributions.quantile(d::HalfCauchy, p) = quantile(Cauchy(0, d.σ), (p + 1) / 2)
 
-Distributions.support(::HalfCauchy{T} where T) = RealInterval(0.0, Inf)
+Distributions.support(::HalfCauchy) = RealInterval(0.0, Inf)
 
-struct HalfNormal
-    σ
+
+struct HalfNormal{T<:Real} <: Distribution{Univariate,Continuous}
+    σ::T
 end
 
-HalfNormal() = HalfNormal(1)
+HalfNormal(σ::Integer = 1) = HalfNormal(float(σ))
 
+Distributions.params(d::HalfNormal) = (d.σ,)
 
-Distributions.logpdf(d::HalfNormal,x::Real) = log(2) + logpdf(Normal(0,d.σ),x)
+Distributions.logpdf(d::HalfNormal, x::Real) = log(2) + logpdf(Normal(0, d.σ), x)
 
-Distributions.pdf(d::HalfNormal,x) = 2 * pdf(Normal(0,d.σ),x)
+Distributions.pdf(d::HalfNormal, x) = 2 * pdf(Normal(0, d.σ), x)
 
-Distributions.rand(d::HalfNormal) = abs(rand(Normal(0,d.σ)))
+Distributions.rand(rng::AbstractRNG, d::HalfNormal) = abs(rand(rng, Normal(0, d.σ)))
+
+Distributions.quantile(d::HalfNormal, p) = quantile(Normal(0, d.σ), (p + 1) / 2)
 
 Distributions.support(::HalfNormal) = RealInterval(0.0, Inf)
 
-Distributions.params(d::HalfNormal) = (d.σ, )
-
-# HalfNormal(s) = Truncated(Normal(0,s),0,Inf)
-# HalfNormal() = Truncated(Normal(0,1.0),0,Inf)
-
 
 # Binomial distribution, parameterized by logit(p)
-LogisticBinomial(n,x)=Binomial(n,logistic(x))
+LogisticBinomial(n, x) = Binomial(n, logistic(x))
 
-export EqualMix
+
 struct EqualMix{T}
     components::Vector{T}
 end
 
-function Distributions.logpdf(m::EqualMix{T}, x) where {T}
-    logsumexp(map(d -> logpdf(d,x), m.components))
-end
+Distributions.logpdf(m::EqualMix, x) = logsumexp(map(d -> logpdf(d, x), m.components))
 
-function Base.rand(m::EqualMix{T}) where {T}
-    rand(rand(m.components))
-end
+Base.rand(rng::AbstractRNG, m::EqualMix) = rand(rng, rand(rng, m.components))
 
 xform(d::EqualMix, _data) = xform(d.components[1], _data)
 
-export StudentT
-StudentT(ν, μ=0.0, σ=1.0) = LocationScale(μ,σ, TDist(ν))
+
+StudentT(ν, μ=0.0, σ=1.0) = LocationScale(μ, σ, TDist(ν))
+
 
 xform(d::Dirichlet, _data) = UnitSimplex(length(d.alpha))
-
-
