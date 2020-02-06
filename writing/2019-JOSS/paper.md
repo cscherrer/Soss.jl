@@ -13,7 +13,7 @@ authors:
   - name: Taine Zhao
     affiliation: 2
 affiliations:
- - name: Metis
+ - name: RelationalAI
    index: 1
  - name: Department of Computer Science, University of Tsukuba
    index: 2
