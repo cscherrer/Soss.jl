@@ -12,7 +12,9 @@ using AdvancedHMC
 export advancedHMC
 
 
-function advancedHMC(m :: JointDistribution{A,B}, _data) where {A,B}
+function advancedHMC(m :: JointDistribution{A,B}, _data, n_samples = 1000; 
+                                                         n_adapts  = 1000) where {A,B}
+    
     ℓ(pars) = logpdf(m, merge(pars, _data))
 
     t = xform(m,_data)
@@ -30,8 +32,7 @@ function advancedHMC(m :: JointDistribution{A,B}, _data) where {A,B}
     end
 
     # Sampling parameter settings
-    n_samples = 1000
-    n_adapts = 1000
+
 
     D = t.dimension
     # Draw a random starting points
