@@ -7,12 +7,28 @@
 [![Codecov](https://codecov.io/gh/cscherrer/Soss.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/cscherrer/Soss.jl)
 [![Coveralls](https://coveralls.io/repos/github/cscherrer/Soss.jl/badge.svg?branch=master)](https://coveralls.io/github/cscherrer/Soss.jl?branch=master)
 
-Soss is a library for _probabilistic programming_
+Soss is a library for _probabilistic programming_.
+
+## Getting started
+
+Soss is an officially registered package, so to add it to your project you can type
+```
+]add Soss
+```
+within the julia REPL and your are ready for `using Soss`. If it fails to precompile, it could be due to one of the following:
+
+* You have gotten an old version due to compatibility restrictions with your current environment.
+Should that happen, create a new folder for your Soss project, launch a julia session within, type
+```
+]activate .
+```
+and start again.
+* You have set up PyCall to use a python distribution provided by yourself. If that is the case, make sure to install the missing python dependencies, as listed in the precompilation error.
 
 Let's jump right in with a simple linear model:
 
 ````julia
-using Soss 
+using Soss
 
 m = @model X begin
     β ~ Normal() |> iid(size(X,2))
@@ -69,7 +85,7 @@ pairs(::NamedTuple) with 3 entries:
 julia> truth.β
 2-element Array{Float64,1}:
   0.07187269298745927
- -0.5128103336795292 
+ -0.5128103336795292
 
 ````
 
@@ -79,9 +95,9 @@ julia> truth.β
 julia> truth.y
 6-element Array{Float64,1}:
   0.10079289135480324
- -2.5197330871745263 
-  2.0748097755419757 
-  0.8442227439533416 
+ -2.5197330871745263
+  2.0748097755419757
+  0.8442227439533416
   1.158074626662026  
  -0.47515878362112707
 
@@ -91,7 +107,7 @@ julia> truth.y
 
 
 
-And now pretend we don't know `β`, and have the model figure it out. 
+And now pretend we don't know `β`, and have the model figure it out.
 Often these are easier to work with in terms of `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl)):
 
 ````julia
@@ -133,9 +149,9 @@ truth.y - particles(ppc)
 
 ````
 6-element Array{MonteCarloMeasurements.Particles{Float64,1000},1}:
- -0.52 ± 0.55 
+ -0.52 ± 0.55
  -1.21 ± 1.3  
-  0.57 ± 0.53 
+  0.57 ± 0.53
   0.951 ± 0.91
   0.655 ± 0.63
   0.534 ± 0.53
@@ -159,7 +175,7 @@ julia> m2 = @model X begin
         end
 end;
 
-julia> 
+julia>
 symlogpdf(m2)
    N                                                     k                                                         
   ____                                                  ____                                                       
@@ -186,7 +202,7 @@ julia> symlogpdf(m2) |> expandSums |> foldConstants
                                                    ___                                     ___          
                                                    ╲                                       ╲            
                                                     ╲                            2          ╲          2
--0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱    β[_j1] 
+-0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱    β[_j1]
                                                    ╱                                       ╱            
                                                    ‾‾‾                                     ‾‾‾          
                                                  _j1 = 1                                 _j1 = 1        
@@ -202,7 +218,7 @@ We can use the symbolic simplification to speed up computations:
 ````julia
 julia> using BenchmarkTools
 
-julia> 
+julia>
 @btime logpdf($m2(X=X), $truth)
   1.989 μs (47 allocations: 1.05 KiB)
 -15.84854642585797
@@ -225,7 +241,7 @@ Under the hood, `rand` and `logpdf` specify different ways of "running" the mode
 
 `logpdf` steps through the same program, but instead accumulates a log-density. It begins by initializing `_ℓ = 0.0`. Then at each step, it turns `v ~ dist` into `_ℓ += logpdf(dist, v)`, before finally returning `_ℓ`.
 
-Note that I said "turns into" instead of "interprets". Soss uses [`GG.jl`](https://github.com/thautwarm/GG.jl) to generate specialized code for a given model, inference primitive (like `rand` and `logpdf`), and type of data. 
+Note that I said "turns into" instead of "interprets". Soss uses [`GG.jl`](https://github.com/thautwarm/GG.jl) to generate specialized code for a given model, inference primitive (like `rand` and `logpdf`), and type of data.
 
 This idea can be used in much more complex ways. `weightedSample` is a sort of hybrid between `rand` and `logpdf`. For data that are provided, it increments a `_ℓ` using `logpdf`. Unknown values are sampled using `rand`.
 
@@ -276,4 +292,3 @@ We need ways to interact with Turing and Gen. Some ideas:
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/cscherrer/Soss.jl.svg)](https://starchart.cc/cscherrer/Soss.jl)
-
