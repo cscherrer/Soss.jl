@@ -1,10 +1,10 @@
-using Plots
+using RecipesBase
 
 export eachplot
 
 @userplot EachPlot
 
-@recipe function plt(p::EachPlot)
+@recipe function f(p::EachPlot)
     x,y = p.args
     label --> ""
     # color --> :black
