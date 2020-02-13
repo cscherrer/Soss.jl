@@ -12,7 +12,7 @@ Soss is a library for _probabilistic programming_.
 ## Getting started
 
 Soss is an officially registered package, so to add it to your project you can type
-```
+```julia
 ]add Soss
 ```
 within the julia REPL and your are ready for `using Soss`. If it fails to precompile, it could be due to one of the following:
