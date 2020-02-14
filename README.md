@@ -12,18 +12,26 @@ Soss is a library for _probabilistic programming_.
 ## Getting started
 
 Soss is an officially registered package, so to add it to your project you can type
-```julia
+````julia
+
 ]add Soss
-```
+````
+
+
+
 within the julia REPL and your are ready for `using Soss`. If it fails to precompile, it could be due to one of the following:
 
 * You have gotten an old version due to compatibility restrictions with your current environment.
 Should that happen, create a new folder for your Soss project, launch a julia session within, type
-```
+````julia
+
 ]activate .
-```
-and start again.
-* You have set up PyCall to use a python distribution provided by yourself. If that is the case, make sure to install the missing python dependencies, as listed in the precompilation error.
+````
+
+
+
+and start again. More information on julia projects [here](https://julialang.github.io/Pkg.jl/stable/environments/#Creating-your-own-projects-1).
+* You have set up PyCall to use a python distribution provided by yourself. If that is the case, make sure to install the missing python dependencies, as listed in the precompilation error. More information on PyCall's python version [here](https://github.com/JuliaPy/PyCall.jl#specifying-the-python-version).
 
 Let's jump right in with a simple linear model:
 
@@ -85,7 +93,7 @@ pairs(::NamedTuple) with 3 entries:
 julia> truth.β
 2-element Array{Float64,1}:
   0.07187269298745927
- -0.5128103336795292
+ -0.5128103336795292 
 
 ````
 
@@ -95,9 +103,9 @@ julia> truth.β
 julia> truth.y
 6-element Array{Float64,1}:
   0.10079289135480324
- -2.5197330871745263
-  2.0748097755419757
-  0.8442227439533416
+ -2.5197330871745263 
+  2.0748097755419757 
+  0.8442227439533416 
   1.158074626662026  
  -0.47515878362112707
 
@@ -114,7 +122,7 @@ Often these are easier to work with in terms of `particles` (built using [MonteC
 julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
 
 julia> particles(post)
-(β = Particles{Float64,1000}[0.548 ± 0.24, 0.751 ± 0.5],)
+(β = Particles{Float64,1000}[0.538 ± 0.26, 0.775 ± 0.51],)
 
 ````
 
@@ -148,12 +156,12 @@ truth.y - particles(ppc)
 
 
 ````
-6-element Array{MonteCarloMeasurements.Particles{Float64,1000},1}:
- -0.52 ± 0.55
- -1.21 ± 1.3  
-  0.57 ± 0.53
-  0.951 ± 0.91
-  0.655 ± 0.63
+6-element Array{Particles{Float64,1000},1}:
+ -0.534 ± 0.55
+ -1.28 ± 1.3  
+  0.551 ± 0.53
+  0.918 ± 0.91
+  0.624 ± 0.63
   0.534 ± 0.53
 ````
 
@@ -175,18 +183,25 @@ julia> m2 = @model X begin
         end
 end;
 
-julia>
+julia> 
 symlogpdf(m2)
-   N                                                     k                                                         
-  ____                                                  ____                                                       
-  ╲                                                     ╲                                                          
-   ╲    ⎛                      2                  ⎞      ╲    ⎛            2                       log(π)   log(2)⎞
-    ╲   ⎜  (y[_j1] - yhat[_j1])    log(π)   log(2)⎟       ╲   ⎜- 0.5⋅β[_j1]  - 0.693147180559945 - ────── + ──────⎟
-    ╱   ⎜- ───────────────────── - ────── - ──────⎟ +     ╱   ⎝                                      2        2   ⎠
-   ╱    ⎝            2               2        2   ⎠      ╱                                                         
-  ╱                                                     ╱                                                          
-  ‾‾‾‾                                                  ‾‾‾‾                                                       
-_j1 = 1                                               _j1 = 1                                                      
+                                                    N                         
+                                                   ___                        
+                                                   ╲                          
+                                                    ╲                         
+-0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j
+                                                   ╱                          
+                                                   ‾‾‾                        
+                                                 _j1 = 1                      
+
+              k           
+             ___          
+             ╲            
+   2          ╲          2
+1])  - 0.5⋅   ╱    β[_j1] 
+             ╱            
+             ‾‾‾          
+           _j1 = 1        
 
 ````
 
@@ -198,14 +213,23 @@ There's clearly some redundant computation within the sums, so it helps to expan
 
 ````julia
 julia> symlogpdf(m2) |> expandSums |> foldConstants
-                                                    N                                       k           
-                                                   ___                                     ___          
-                                                   ╲                                       ╲            
-                                                    ╲                            2          ╲          2
--0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱    β[_j1]
-                                                   ╱                                       ╱            
-                                                   ‾‾‾                                     ‾‾‾          
-                                                 _j1 = 1                                 _j1 = 1        
+                                                    N                         
+                                                   ___                        
+                                                   ╲                          
+                                                    ╲                         
+-0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j
+                                                   ╱                          
+                                                   ‾‾‾                        
+                                                 _j1 = 1                      
+
+              k           
+             ___          
+             ╲            
+   2          ╲          2
+1])  - 0.5⋅   ╱    β[_j1] 
+             ╱            
+             ‾‾‾          
+           _j1 = 1        
 
 ````
 
@@ -218,13 +242,13 @@ We can use the symbolic simplification to speed up computations:
 ````julia
 julia> using BenchmarkTools
 
-julia>
+julia> 
 @btime logpdf($m2(X=X), $truth)
-  1.989 μs (47 allocations: 1.05 KiB)
+  1.863 μs (47 allocations: 1.05 KiB)
 -15.84854642585797
 
 julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  313.860 ns (5 allocations: 208 bytes)
+  288.658 ns (5 allocations: 208 bytes)
 -15.848546425857968
 
 ````
@@ -249,12 +273,12 @@ This idea can be used in much more complex ways. `weightedSample` is a sort of h
 julia> ℓ, proposal = weightedSample(m(X=X), (y=truth.y,));
 
 julia> ℓ
--41.48956445920402
+-33.647614702926504
 
 julia> proposal.β
 2-element Array{Float64,1}:
- -0.3736471921582353
- -2.5954806426320642
+ -1.216679880035586  
+  0.42410088891060693
 
 ````
 

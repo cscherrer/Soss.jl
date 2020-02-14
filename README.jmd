@@ -7,12 +7,28 @@
 [![Codecov](https://codecov.io/gh/cscherrer/Soss.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/cscherrer/Soss.jl)
 [![Coveralls](https://coveralls.io/repos/github/cscherrer/Soss.jl/badge.svg?branch=master)](https://coveralls.io/github/cscherrer/Soss.jl?branch=master)
 
-Soss is a library for _probabilistic programming_
+Soss is a library for _probabilistic programming_.
+
+## Getting started
+
+Soss is an officially registered package, so to add it to your project you can type
+```julia; eval=false
+]add Soss
+```
+within the julia REPL and your are ready for `using Soss`. If it fails to precompile, it could be due to one of the following:
+
+* You have gotten an old version due to compatibility restrictions with your current environment.
+Should that happen, create a new folder for your Soss project, launch a julia session within, type
+```julia; eval=false
+]activate .
+```
+and start again. More information on julia projects [here](https://julialang.github.io/Pkg.jl/stable/environments/#Creating-your-own-projects-1).
+* You have set up PyCall to use a python distribution provided by yourself. If that is the case, make sure to install the missing python dependencies, as listed in the precompilation error. More information on PyCall's python version [here](https://github.com/JuliaPy/PyCall.jl#specifying-the-python-version).
 
 Let's jump right in with a simple linear model:
 
 ```julia
-using Soss 
+using Soss
 
 m = @model X begin
     β ~ Normal() |> iid(size(X,2))
@@ -47,10 +63,10 @@ truth.β
 ```
 
 ```julia; term=true
-truth.y 
+truth.y
 ```
 
-And now pretend we don't know `β`, and have the model figure it out. 
+And now pretend we don't know `β`, and have the model figure it out.
 Often these are easier to work with in terms of `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl)):
 
 ```julia; term=true
@@ -85,7 +101,7 @@ m2 = @model X begin
         end
 end;
 
-symlogpdf(m2) 
+symlogpdf(m2)
 ```
 
 There's clearly some redundant computation within the sums, so it helps to expand:
@@ -111,7 +127,7 @@ Under the hood, `rand` and `logpdf` specify different ways of "running" the mode
 
 `logpdf` steps through the same program, but instead accumulates a log-density. It begins by initializing `_ℓ = 0.0`. Then at each step, it turns `v ~ dist` into `_ℓ += logpdf(dist, v)`, before finally returning `_ℓ`.
 
-Note that I said "turns into" instead of "interprets". Soss uses [`GG.jl`](https://github.com/thautwarm/GG.jl) to generate specialized code for a given model, inference primitive (like `rand` and `logpdf`), and type of data. 
+Note that I said "turns into" instead of "interprets". Soss uses [`GG.jl`](https://github.com/thautwarm/GG.jl) to generate specialized code for a given model, inference primitive (like `rand` and `logpdf`), and type of data.
 
 This idea can be used in much more complex ways. `weightedSample` is a sort of hybrid between `rand` and `logpdf`. For data that are provided, it increments a `_ℓ` using `logpdf`. Unknown values are sampled using `rand`.
 
@@ -151,5 +167,3 @@ We need ways to interact with Turing and Gen. Some ideas:
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/cscherrer/Soss.jl.svg)](https://starchart.cc/cscherrer/Soss.jl)
-
-
