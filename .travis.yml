@@ -5,6 +5,11 @@ os:
 julia:
     - 1.3
     - nightly
+    
+branches:
+  only:
+    - master
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/ # build tagged releases
 env:
     global:
     - PYTHON=conda
