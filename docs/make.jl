@@ -14,4 +14,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/cscherrer/Soss.jl",
+    push_preview=true
 )
