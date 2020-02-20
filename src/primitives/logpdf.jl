@@ -20,7 +20,11 @@ end
 function sourceLogpdf()
     function(_m::Model)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
-        proc(_m, st :: Sample)     = :(_ℓ += logpdf($(st.rhs), $(st.x)))
+        proc(_m, st :: Sample)     = @q begin
+            Δℓ = logpdf($(st.rhs), $(st.x))
+            Δℓ == Inf && @warn "Infinite increment while computing logpdf(" * $(repr(st.rhs)) * ", " * $(repr(st.x)) * ")"
+            _ℓ += Δℓ
+        end
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
 
