@@ -21,7 +21,7 @@ function canonical(expr :: Expr)
             rx = r(x)
 
             :(For($rf, $rx)) |> r
-        end        
+        end
 
 
         Expr(:do, :(For($(x...))), :($f)) => begin
@@ -30,15 +30,20 @@ function canonical(expr :: Expr)
 
             rxtup = Expr(:tuple, rx...)
             :(For($rf, $rxtup)) |> r
-        end        
-        
+        end
+
         :((iid($n))($dist)) => begin
             rn = r(n)
             rdist = r(dist)
-            :(iid($rn,$rdist)) |> r
+            :(iid($rdist,$rn)) |> r
         end
 
-        
+        :((iid($(n...)))($dist)) => begin
+            rn = r.(n)
+            rdist = r(dist)
+            :(iid($rdist, $(rn...))) |> r
+        end
+
         :($f($(args...))) => begin
             rf = r(f)
             rx = map(r,args)
@@ -66,11 +71,11 @@ end
 
 function canonical(m :: Model)
     args = m.args :: Vector{Symbol}
-    vals  = map(canonical, m.vals) 
-    dists = map(canonical, m.dists) 
-    retn = m.retn  
+    vals  = map(canonical, m.vals)
+    dists = map(canonical, m.dists)
+    retn = m.retn
     Model(getmodule(m), args, vals, dists, retn)
-end    
+end
 
 ex1 = :(map(1:10) do x x^2 end)
 

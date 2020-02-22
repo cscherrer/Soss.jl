@@ -4,16 +4,38 @@ using Base.Cartesian
 using Base.Threads
 using FillArrays
 using CuArrays
+# using LoopVectorization
 
 include("gpulogpdfs.jl")
 
 export logpdf
 export rand
-
 export For
-struct For{D,P,X,N}
-    params :: Array{P,N}
+
+
+# struct For{X, N, D<:Sampleable{X}, P} <: Sampleable{AbstractArray{X, N}} # one would like to write this, but Distributions does not support such generality
+struct For{X, N, D, P<:AbstractArray{T,N} where T}
+    params :: P
 end
+
+Base.eltype(d::For{X,N,D}) where {X,N,D} = D
+Distributions.params(d::For) = d.params
+
+# This is general, refactor:
+@inline function logpdf(d, xs::AbstractArray)
+    sum(logpdf(eltype(d)).(Array(params(d)), xs))
+end
+
+@inline function logpdf(d, xs::CuArray)
+    sum(logpdf(eltype(d)).(CuArray(params(d)), xs))
+end
+
+function Base.rand(d::For)
+    map(d.params) do θ
+        (rand ∘ eltype(d))(θ...)
+    end
+end
+
 
 #########################################################
 # T <: NTuple{N,J} where {J <: Integer}
@@ -22,68 +44,75 @@ end
 For(f, dims::J...) where {J <: Integer} = For(f, dims)
 
 function For(f, dims::T) where {N, J<:Integer, T<:NTuple{N,J}}
-    θ = one(CartesianIndex{N})
-    d = f(Tuple(θ)...)
-    D = typeof(d)
-    X = eltype(d)
-    p = params(d)
-    P = typeof(p)
-    ps = Array{P,N}(undef, dims)
-    ps[θ] = p
-    @inbounds @simd for θ in CartesianIndices(dims)[2:end]
-        d = f(Tuple(θ)...)
-        ps[θ] = params(d)
+    α = one(CartesianIndex{N})
+    d = f(Tuple(α)...)
+    θ = params(d)
+    θs = Array{typeof(θ),N}(undef, dims)
+    θs[α] = θ
+    @inbounds @simd for α in CartesianIndices(dims)[2:end] # Tried to use @avx here, but there are problems with GeneralizedGenerated. Should sometime understand and perhaps solve them.
+        d = f(Tuple(α)...)
+        θs[α] = params(d)
     end
-    For{D,P,X,N}(ps)
+    For{eltype(d),N,typeof(d),typeof(θs)}(θs)
 end
 
-@inline function logpdf(d::For{D}, xs::AbstractArray) where D
-    s = 0.0
-    for (p, x) in zip(d.params, xs)
-        s += logpdf(D(p...), x)
-    end
-    s
-end
-
-@inline function logpdf(d  :: For{Normal{X}, Tuple{X,X}, X, N},
-                        xs :: CuArray{<:Real, N}) where {X<:Real, N}
-    sum(cunormlogpdf.(d.params |> cu, xs))
-end
-
-function Base.rand(dist::For{D}) where D
-    map(dist.params) do p
-        (rand ∘ D)(p...)
-    end
-end
 
 #########################################################
 # T <: NTuple{N,J} where {J <: AbstractUnitRange}
 #########################################################
 
-# For(f, θ::J...) where {J <: AbstractUnitRange} = For(f,θ)
-#
-# function For(f::F, θ::T) where {F, N, J <: AbstractRange, T <: NTuple{N,J}}
-#     d = f.(ones(Int, N)...)
-#     D = typeof(d)
-#     X = eltype(d)
-#     For{F, NTuple{N,J}, D, X}(f,θ)
-# end
-#
-#
-# @inline function logpdf(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: AbstractRange,  T <: NTuple{N,J}, D, X1, X2}
-#     s = 0.0
-#     @inbounds @simd for θ in CartesianIndices(d.θ)
-#         s += logpdf(d.f(Tuple(θ)...), xs[θ])
-#     end
-#     s
-# end
-#
-#
-# function Base.rand(dist::For{F,T}) where {F,  N, J <: AbstractRange, T <: NTuple{N,J}}
-#     map(CartesianIndices(dist.θ)) do I
-#         (rand ∘ dist.f)(Tuple(I)...)
-#     end
-# end
+For(f, ranges::J...) where {J <: AbstractUnitRange} = For(f, ranges)
+
+function For(f, ranges::T) where {N, J<:AbstractRange, T<:NTuple{N,J}}
+    αs = CartesianIndices(ranges)
+    α = αs[1]
+    α₀ = α - one(CartesianIndex{N})
+    d = f(Tuple(α)...)
+    θ = params(d)
+    θs = Array{typeof(θ),N}(undef, size(αs))
+    θs[α - α₀] = θ
+    @inbounds @simd for α in αs[2:end]
+        d = f(Tuple(α)...)
+        θs[α - α₀] = params(d)
+    end
+    For{eltype(d),N,typeof(d),typeof(θs)}(θs)
+end
+
+
+#########################################################
+# T <: NTuple{N,J} where {J <: AbstractArray}
+#########################################################
+
+### From Michael Abbott's NamedPlus, which as things stand cannot be added because of compatibility restrictions:
+const newaxis = [CartesianIndex()]
+outer(xs::AbstractArray...) = outer(*, xs...)
+function outer(f::Function, x::AbstractArray, ys::AbstractArray...)
+    dims = ndims(x)
+    views = map(ys) do y
+        newaxes = ntuple(_->newaxis, dims)
+        colons = ntuple(_->(:), ndims(y))
+        view(y, newaxes..., colons...)
+    end
+    Broadcast.broadcast(f, x, views...)
+end
+###
+
+For(f, ηs::T) where {N, T<:NTuple{N,AbstractArray}} = For(f, ηs...) # maybe this should be the one directly implemented, because of `canonical`. Ask!
+
+function For(f, ηs::AbstractArray{T}...) where {T}
+    d = f(((η -> zero(eltype(η))).(ηs))...) # just to figure out the distribution type and eltype
+    ⨂ηs = outer(tuple, ηs...)
+    θs = (η -> params(f(η...))).(⨂ηs)
+    For{eltype(d),sum((length∘size).(ηs)),typeof(d),typeof(θs)}(θs)
+end
+
+
+#########################################################
+# fallback to arrays assuming T is collectable
+#########################################################
+
+For(f, ηs...) = For(f, collect.(ηs)...)
+
 
 #########################################################
 # T <: Base.Generator
