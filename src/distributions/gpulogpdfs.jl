@@ -2,11 +2,20 @@ using CUDAnative
 using Distributions: log2π
 using CuArrays: @cufunc
 import StatsFuns: normlogpdf, gammalogpdf
+using StaticArrays
+
 
 # Base.@irrational log2π  1.8378770664093454836 log(big(2.)*π)
 # Base.@irrational sqrt2π 2.5066282746310005024 sqrt(big(π)*2.0)
 # Base.@irrational invsqrt2π 0.3989422804014326779 inv(big(sqrt2π))
 
+# Categorical
+catlogpdf(p::Tuple{SVector{N,T}}, x::Integer) where {N,T<:Real} =
+    1 ≤ x ≤ N ? @inbounds(log(p[1][x])) : -T(Inf)
+@cufunc catlogpdf(p::Tuple{SVector{N,Float64}} where N, x::Integer) =
+    ifelse(1 ≤ x ≤ length(p[1]), @inbounds(CUDAnative.log(p[1][x])), -Inf)
+@cufunc catlogpdf(p::Tuple{SVector{N,Float32}} where N, x::Integer) =
+    ifelse(1 ≤ x ≤ length(p[1]), @inbounds(CUDAnative.log(p[1][x])), -Float32(Inf))
 
 # Uniform:
 unilogpdf(p::Tuple{T,T}, x::T) where T<:Real =
@@ -58,6 +67,9 @@ _cugammalogpdf(p::Tuple{Real,Real}, x::Real) =
 logpdf(D) = (θ, x) -> logpdf(D(θ...), x)
 
 # implemented cases
-for (D, prefix) in [(:Uniform,:uni), (:Normal,:norm), (:Gamma,:gamma)]
+for (D, prefix) in [(:Categorical,:cat),
+                    (:Uniform,:uni),
+                    (:Normal,:norm),
+                    (:Gamma,:gamma)]
     @eval logpdf(::Type{<:$D}) = $(Symbol(prefix, :logpdf))
 end

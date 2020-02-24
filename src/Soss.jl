@@ -25,14 +25,13 @@ include("core/weighted.jl")
 include("core/utils.jl")
 
 include("distributions/dist.jl")
-include("distributions/for.jl")
-include("distributions/iid.jl")
-include("distributions/mix.jl")
+include("distributions/product.jl")
+# include("distributions/mix.jl") # broken by For changes
 # include("distributions/flat.jl")
 
 include("primitives/rand.jl")
 include("primitives/logpdf.jl")
-include("primitives/xform.jl")
+# include("primitives/xform.jl") # broken by For changes
 include("primitives/likelihood-weighting.jl")
 # include("primitives/bijectors.jl")
 
@@ -41,8 +40,9 @@ include("transforms/predictive.jl")
 include("transforms/markovblanket.jl")
 include("transforms/do.jl")
 
-include("symbolic/symbolic.jl")
-include("symbolic/codegen.jl")
+# # likely broken by For changes:
+# include("symbolic/symbolic.jl")
+# include("symbolic/codegen.jl")
 
 include("particles.jl")
 include("plots.jl")
