@@ -12,18 +12,14 @@ using StaticArrays
 # Categorical
 catlogpdf(p::Tuple{SVector{N,T}}, x::Integer) where {N,T<:Real} =
     1 ≤ x ≤ N ? @inbounds(log(p[1][x])) : -T(Inf)
-@cufunc catlogpdf(p::Tuple{SVector{N,Float64}} where N, x::Integer) =
-    ifelse(1 ≤ x ≤ length(p[1]), @inbounds(CUDAnative.log(p[1][x])), -Inf)
-@cufunc catlogpdf(p::Tuple{SVector{N,Float32}} where N, x::Integer) =
-    ifelse(1 ≤ x ≤ length(p[1]), @inbounds(CUDAnative.log(p[1][x])), -Float32(Inf))
+@cufunc catlogpdf(p::Tuple{SVector{N,T}} where N, x::Integer) where T<:Real =
+    ifelse(1 ≤ x ≤ length(p[1]), @inbounds(CUDAnative.log(p[1][x])), -T(Inf))
 
 # Uniform:
 unilogpdf(p::Tuple{T,T}, x::T) where T<:Real =
     p[1] ≤ x ≤ p[2] ? -log(p[2] - p[1]) : -T(Inf)
-@cufunc unilogpdf(p::Tuple{Float64,Float64}, x::Float64) =
-    ifelse(p[1] ≤ x ≤ p[2], -CUDAnative.log(p[2] - p[1]), -Inf)
-@cufunc unilogpdf(p::Tuple{Float32,Float32}, x::Float32) =
-    ifelse(p[1] ≤ x ≤ p[2], -CUDAnative.log(p[2] - p[1]), -Float32(Inf))
+@cufunc unilogpdf(p::Tuple{T,T}, x::T) where T<:Real =
+    ifelse(p[1] ≤ x ≤ p[2], -CUDAnative.log(p[2] - p[1]), -T(Inf))
 
 # Normal:
 zval(μ::Real, σ::Real, x::Number) = (x - μ) / σ
