@@ -191,7 +191,7 @@ function atoms(s::Sym)
         ixs = [j.args[1] for j in s.args[2:end]]
         bounds = union([j.args[2:3] for j in s.args[2:end]]...)
         return setdiff(union(atoms(summand), atoms.(bounds)...), ixs)
-    end 
+    end
     result = union(map(atoms, s.args)...)
     return result
 end
@@ -240,7 +240,7 @@ function symvar(st::Sample)
     st.rhs.args[1] ∈ [:For, :iid] && return :($sympy.IndexedBase($(st.x)))
     return :($sym($(st.x)))
 end
-    
+
 
 export sourceSymlogpdf
 function sourceSymlogpdf()
@@ -304,20 +304,34 @@ end
 # logpdf(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logpdf(d,sym.(x))
 
 export symlogpdf
-function symlogpdf(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
-    js = symbols.(Symbol.(:_j,1:N), cls=sympy.Idx)
-    x = sympy.IndexedBase(x)
-    result = symlogpdf(d.f(js...), x[js...])
 
-    for k in N:-1:1
-        result = sympy.Sum(result, (js[k], 1, d.θ[k]))
+# likely broken
+function symlogpdf(d::Product{D,P}, x::Sym) where {D,P}
+    n = length(eltype(P))
+    js = symbols.(Symbol.(:_j,1:n), cls=sympy.Idx)
+    x = sympy.IndexedBase(x)
+    result = symlogpdf(D(d.f(x[js...])...), x[js...])
+
+    for k in n:-1:1
+        result = sympy.Sum(result, (js[k], 1, size(d.params,k)))
     end
     result
 end
 
-symlogpdf(d::iid, x::Sym) = symlogpdf(For(j -> d.dist, d.size), x)
-
-symlogpdf(d::For{F,T,D,X}, x::Symbol) where {F,T,D,X} = symlogpdf(d,sym(x))
+# function symlogpdf(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
+#     js = symbols.(Symbol.(:_j,1:N), cls=sympy.Idx)
+#     x = sympy.IndexedBase(x)
+#     result = symlogpdf(d.f(js...), x[js...])
+#
+#     for k in N:-1:1
+#         result = sympy.Sum(result, (js[k], 1, d.θ[k]))
+#     end
+#     result
+# end
+#
+# symlogpdf(d::iid, x::Sym) = symlogpdf(For(j -> d.dist, d.size), x)
+#
+# symlogpdf(d::For{F,T,D,X}, x::Symbol) where {F,T,D,X} = symlogpdf(d,sym(x))
 
 symlogpdf(d::Normal, x::Sym) = symlogpdf(Normal(sym(d.μ),sym(d.σ)), x)
 

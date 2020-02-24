@@ -43,16 +43,10 @@ parts(x::Integer, N::Int=DEFAULT_SAMPLE_SIZE) = parts(float(x))
 parts(x::Real, N::Int=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
 parts(x::AbstractArray, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(x)
 parts(p::Particles, N::Int=DEFAULT_SAMPLE_SIZE) = p
-parts(d::For, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(d.f.(d.θ...), N)
-function parts(d::For{F,Tuple{I}}, N::Int=DEFAULT_SAMPLE_SIZE) where {F <: Function, I <: Integer}
-    parts.(d.f.(Base.OneTo.(d.θ)...), N)
-end
+parts(d::Product{D}, N::Int=DEFAULT_SAMPLE_SIZE) where D =
+    parts.(D.(d.f.(d.params...)), N) # untested
 
-parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist, N) end
-# size
-# dist 
-
-# MonteCarloMeasurements.Particles(n::Int, d::For) = 
+# MonteCarloMeasurements.Particles(n::Int, d::For) =
 # -(a::Particles{Float64,1000}, b::Array{Float64,1}) = [a-bj for bj in b]
 
 # Base.promote(a::Particles{T,N}, b)  where {T,N} = (a,parts(b))
@@ -79,8 +73,8 @@ end
 end
 
 export sourceParticles
-function sourceParticles() 
-        
+function sourceParticles()
+
     function(m::Model, ::Type{Val{_N}}) where {_N}
         _m = canonical(m)
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
@@ -88,7 +82,7 @@ function sourceParticles()
         proc(_m, st::Return)  = :(return $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
-        vals = map(x -> Expr(:(=), x,x),variables(_m)) 
+        vals = map(x -> Expr(:(=), x,x),variables(_m))
 
         wrap(kernel) = @q begin
             $kernel

@@ -16,27 +16,20 @@ function canonical(expr :: Expr)
 
         Expr(:block, body...) => Expr(:block, canonical.(body)...)
 
-        Expr(:do, :(For($x)), :($f)) => begin
-            rf = r(f)
-            rx = r(x)
-
-            :(For($rf, $rx)) |> r
-        end
-
-
-        Expr(:do, :(For($(x...))), :($f)) => begin
-            rf = r(f)
-            rx = r.(x)
-
-            rxtup = Expr(:tuple, rx...)
-            :(For($rf, $rxtup)) |> r
-        end
-
-        :((iid($n))($dist)) => begin
-            rn = r(n)
-            rdist = r(dist)
-            :(iid($rdist,$rn)) |> r
-        end
+        # Expr(:do, :(For($x)), :($f)) => begin
+        #     rf = r(f)
+        #     rx = r(x)
+        #
+        #     :(For($rf, $rx)) |> r
+        # end
+        #
+        # Expr(:do, :(For($(x...))), :($f)) => begin
+        #     rf = r(f)
+        #     rx = r.(x)
+        #
+        #     rxtup = Expr(:tuple, rx...)
+        #     :(For($rf, $rxtup)) |> r
+        # end
 
         :((iid($(n...)))($dist)) => begin
             rn = r.(n)
