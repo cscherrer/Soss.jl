@@ -21,11 +21,15 @@ struct Product{D, F, P} # P will be a parameter grid (NTuple of views)
     Product{D}(f, params) where D = new{D, typeof(f), typeof(params)}(f, params)
 end
 
+Product{D}(params::NTuple) where D =
+    Product{D}(nothing, params)
+
 Product{D}(f, params::Union{AbstractRange,AbstractArray}...) where D =
     Product{D}(f, params)
 
 Product{D}(params::Union{AbstractRange,AbstractArray}...) where D =
     Product{D}(nothing, params)
+
 
 Base.eltype(p::Product{D}) where D = D
 # corregir, ahora que P es NTuple:
@@ -45,9 +49,9 @@ Distributions.params(d::Product) = d.params
     sum(logpdf(eltype(p)).(p.f.(p.params...), xs))
 end
 
-@inline function logpdf(p::Product{D,Nothing}, xs::AbstractArray) where D
-    sum(logpdf(D).(p.params..., xs))
-end
+# @inline function logpdf(p::Product{D,Nothing}, xs::AbstractArray) where D
+#     sum(logpdf(D).(p.params..., xs)) # would require another method for the culogpdf fn's
+# end
 
 function Base.rand(p::Product{D}) where D
     map(p.f.(p.params...)) do θ
