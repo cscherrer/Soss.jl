@@ -100,12 +100,20 @@ end
 
 
 
-function xform(d::For, _data)  
+function xform(d::For{T,NTuple{N,Int}}, _data)  where {N,T}
+    xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
+    return as(Array, xf1, d.θ...)
+    
+    # TODO: Implement case of unequal supports
+end
+
+function xform(d::For{T,NTuple{N,UnitRange{Int}}}, _data)  where {N,T}
     xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
     return as(Array, xf1, length.(d.θ)...)
     
     # TODO: Implement case of unequal supports
 end
+
 
 function xform(d::iid, _data)
     as(Array, xform(d.dist, _data), d.size...)
