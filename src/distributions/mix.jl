@@ -43,7 +43,7 @@ end
 
 export Mix
 
-function Mix(dists :: Vector{D}, weights :: Vector{W}) where {D,W}
+function Mix(dists :: Array{D,N}, weights :: Array{W,N}) where {D,W,N}
     MixVec{D,W}(dists, Simplex(weights))
 end
 
