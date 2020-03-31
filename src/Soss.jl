@@ -41,8 +41,8 @@ include("transforms/predictive.jl")
 include("transforms/markovblanket.jl")
 include("transforms/do.jl")
 
-include("symbolic/symbolic.jl")
-include("symbolic/codegen.jl")
+# include("symbolic/symbolic.jl")
+# include("symbolic/codegen.jl")
 
 include("particles.jl")
 include("plots.jl")
