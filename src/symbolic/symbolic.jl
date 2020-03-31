@@ -237,7 +237,7 @@ marginal(m::Model, v) = marginal(m |> symlogpdf, v)
 
 symvar(st) = :($sympy.IndexedBase($(st.x)))
 
-function symvar(st::Sample)
+function symvar(st::Soss.Sample)
     st.rhs.args[1] ∈ [:For, :iid] && return :($sympy.IndexedBase($(st.x)))
     return :($sym($(st.x)))
 end
@@ -246,17 +246,17 @@ end
 export sourceSymlogpdf
 function sourceSymlogpdf()
     function(_m::Model)
-        function proc(_m, st :: Assign)
+        function proc(_m, st :: Soss.Assign)
             x = st.x
             xname = QuoteNode(x)
             return :($x = $sympy.IndexedBase($xname))
         end
 
-        function proc(_m, st :: Sample)
+        function proc(_m, st :: Soss.Sample)
             s = :(_ℓ += symlogpdf($(st.rhs), $(symvar(st))))
             end
-        proc(_m, st :: Return)     = nothing
-        proc(_m, st :: LineNumber) = nothing
+        proc(_m, st :: Soss.Return)     = nothing
+        proc(_m, st :: Soss.LineNumber) = nothing
 
         function wrap(kernel)
             q = @q begin
@@ -271,7 +271,7 @@ function sourceSymlogpdf()
 
             for st in map(v -> findStatement(_m,v), toposort(_m))
 
-                typeof(st) == Sample || continue
+                typeof(st) == Soss.Sample || continue
                 x = st.x
                 xname = QuoteNode(x)
                 rhs = st.rhs
