@@ -2,6 +2,7 @@ using MacroTools: @q
 using GeneralizedGenerated
 import PyCall
 using MLStyle
+using ..Soss
 
 import SymPy
 using SymPy: Sym, symbols, free_symbols
