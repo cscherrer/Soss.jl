@@ -51,7 +51,7 @@ include("inference/advancedhmc.jl")
 
 function __init__()
     @require SymPy = "24249f21-da20-56a4-8eb1-6a02cf4ae2e6" begin
-        include("_SymPy.jl")
+        include("_sympy.jl")
     end
 end
 
