@@ -8,6 +8,7 @@ using Reexport: @reexport
 @reexport using StatsFuns
 using NamedTupleTools
 
+import Requires: @require
 import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
 import MLStyle
 @reexport using MonteCarloMeasurements
@@ -41,15 +42,18 @@ include("transforms/predictive.jl")
 include("transforms/markovblanket.jl")
 include("transforms/do.jl")
 
-# include("symbolic/symbolic.jl")
-# include("symbolic/codegen.jl")
-
 include("particles.jl")
 include("plots.jl")
 
 include("inference/rejection.jl")
 include("inference/dynamicHMC.jl")
 include("inference/advancedhmc.jl")
+
+function __init__()
+    @require SymPy = "24249f21-da20-56a4-8eb1-6a02cf4ae2e6" begin
+        include("_sympy.jl")
+    end
+end
 
 
 # include("weighted.jl")
