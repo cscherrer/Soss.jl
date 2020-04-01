@@ -101,6 +101,7 @@ m2 = @model X begin
         end
 end;
 
+using SymPy
 symlogpdf(m2)
 ```
 
