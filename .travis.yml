@@ -13,6 +13,7 @@ branches:
 env:
     global:
     - PYTHON=conda
+    - CODECOV_TOKEN="d180978c-13d0-4085-9414-a02f5a264d06"
     # matrix:
     # - MPMATH=true
     # - MPMATH=false
