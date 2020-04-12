@@ -30,22 +30,22 @@ struct MarkovChainRand{P,D}
     mc::MarkovChain{P,D}
 end
 
-function Distributions.logpdf(chain::MarkovChain{P,D}, x::AbstractVector{X}) where {P,D,X}
-    @inbounds x1 = (pars=chain.pars,state=x[1])
-    length(x) == 1 && return logpdf(chain.step, x1.state)
-    chain_next = MarkovChain(chain.pars, chain.step.model(x1))
-    v = @inbounds @view x[2:end]
-    result = logpdf(chain.step, x1.state)
-    chain = chain_next
-    x = v
-    return result + logpdf(chain,x)
-end
+Base.IteratorSize(::MarkovChainRand) = Base.IsInfinite()
+
+Base.eltype(mc::MarkovChainRand{P,D}) where {P,D} = typeof(mc.dist.args.state)
 
 export next
-
-
 function next(mc::MarkovChain{P,D}, state) where {P,D}
     @set mc.step.args.state = state
+end
+
+function Distributions.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where {P,D,X}
+    ℓ = 0.0
+    for xj in x
+        ℓ += logpdf(mc.step,xj)
+        @set! mc.step.args.state = xj
+    end
+    return ℓ
 end
 
 function Base.iterate(r::MarkovChainRand{P,D}) where {P,D}
