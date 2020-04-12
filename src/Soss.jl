@@ -29,6 +29,7 @@ include("distributions/for.jl")
 include("distributions/iid.jl")
 include("distributions/mix.jl")
 # include("distributions/flat.jl")
+include("distributions/markovchain.jl")
 
 include("primitives/rand.jl")
 include("primitives/logpdf.jl")
