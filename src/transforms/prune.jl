@@ -11,8 +11,9 @@ function prune(m::Model, xs :: Symbol...)
         setdiff!(newvars, [x])
     end
 
-    # TODO: Check if some of these are no longer used
-    newargs = arguments(m)
+    # Removes unused arguments, removes arguments from variable list.
+    newargs = arguments(m) ∩ newvars
+    setdiff!(newvars, newargs)
 
     theModule = getmodule(m)
     m_init = Model(theModule, newargs, NamedTuple(), NamedTuple(), nothing)
