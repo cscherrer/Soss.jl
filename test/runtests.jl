@@ -11,9 +11,9 @@ function buildREADME()
 end
 
 # write your own tests here
-#@testset "README" begin
-#    @test buildREADME()
-#end
+@testset "README" begin
+    @test buildREADME()
+end
 
 @testset "Doctests" begin
     doctest(Soss)
