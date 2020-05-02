@@ -1,6 +1,45 @@
-
-
 export prune
+
+"""
+    prune(m, xs...; simplify = true)
+
+Returns a model transformed by removing `xs...` and all variables that depend on `xs...`. If `simplify = true`, unneeded arguments are also removed. Use `simplify = false` to leave arguments unaffected.
+
+# Examples
+
+```jldoctest
+m = @model n begin
+    α ~ Gamma()
+    β ~ Gamma()
+    θ ~ Beta(α,β)
+    x ~ Binomial(n, θ)
+end;
+prune(m, :θ)
+
+# output
+@model begin
+        β ~ Gamma()
+        α ~ Gamma()
+    end
+```
+
+```jldoctest
+m = @model n begin
+    α ~ Gamma()
+    β ~ Gamma()
+    θ ~ Beta(α,β)
+    x ~ Binomial(n, θ)
+end;
+prune(m, :n)
+
+# output
+@model begin
+        β ~ Gamma()
+        α ~ Gamma()
+        θ ~ Beta(α, β)
+    end
+```
+"""
 function prune(m::Model, xs :: Symbol...; simplify = true)
     po = poset(m) #Creates a new SimplePoset, so no need to copy before mutating
 

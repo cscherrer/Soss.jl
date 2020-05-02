@@ -1,5 +1,29 @@
 export prior
 
+"""
+    prior(m, xs...)
+
+Returns the minimal model required to sample random variables `xs...`. Useful for extracting a prior distribution from a joint model `m` by designating `xs...` and the variables they depend on as the prior and hyperpriors.
+
+# Example
+
+```jldoctest
+m = @model n begin
+    α ~ Gamma()
+    β ~ Gamma()
+    θ ~ Beta(α,β)
+    x ~ Binomial(n, θ)
+end;
+prior(m, :θ)
+
+# output
+@model begin
+        β ~ Gamma()
+        α ~ Gamma()
+        θ ~ Beta(α, β)
+    end
+```
+"""
 function prior(m::Model, xs...)
     po = poset(m) #Creates a new SimplePoset, so no need to copy before mutating
 
