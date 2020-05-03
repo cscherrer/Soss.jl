@@ -35,7 +35,7 @@ include("primitives/rand.jl")
 include("primitives/logpdf.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")
-@require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
+@init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
     include("primitives/bijectors.jl")
 end
 
