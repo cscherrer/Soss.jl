@@ -1,5 +1,4 @@
-using TransformVariables
-using Bijectors
+using .Bijectors
 
 struct Transform{N,T} <: Bijector{N}
     t::T
@@ -9,74 +8,17 @@ struct Transform{N,T} <: Bijector{N}
     end
 end
 
-function (b::Transform{N,T})(x) where {N,T <: TransformVariables.AbstractTransform}
-    t(x) 
+(b::Transform)(x::NamedTuple) = b(as(b.t)(x))
+function (b::Transform{N,T})(x::NamedTuple) where {N,T <: TransformVariables.AbstractTransform}
+    inverse(b.t, x)
 end
 
-# function B.dimension(b::Transform{N,T}) where {N, T <:  TransformVariables.AbstractTransform}
-
-
-function (b::Inversed{<: Transform{N,T}})(y) where {N,T <:  TransformVariables.AbstractTransform}
-    inverse(b.t, y)
+function (b::Inverse{<: Transform{N,T}})(y::AbstractVector) where {N,T <:  TransformVariables.AbstractTransform}
+    b.orig.t(y)
 end
 
+Bijectors.bijector(d::JointDistribution) = Transform(xform(d))
 
-
-#################################
-
-
-export logpdf_with_trans
-
-function logpdfℝⁿ(m::JointDistribution{A0,A,B,M}, data::NamedTuple, x::AbstractVector) where {A0,A,B,M}
-    _logpdfℝⁿ(M, m.model, m.args, data, x)
-end
-
-function logpdfℝⁿ(m::JointDistribution{A0,A,B,M},x::AbstractVector) where {A0,A,B,M}
-    _logpdfℝⁿ(M, m.model, m.args, x)
-end
-
-
-
-
-@gg M function _logpdfℝⁿ(_::Type{M}, _m::Model, _args, _data, _x) where M <: TypeLevel{Module}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceLogpdfℝⁿ(_data) |> loadvals(_args, _data))
-end
-
-function sourceLogpdfℝⁿ(_data=NamedTuple())
-    function(_m::Model)
-        _m = canonical(_m)
-        _datakeys = getntkeys(_data)
-
-        proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
-        proc(_m, st :: Return)     = nothing
-        proc(_m, st :: LineNumber) = nothing
-        function proc(_m, st :: Sample)
-            x = st.x
-            xname = QuoteNode(x)
-
-            x ∈ _datakeys && return :(_ℓ += logpdf($(st.rhs), $x))
-
-
-            q = @q begin
-                _j += 1
-                $x = _x[_j]
-
-                println($x)
-                _ℓ += logpdf(transformed($(st.rhs)), $x)
-            end
-            
-            return q
-        end
-
-        wrap(kernel) = @q begin
-            _ℓ = 0.0
-            _j = 0
-            $kernel
-            return _ℓ
-        end
-
-        buildSource(_m, proc, wrap) |> flatten
-    end
+function Bijectors.logabsdetjac(b::Transform, x::NamedTuple)
+    -transform_and_logjac(b.t, b.t(x))[2]
 end
