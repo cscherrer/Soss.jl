@@ -11,7 +11,7 @@ using Distributions
 export xform
 
 
-function xform(m::JointDistribution{A, B}, _data) where {A,B}
+function xform(m::JointDistribution{A, B}, _data = m.args) where {A,B}
     return _xform(getmoduletypencoding(m.model), m.model, m.args, _data)
 end
 
