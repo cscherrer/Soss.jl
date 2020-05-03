@@ -8,7 +8,6 @@ struct Transform{N,T} <: Bijector{N}
     end
 end
 
-(b::Transform)(x::NamedTuple) = b(as(b.t)(x))
 function (b::Transform{N,T})(x::NamedTuple) where {N,T <: TransformVariables.AbstractTransform}
     inverse(b.t, x)
 end
