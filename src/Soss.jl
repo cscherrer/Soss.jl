@@ -43,7 +43,6 @@ include("transforms/markovblanket.jl")
 include("transforms/do.jl")
 include("transforms/prune.jl")
 include("transforms/prior.jl")
-include("transforms/prune.jl")
 
 include("symbolic/symbolic.jl")
 include("symbolic/codegen.jl")
