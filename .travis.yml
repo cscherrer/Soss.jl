@@ -9,6 +9,7 @@ julia:
 branches:
   only:
     - master
+    - dev
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/ # build tagged releases
 env:
     global:
