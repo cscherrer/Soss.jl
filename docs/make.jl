@@ -1,5 +1,7 @@
 using Documenter, Soss
 
+DocMeta.setdocmeta!(Soss, :DocTestSetup, :(using Soss); recursive=true)
+
 makedocs(;
     modules=[Soss],
     format=Documenter.HTML(),
