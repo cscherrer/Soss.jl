@@ -1,9 +1,9 @@
 export prune
 
 """
-    prune(m, xs...; simplify = true)
+    prune(m, xs...; trim_args = true)
 
-Returns a model transformed by removing `xs...` and all variables that depend on `xs...`. If `simplify = true`, unneeded arguments are also removed. Use `simplify = false` to leave arguments unaffected.
+Returns a model transformed by removing `xs...` and all variables that depend on `xs...`. If `trim_args = true`, unneeded arguments are also removed. Use `trim_args = false` to leave arguments unaffected.
 
 # Examples
 
@@ -40,7 +40,7 @@ prune(m, :n)
     end
 ```
 """
-function prune(m::Model, xs :: Symbol...; simplify = true)
+function prune(m::Model, xs :: Symbol...; trim_args = true)
     po = poset(m) #Creates a new SimplePoset, so no need to copy before mutating
 
     newvars = variables(m)
@@ -54,7 +54,7 @@ function prune(m::Model, xs :: Symbol...; simplify = true)
     newargs = arguments(m) ∩ newvars
     setdiff!(newvars, newargs)
 
-    if simplify
+    if trim_args
         # keep arguments only if depended upon by newvars
         dependencies = mapfoldl(var -> below(po, var), vcat, newvars, init = Symbol[]) # mapfoldl needed since newvars can be empty
         newargs = dependencies ∩ newargs
