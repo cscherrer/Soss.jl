@@ -9,18 +9,26 @@ export MarkovChain
 
 NOTE: This is experimental, and may change in the near future.
 
+```@example
 mstep = @model pars,state begin
     σ = pars.σ
     x0 = state.x
     x ~ Normal(x0, σ)
     next = (pars=pars, state=(x=x,))
-end
+end;
 
 m = @model s0 begin
     σ ~ Exponential()
     pars = (σ=σ,)
     x ~ MarkovChain(pars, mstep(pars=pars, state=s0))
+end;
+
+r = rand(m(s0=(x=2,),));
+
+for xj in Iterators.take(r.x,3)
+    println(xj)
 end
+```
 """
 struct MarkovChain{P,D}
     pars :: P
