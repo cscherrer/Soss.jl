@@ -20,13 +20,13 @@ end;
 m = @model s0 begin
     σ ~ Exponential()
     pars = (σ=σ,)
-    x ~ MarkovChain(pars, mstep(pars=pars, state=s0))
+    chain ~ MarkovChain(pars, mstep(pars=pars, state=s0))
 end;
 
 r = rand(m(s0=(x=2,),));
 
-for xj in Iterators.take(r.x,3)
-    println(xj)
+for s in Iterators.take(r.chain,3)
+    println(s)
 end
 ```
 """
