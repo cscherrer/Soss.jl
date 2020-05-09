@@ -4,7 +4,7 @@ os:
     - osx
 julia:
     - 1.4
-    - nightly
+    # - nightly
     
 branches:
   only:
