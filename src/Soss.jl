@@ -12,17 +12,16 @@ import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
 import MLStyle
 @reexport using MonteCarloMeasurements
 
+@reexport using SossBase
+using SossBase: JointDistribution, Assign, Sample, Return, 
+    LineNumber, getmoduletypencoding, type2model, getntkeys, buildSource, loadvals
+import SossBase: logpdf
+
+using GeneralizedGenerated
+using GeneralizedGenerated: TypeLevel
+
 using LazyArrays
 using FillArrays
-
-include("core/statement.jl")
-include("core/model.jl")
-include("core/jointdistribution.jl")
-include("core/canonical.jl")
-include("core/dependencies.jl")
-include("core/toposort.jl")
-include("core/weighted.jl")
-include("core/utils.jl")
 
 include("distributions/dist.jl")
 include("distributions/for.jl")
@@ -31,18 +30,8 @@ include("distributions/mix.jl")
 # include("distributions/flat.jl")
 include("distributions/markovchain.jl")
 
-include("primitives/rand.jl")
-include("primitives/logpdf.jl")
 include("primitives/xform.jl")
-include("primitives/likelihood-weighting.jl")
 # include("primitives/bijectors.jl")
-
-
-include("transforms/predictive.jl")
-include("transforms/markovblanket.jl")
-include("transforms/do.jl")
-include("transforms/prune.jl")
-include("transforms/prior.jl")
 
 include("symbolic/symbolic.jl")
 include("symbolic/codegen.jl")
