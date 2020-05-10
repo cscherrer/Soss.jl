@@ -34,7 +34,7 @@ m(args)
 
 pairs(truth)
 
-logpdf(m(args), truth)
+logdensity(m(args), truth)
 
 # Sample from posterior
 

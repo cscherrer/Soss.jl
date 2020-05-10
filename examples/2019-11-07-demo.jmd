@@ -72,20 +72,20 @@ ppost = particles(post)
 ```
 
 ```julia
-symlogpdf(m) |> foldConstants |> tolatex |> println
+symlogdensity(m) |> foldConstants |> tolatex |> println
 ```
 
 ```julia
-symlogpdf(m) |> expandSums |> foldConstants |> tolatex |> println
+symlogdensity(m) |> expandSums |> foldConstants |> tolatex |> println
 ```
 
 ```julia
 using BenchmarkTools
-@btime logpdf($m(x=x),$truth)
+@btime logdensity($m(x=x),$truth)
 ```
 
 ```julia
-@btime logpdf($(m(x=x)),$truth, codegen)
+@btime logdensity($(m(x=x)),$truth, codegen)
 ```
 
 

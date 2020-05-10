@@ -51,7 +51,7 @@ end
 function Distributions.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where {P,D,X}
     ℓ = 0.0
     for xj in x
-        ℓ += logpdf(mc.step,xj)
+        ℓ += logdensity(mc.step,xj)
         @set! mc.step.args.state = xj
     end
     return ℓ

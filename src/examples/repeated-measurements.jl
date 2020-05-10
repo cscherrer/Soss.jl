@@ -18,11 +18,11 @@ end;
 
 using Random
 truth = rand(m());
-symlogpdf(m())
+symlogdensity(m())
 
 using BenchmarkTools
-@btime logpdf(m(),truth)
-@btime logpdf(m(),truth, codegen)
+@btime logdensity(m(),truth)
+@btime logdensity(m(),truth, codegen)
 
 f1 = Soss._codegen(m, true);
 f2 = Soss._codegen(m,false);
@@ -34,7 +34,7 @@ codegen(m(),truth)
 
 
 
-logpdf(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)), codegen)
+logdensity(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)), codegen)
 
 
 @time result = dynamicHMC(m(), (y=truth.y,), codegen) ;
@@ -43,4 +43,3 @@ logpdf(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)), codegen)
 
 pairs(truth)
 result |> particles |> pairs
-

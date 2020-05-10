@@ -4,7 +4,7 @@ using Base.Cartesian
 using Base.Threads
 using FillArrays
 
-export logpdf
+export logdensity
 export rand
 
 export For
@@ -26,10 +26,10 @@ function For(f::F, θ::T) where {F, N, J <: Integer, T <: NTuple{N,J}}
     For{F, NTuple{N,J}, D, X}(f,θ)
 end
 
-@inline function logpdf(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: Integer, T <: NTuple{N,J}, D,  X1,  X2}
+@inline function logdensity(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: Integer, T <: NTuple{N,J}, D,  X1,  X2}
     s = 0.0
     @inbounds @simd for θ in CartesianIndices(d.θ)
-        s += logpdf(d.f(Tuple(θ)...), xs[θ])
+        s += logdensity(d.f(Tuple(θ)...), xs[θ])
     end
     s
 end
@@ -54,10 +54,10 @@ function For(f::F, θ::T) where {F, N, J <: AbstractRange, T <: NTuple{N,J}}
 end
 
 
-@inline function logpdf(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: AbstractRange,  T <: NTuple{N,J}, D, X1, X2}
+@inline function logdensity(d::For{F,T,D,X1},xs::AbstractArray{X2,N}) where {F, N, J <: AbstractRange,  T <: NTuple{N,J}, D, X1, X2}
     s = 0.0
     @inbounds @simd for θ in CartesianIndices(d.θ)
-        s += logpdf(d.f(Tuple(θ)...), xs[θ])
+        s += logdensity(d.f(Tuple(θ)...), xs[θ])
     end
     s
 end
@@ -81,10 +81,10 @@ function For(f::F, θ::T) where {F, T <: Base.Generator}
 end
 
 
-@inline function logpdf(d :: For{F,T}, x) where {F,T <: Base.Generator}
+@inline function logdensity(d :: For{F,T}, x) where {F,T <: Base.Generator}
     s = 0.0
     for (θj, xj) in zip(d.θ, x)
-        s += logpdf(d.f(θj), xj)
+        s += logdensity(d.f(θj), xj)
     end
     s
 end
@@ -104,8 +104,8 @@ end
 
 
 
-export logpdf2
-@inline function logpdf2(d::For{F,N,X1},xs) where {F,N, X1, X2}
+export logdensity2
+@inline function logdensity2(d::For{F,N,X1},xs) where {F,N, X1, X2}
     results = zeros(eltype(xs), nthreads())
 
     θ = CartesianIndices(d.θ)
@@ -120,7 +120,7 @@ export logpdf2
         s = 0.0
         for j in domain
             @inbounds θj = θ[j]
-            @inbounds s += logpdf(d.f(Tuple(θj)...), xs[θj])
+            @inbounds s += logdensity(d.f(Tuple(θj)...), xs[θj])
         end
 
         Threads.atomic_add!(total, s)
@@ -149,4 +149,3 @@ end
 #     end
 #     return complete(rf, val)
 # end
-

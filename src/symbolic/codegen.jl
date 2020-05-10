@@ -11,7 +11,7 @@ export codegen
 # end
 
 function _codegen(m :: Model, expand_sums=true)
-    s = symlogpdf(m)
+    s = symlogdensity(m)
 
     if expand_sums
         s = expandSums(s) |> foldConstants
@@ -52,7 +52,7 @@ end
 #             push!(body.args, :($x = $rhs))
 #         end
 
-#         push!(body.args, eval(:(codegen(symlogpdf($_m)))))
+#         push!(body.args, eval(:(codegen(symlogdensity($_m)))))
 #         return body
 #     end
 # end
@@ -157,6 +157,6 @@ end
 # end
 
 
-function logpdf(m::JointDistribution{A0,A,B,M},x,::typeof(codegen)) where {A0,A,B,M}
+function logdensity(m::JointDistribution{A0,A,B,M},x,::typeof(codegen)) where {A0,A,B,M}
     codegen(M, m.model, m.args, x)
 end

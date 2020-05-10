@@ -25,20 +25,20 @@ end
 #################################
 
 
-export logpdf_with_trans
+export logdensity_with_trans
 
-function logpdfℝⁿ(m::JointDistribution{A0,A,B,M}, data::NamedTuple, x::AbstractVector) where {A0,A,B,M}
-    _logpdfℝⁿ(M, m.model, m.args, data, x)
+function logdensityℝⁿ(m::JointDistribution{A0,A,B,M}, data::NamedTuple, x::AbstractVector) where {A0,A,B,M}
+    _logdensityℝⁿ(M, m.model, m.args, data, x)
 end
 
-function logpdfℝⁿ(m::JointDistribution{A0,A,B,M},x::AbstractVector) where {A0,A,B,M}
-    _logpdfℝⁿ(M, m.model, m.args, x)
+function logdensityℝⁿ(m::JointDistribution{A0,A,B,M},x::AbstractVector) where {A0,A,B,M}
+    _logdensityℝⁿ(M, m.model, m.args, x)
 end
 
 
 
 
-@gg M function _logpdfℝⁿ(_::Type{M}, _m::Model, _args, _data, _x) where M <: TypeLevel{Module}
+@gg M function _logdensityℝⁿ(_::Type{M}, _m::Model, _args, _data, _x) where M <: TypeLevel{Module}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
         type2model(_m) |> sourceLogpdfℝⁿ(_data) |> loadvals(_args, _data))
@@ -56,7 +56,7 @@ function sourceLogpdfℝⁿ(_data=NamedTuple())
             x = st.x
             xname = QuoteNode(x)
 
-            x ∈ _datakeys && return :(_ℓ += logpdf($(st.rhs), $x))
+            x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $x))
 
 
             q = @q begin
@@ -64,7 +64,7 @@ function sourceLogpdfℝⁿ(_data=NamedTuple())
                 $x = _x[_j]
 
                 println($x)
-                _ℓ += logpdf(transformed($(st.rhs)), $x)
+                _ℓ += logdensity(transformed($(st.rhs)), $x)
             end
             
             return q

@@ -14,12 +14,12 @@ function dynamicHMC(
     m::JointDistribution,
     _data,
     N::Int = 1000;
-    method = logpdf,
+    method = logdensity,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
-    ℓ(pars) = logpdf(m, merge(pars, _data), method)
+    ℓ(pars) = logdensity(m, merge(pars, _data), method)
     t = xform(m, _data)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)
@@ -40,12 +40,12 @@ function dynamicHMC(
     m::JointDistribution,
     _data,
     ::Val{Inf};
-    method = logpdf,
+    method = logdensity,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
-    ℓ(pars) = logpdf(m, merge(pars, _data), method)
+    ℓ(pars) = logdensity(m, merge(pars, _data), method)
     t = xform(m, _data)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)

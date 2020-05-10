@@ -63,7 +63,7 @@ end
 
 @inline function importanceSample(p, q, _data)
     x = merge(rand(q), _data)
-    ℓ = logpdf(p,x) - logpdf(q,x)
+    ℓ = logdensity(p,x) - logdensity(q,x)
     Weighted(ℓ,x)
 end
 
@@ -78,7 +78,7 @@ end
 #     # This determines how to initialize a Particle for a given expression
 #     vars(expr) = (bound(p) ∪ bound(q) ∪ stochastic(p) ∪ stochastic(q)) ∩ variables(expr)
 
-#     procp(p, st::Follows) = :($ℓ += logpdf($(st.rhs), $(st.x)))
+#     procp(p, st::Follows) = :($ℓ += logdensity($(st.rhs), $(st.x)))
 #     procp(p, st::Let)     = convert(Expr, st)
 #     procp(p, st::Return)  = nothing
 #     procp(p, st::LineNumber) = convert(Expr, st)
@@ -87,12 +87,12 @@ end
 #         if isempty(vars(st.rhs)) 
 #             @q begin
 #                 $(st.x) = Particles($N, $(st.rhs))
-#                 $ℓ -= logpdf($(st.rhs), $(st.x))
+#                 $ℓ -= logdensity($(st.rhs), $(st.x))
 #             end
 #         else
 #             @q begin
 #                 $(st.x) = rand($(st.rhs))
-#                 $ℓ -= logpdf($(st.rhs), $(st.x))
+#                 $ℓ -= logdensity($(st.rhs), $(st.x))
 #             end
 #         end
 #     end

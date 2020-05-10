@@ -45,11 +45,11 @@ function Base.rand(d::iid)
 end
 
 
-function Distributions.logpdf(d::iid,x)
-    s = zero(Float64)
-    Δs(xj) = logpdf(d.dist, xj)
+function logdensity(d::iid,x)
+    s = zero(eltype(x))
+    Δs(xj) = logdensity(d.dist, xj)
 
-    @inbounds @simd for j in eachindex(x)
+    @inbounds for j in eachindex(x)
         s += Δs(x[j])
     end
     s

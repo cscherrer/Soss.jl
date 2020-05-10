@@ -13,9 +13,9 @@ import MLStyle
 @reexport using MonteCarloMeasurements
 
 @reexport using SossBase
-using SossBase: JointDistribution, Assign, Sample, Return, 
+using SossBase: JointDistribution, Assign, Sample, Return, findStatement,
     LineNumber, getmoduletypencoding, type2model, getntkeys, buildSource, loadvals
-import SossBase: logpdf
+import SossBase: logdensity
 
 using GeneralizedGenerated
 using GeneralizedGenerated: TypeLevel
