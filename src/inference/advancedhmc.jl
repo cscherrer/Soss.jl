@@ -11,15 +11,23 @@ using AdvancedHMC
 
 export advancedHMC
 
-raw"""
 
-Draw samples from the posterior distribution of model parameters using Hamiltonial Monte Carlo (HMC), using the `advancedHMC.jl` package.
+
+"""
+    advancedHMC(m, data, N = 1000; n_adapts = 1000)
+
+Draw `N` samples from the posterior distribution of parameters defined in Soss model `m`, conditional on `data`. Samples are drawn using Hamiltonial Monte Carlo (HMC) from the `advancedHMC.jl` package.
+
+## Keywords
+*  `n_adapts = 1000`: The number of interations used to set HMC parameters.
 
 Returns a tuple of length 2:
-    [1] Samples from the posterior distribution of parameters.
-    [2] Samples summary statistics.
+1. Samples from the posterior distribution of parameters.  
+2. Sample summary statistics.  
 
-```jldoctest; filter = r".+?(?=E[β|x]: -0.28* d)"s
+## Example
+
+```jldoctest
 
 using Random
 Random.seed!(42);
@@ -39,13 +47,14 @@ post = advancedHMC(m(x=x), (y=truth.y,));
 E_β = mean(post[1])[1]
 
 println("true β: " * string(round(truth.β, digits=2)))
-println("E[β|x]: " * string(round(E_β, digits=2)))
+println("Posterior mean β: " * string(round(E_β, digits=2)))
 
 # output
-
-E[β|x]: -0.28
-
+true β: -0.3
+Posterior mean β: -0.28
 ```
+
+
 
 """
 function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000; 
@@ -83,7 +92,7 @@ function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000;
     # Draw samples via simulating Hamiltonian dynamics
     # - `samples` will store the samples
     # - `stats` will store statistics for each sample
-    samples, stats = sample(h, prop, x_init, N, adaptor, n_adapts; progress=true)
+    samples, stats = sample(h, prop, x_init, N, adaptor, n_adapts; progress=false, verbose=false)
 
 end
 
