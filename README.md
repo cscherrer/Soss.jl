@@ -230,7 +230,7 @@ julia>
 -15.84854642585797
 
 julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  289.664 ns (5 allocations: 208 bytes)
+  306.753 ns (5 allocations: 208 bytes)
 -15.848546425857968
 
 ````
