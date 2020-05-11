@@ -1,5 +1,3 @@
-using Distributions
-import Distributions.logpdf
 using Base.Cartesian
 using Base.Threads
 using FillArrays

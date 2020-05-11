@@ -4,7 +4,7 @@ import Base.rand
 using Random
 using Reexport: @reexport
 
-@reexport using Distributions
+@reexport using Measures
 @reexport using StatsFuns
 using NamedTupleTools
 
@@ -23,25 +23,25 @@ using GeneralizedGenerated: TypeLevel
 using LazyArrays
 using FillArrays
 
-include("distributions/dist.jl")
+# include("distributions/dist.jl")
 include("distributions/for.jl")
-include("distributions/iid.jl")
-include("distributions/mix.jl")
-# include("distributions/flat.jl")
-include("distributions/markovchain.jl")
+# include("distributions/iid.jl")
+# include("distributions/mix.jl")
+# # include("distributions/flat.jl")
+# include("distributions/markovchain.jl")
 
-include("primitives/xform.jl")
-# include("primitives/bijectors.jl")
+# include("primitives/xform.jl")
+# # include("primitives/bijectors.jl")
 
-include("symbolic/symbolic.jl")
-include("symbolic/codegen.jl")
+# include("symbolic/symbolic.jl")
+# include("symbolic/codegen.jl")
 
-include("particles.jl")
-include("plots.jl")
+# include("particles.jl")
+# include("plots.jl")
 
-include("inference/rejection.jl")
-include("inference/dynamicHMC.jl")
-include("inference/advancedhmc.jl")
+# include("inference/rejection.jl")
+# include("inference/dynamicHMC.jl")
+# include("inference/advancedhmc.jl")
 
 
 # include("weighted.jl")

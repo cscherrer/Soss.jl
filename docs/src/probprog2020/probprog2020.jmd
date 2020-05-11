@@ -32,7 +32,7 @@ Given values for model arguments and all stochastic variables, ...
 - 
 
 ```julia
-Soss.sourceSymlogpdf()(m)
+Soss.sourceSymlogdensity()(m)
 ```
 
 
@@ -82,9 +82,9 @@ end
 
 
 ```julia
-symlogpdf(m)
+symlogdensity(m)
 ```
 
 ```julia
-symlogpdf(m) |> expandSums |> foldConstants
+symlogdensity(m) |> expandSums |> foldConstants
 ```
