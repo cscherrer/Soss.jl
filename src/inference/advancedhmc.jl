@@ -11,7 +11,43 @@ using AdvancedHMC
 
 export advancedHMC
 
+raw"""
 
+Draw samples from the posterior distribution of model parameters using Hamiltonial Monte Carlo (HMC), using the `advancedHMC.jl` package.
+
+Returns a tuple of length 2:
+    [1] Samples from the posterior distribution of parameters.
+    [2] Samples summary statistics.
+
+```jldoctest; filter = r".+?(?=E[β|x]: -0.28* d)"s
+
+using Random
+Random.seed!(42);
+
+m = @model x begin
+    β ~ Normal()
+    yhat = β .* x
+    y ~ For(eachindex(x)) do j
+        Normal(yhat[j], 2.0)
+    end
+end
+
+x = randn(3);
+truth = rand(m(x=x));
+
+post = advancedHMC(m(x=x), (y=truth.y,));
+E_β = mean(post[1])[1]
+
+println("true β: " * string(round(truth.β, digits=2)))
+println("E[β|x]: " * string(round(E_β, digits=2)))
+
+# output
+
+E[β|x]: -0.28
+
+```
+
+"""
 function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000; 
                                                          n_adapts  = 1000) where {A,B}
     
