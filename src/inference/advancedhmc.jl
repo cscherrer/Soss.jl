@@ -51,7 +51,7 @@ println("Posterior mean β: " * string(round(E_β, digits=2)))
 
 # output
 true β: -0.3
-Posterior mean β: -0.28
+Posterior mean β: -0.25
 ```
 
 
@@ -81,18 +81,20 @@ function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000;
 
     D = t.dimension
     # Draw a random starting points
-    x_init = randn(D)
+    initial_θ = randn(D)
 
     # Define metric space, Hamiltonian, sampling method and adaptor
     metric = DiagEuclideanMetric(D)
-    h = Hamiltonian(metric, f, ∂f)
-    prop = AdvancedHMC.NUTS(Leapfrog(find_good_eps(h, x_init)))
-    adaptor = StanHMCAdaptor(n_adapts, Preconditioner(metric), NesterovDualAveraging(0.8, prop.integrator.ϵ))
+    hamiltonian = Hamiltonian(metric, f, ∂f)
+    prop = AdvancedHMC.NUTS(Leapfrog(find_good_stepsize(hamiltonian, initial_θ)))
+    initial_ϵ = find_good_stepsize(hamiltonian, initial_θ)
+    integrator = Leapfrog(initial_ϵ)
+    adaptor = StanHMCAdaptor(MassMatrixAdaptor(metric), StepSizeAdaptor(0.8, integrator))
 
     # Draw samples via simulating Hamiltonian dynamics
     # - `samples` will store the samples
     # - `stats` will store statistics for each sample
-    samples, stats = sample(h, prop, x_init, N, adaptor, n_adapts; progress=false, verbose=false)
+    samples, stats = sample(hamiltonian, prop, initial_θ, N, adaptor, n_adapts; progress=false, verbose=false)
 
 end
 
