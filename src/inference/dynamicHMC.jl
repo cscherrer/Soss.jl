@@ -33,7 +33,7 @@ This function is essentially a wrapper around `DynamicHMC.mcmc_with_warmup()`. A
 
 ## Keyword Arguments
 *  `N = 1000`: Number of samples to draw.
-*  `method = logpdf`: .
+*  `method = logpdf`: How to compute the log-density. Options are `logpdf` (delegates to `logpdf` of each component) or `codegen` (symbolic simplification and code generation).
 *  `ad_backend = Val(:ForwardDiff)`: Automatic differentiation backend.
 *  `reporter = DynamicHMC.NoProgressReport()`: Specify logging during sampling. Default: do not log progress.
 *  `kwargs`: Additional keyword arguments passed to core sampling function `DynamicHMC.mcmc_with_warmup()`.
