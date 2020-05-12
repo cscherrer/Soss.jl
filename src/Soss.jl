@@ -5,12 +5,13 @@ using Random
 using Reexport: @reexport
 
 @reexport using Measures
+using Measures: Normal
 @reexport using StatsFuns
 using NamedTupleTools
 
 import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
 import MLStyle
-@reexport using MonteCarloMeasurements
+# @reexport using MonteCarloMeasurements
 
 @reexport using SossBase
 using SossBase: JointDistribution, Assign, Sample, Return, findStatement,
