@@ -3,7 +3,12 @@ using Test
 using Weave
 using Documenter
 
-DocMeta.setdocmeta!(Soss, :DocTestSetup, :(using Soss); recursive=true)
+DocMeta.setdocmeta!(Soss, :DocTestSetup, 
+    quote
+        using Soss
+        using Random
+        Random.seed!(3)
+    end; recursive=true)
 
 function buildREADME()
     weave("../README.jmd", doctype= "github", throw_errors=true, cache=:refresh, args=Dict(:seed => 6))

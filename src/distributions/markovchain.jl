@@ -9,7 +9,7 @@ export MarkovChain
 
 NOTE: This is experimental, and may change in the near future.
 
-```@example
+```jldoctest
 mstep = @model pars,state begin
     σ = pars.σ
     x0 = state.x
@@ -28,6 +28,12 @@ r = rand(m(s0=(x=2,),));
 for s in Iterators.take(r.chain,3)
     println(s)
 end
+
+# output
+
+(x = -6.596883394256064,)
+(x = 0.48200039561318864,)
+(x = -2.838556784903994,)
 ```
 """
 struct MarkovChain{P,D}
