@@ -2,11 +2,11 @@ export Model, @model
 using MLStyle
 
 using MacroTools: @q, striplines
-using SimpleGraphs
+
 using SimplePosets
 using GeneralizedGenerated
 
-struct Model{A,B,M} 
+struct Model{A,B,M}
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
@@ -41,20 +41,20 @@ end
 
 function emptyModel(theModule::Module)
     M = to_type(theModule)
-    A = NamedTuple{(),Tuple{}}                    
+    A = NamedTuple{(),Tuple{}}
     B = (@q begin end) |> to_type
     Model{A,B,M}([], NamedTuple(), NamedTuple(), nothing)
 end
 
 
-function Base.merge(m1::Model, m2::Model) 
+function Base.merge(m1::Model, m2::Model)
     theModule = getmodule(m1)
     @assert theModule == getmodule(m2)
     vals = merge(m1.vals, m2.vals)
     args = setdiff(union(m1.args, m2.args), keys(vals))
     dists = merge(m1.dists, m2.dists)
     retn = maybesomething(m2.retn, m1.retn) # m2 first so it gets priority
-  
+
     Model(theModule, args, vals, dists, retn)
 end
 
@@ -125,7 +125,7 @@ end
 
 macro model(expr :: Expr)
     theModule = __module__
-    Model(theModule,Vector{Symbol}(), expr) 
+    Model(theModule,Vector{Symbol}(), expr)
 end
 
 
@@ -164,7 +164,7 @@ end
 # function Base.get(m::Model, k::Symbol)
 #     result = []
 
-#     if k ∈ keys(m.vals) 
+#     if k ∈ keys(m.vals)
 #         push!(result, Assign(k,getproperty(m.vals, k)))
 #     elseif k ∈ keys(m.dists)
 #         if k ∈ keys(m.data)
