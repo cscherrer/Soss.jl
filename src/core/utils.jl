@@ -1,5 +1,4 @@
 using MLStyle
-using SimpleGraphs
 using SimplePosets
 
 expr(x) = :(identity($x))
@@ -35,7 +34,7 @@ parameters(m::Model) = union(assigned(m), sampled(m))
 export variables
 variables(m::Model) = union(arguments(m), parameters(m))
 
-function variables(expr :: Expr) 
+function variables(expr :: Expr)
     leaf(x::Symbol) = begin
         [x]
     end
@@ -50,7 +49,7 @@ variables(s::Symbol) = [s]
 variables(x) = []
 
 for f in [:arguments, :assigned, :sampled, :parameters, :variables]
-    @eval function $f(m::Model, nt::NamedTuple) 
+    @eval function $f(m::Model, nt::NamedTuple)
         vs = $f(m)
         isempty(vs) && return NamedTuple()
         return select(nt, $f(m))
@@ -59,7 +58,7 @@ end
 
 
 export foldall
-function foldall(leaf, branch; kwargs...) 
+function foldall(leaf, branch; kwargs...)
     function go(ast)
         MLStyle.@match ast begin
             Expr(head, args...) => branch(head, map(go, args); kwargs...)
@@ -71,7 +70,7 @@ function foldall(leaf, branch; kwargs...)
 end
 
 export foldall1
-function foldall1(leaf, branch; kwargs...) 
+function foldall1(leaf, branch; kwargs...)
     function go(ast)
         MLStyle.@match ast begin
             Expr(head, arg1, args...) => branch(head, arg1, map(go, args); kwargs...)
@@ -148,7 +147,7 @@ end
 # From https://github.com/thautwarm/MLStyle.jl/issues/66
 @active LamExpr(x) begin
            @match x begin
-               :($a -> begin $(bs...) end) => 
+               :($a -> begin $(bs...) end) =>
                  let exprs = filter(x -> !(x isa LineNumberNode), bs)
                    if length(exprs) == 1
                      (a, exprs[1])
@@ -225,8 +224,8 @@ function loadvals(argstype, datatype, parstype)
 end
 
 
-getntkeys(::NamedTuple{A,B}) where {A,B} = A 
-getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A 
+getntkeys(::NamedTuple{A,B}) where {A,B} = A
+getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A
 
 
 # These macros quickly define additional methods for when you get tired of typing `NamedTuple()`
@@ -249,11 +248,11 @@ end
 
 # julia> tower(Int)
 # 6-element Array{DataType,1}:
-#  Int64  
-#  Signed 
+#  Int64
+#  Signed
 #  Integer
-#  Real   
-#  Number 
+#  Real
+#  Number
 #  Any
 
 export tower
@@ -262,7 +261,7 @@ function tower(x)
     t0 = typeof(x)
     result = [t0]
     t1 = supertype(t0)
-    while t1 ≠ t0 
+    while t1 ≠ t0
         push!(result, t1)
         t0, t1 = t1, supertype(t1)
     end
