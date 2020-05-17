@@ -40,9 +40,7 @@ include("primitives/likelihood-weighting.jl")
 
 include("transforms/predictive.jl")
 include("transforms/markovblanket.jl")
-include("transforms/do.jl")
-include("transforms/prune.jl")
-include("transforms/prior.jl")
+include("transforms/basictransforms.jl")
 
 include("symbolic/symbolic.jl")
 include("symbolic/codegen.jl")
