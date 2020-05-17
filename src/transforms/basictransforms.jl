@@ -78,7 +78,7 @@ end
 export Do
 function Do(m::Model, xs...; trim_args = false)
     args = arguments(m) ∪ xs
-    variables = setdiff(abovevars(m, args...), args)
+    variables = abovevars(m, args...)
     return assemblefrom(m, variables, args, trim_args = trim_args)
 end
 
