@@ -71,14 +71,14 @@ prune(m, :n)
 ```
 """
 function prune(m::Model, xs...; trim_args = true)
-    variables = setdiff(notabovevars(m, xs...), xs)
+    variables = notabovevars(m, xs...; inclusive = false)
     return assemblefrom(m, variables, variables ∩ arguments(m), trim_args = trim_args)
 end
 
 export Do
 function Do(m::Model, xs...; trim_args = false)
     args = arguments(m) ∪ xs
-    variables = abovevars(m, args...)
+    variables = abovevars(m, args...; inclusive = true)
     return assemblefrom(m, variables, args, trim_args = trim_args)
 end
 
@@ -87,27 +87,27 @@ Do(m::Model; kwargs...) = Do(m,keys(kwargs)...)(;kwargs...)
 export predictive
 predictive(m::Model, xs...) = Do(m::Model, xs...; trim_args = true)
 
-function belowvars(m::Model, xs...)
+function belowvars(m::Model, xs...; inclusive = true)
     po = poset(m)
-    vars = collect(xs)
+    vars = inclusive ? collect(xs) : Symbol[]
     for x in xs
         append!(vars, below(po, x))
     end
     return unique!(vars)
 end
 
-notbelowvars(m::Model, xs...) = setdiff(variables(m), belowvars(m, xs...))
+notbelowvars(m::Model, xs...; inclusive = false) = setdiff(variables(m), belowvars(m, xs...; inclusive = !inclusive))
 
-function abovevars(m::Model, xs...)
+function abovevars(m::Model, xs...; inclusive = false)
     po = poset(m)
-    vars = Symbol[]
+    vars = inclusive ? collect(xs) : Symbol[]
     for x in xs
         append!(vars, above(po, x))
     end
     return unique!(vars)
 end
 
-notabovevars(m::Model, xs...) = setdiff(variables(m), abovevars(m, xs...))
+notabovevars(m::Model, xs...; inclusive = true) = setdiff(variables(m), abovevars(m, xs...; inclusive = !inclusive))
 
 function assemblefrom(m::Model, vars, args; trim_args = false)
     params = setdiff(vars, args)
