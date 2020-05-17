@@ -359,8 +359,8 @@ end
 
 function symlogpdf(m::Model, simplify=true)
     s = _symlogpdf(getmoduletypencoding(m), m)
-    simplify && return foldConstants(expandSums(s))
-    return s
+    simplify && return foldConstants(expandSums(s)).evalf(3)
+    return s.evalf(3)
 end
 
 @gg M function _symlogpdf(_::Type{M}, _m::Model) where M <: TypeLevel{Module}
