@@ -104,11 +104,6 @@ end;
 symlogpdf(m2)
 ```
 
-There's clearly some redundant computation within the sums, so it helps to expand:
-
-```julia; term=true; line_width=500
-symlogpdf(m2) |> expandSums |> foldConstants
-```
 
 We can use the symbolic simplification to speed up computations:
 
