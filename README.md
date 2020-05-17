@@ -184,7 +184,7 @@ julia> m2 = @model X begin
 end;
 
 julia> 
-symlogpdf(m2)
+symlogpdf(m2).evalf(3)
                             N                                       k           
                            ___                                     ___          
                            ╲                                       ╲            
@@ -200,6 +200,7 @@ symlogpdf(m2)
 
 
 
+[the `evalf(3)` is to reduce the displayed number of decimal positions]
 
 We can use the symbolic simplification to speed up computations:
 
@@ -208,12 +209,12 @@ julia> using BenchmarkTools
 
 julia> 
 @btime logpdf($m2(X=X), $truth)
-  1.958 μs (54 allocations: 1.27 KiB)
+  1.957 μs (54 allocations: 1.27 KiB)
 -15.84854642585797
 
 julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  297.867 ns (5 allocations: 208 bytes)
--15.848600660220587
+  291.837 ns (5 allocations: 208 bytes)
+-15.848546425857968
 
 ````
 

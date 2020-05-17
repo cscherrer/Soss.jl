@@ -101,9 +101,10 @@ m2 = @model X begin
         end
 end;
 
-symlogpdf(m2)
+symlogpdf(m2).evalf(3)
 ```
 
+[the `evalf(3)` is to reduce the displayed number of decimal positions]
 
 We can use the symbolic simplification to speed up computations:
 
