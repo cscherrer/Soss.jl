@@ -24,7 +24,7 @@ prior(m, :θ)
 ```
 """
 function prior(m::Model, xs...)
-    variables = belowvars(m, xs...)
+    variables = belowvars(m, xs...; inclusive = true)
     return assemblefrom(m, variables, arguments(m) ∩ variables)
 end
 
