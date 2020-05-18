@@ -1,5 +1,12 @@
 using Documenter, Soss
 
+DocMeta.setdocmeta!(Soss, :DocTestSetup, 
+    quote
+        using Soss
+        import Random
+        Random.seed!(3)
+    end; recursive=true)
+
 makedocs(;
     modules=[Soss],
     format=Documenter.HTML(),

@@ -65,12 +65,12 @@ julia> import Random; Random.seed!(3)
 
 julia> X = randn(6,2)
 6×2 Array{Float64,2}:
-  1.19156    0.100793  
+  1.19156    0.100793
  -2.51973   -0.00197414
-  2.07481    1.00879   
- -0.97325    0.844223  
- -0.101607   1.15807   
- -1.54251   -0.475159  
+  2.07481    1.00879
+ -0.97325    0.844223
+ -0.101607   1.15807
+ -1.54251   -0.475159
 
 ````
 
@@ -93,7 +93,7 @@ pairs(::NamedTuple) with 3 entries:
 julia> truth.β
 2-element Array{Float64,1}:
   0.07187269298745927
- -0.5128103336795292 
+ -0.5128103336795292
 
 ````
 
@@ -103,10 +103,10 @@ julia> truth.β
 julia> truth.y
 6-element Array{Float64,1}:
   0.10079289135480324
- -2.5197330871745263 
-  2.0748097755419757 
-  0.8442227439533416 
-  1.158074626662026  
+ -2.5197330871745263
+  2.0748097755419757
+  0.8442227439533416
+  1.158074626662026
  -0.47515878362112707
 
 ````
@@ -158,7 +158,7 @@ truth.y - particles(ppc)
 ````
 6-element Array{Particles{Float64,1000},1}:
  -0.534 ± 0.55
- -1.28 ± 1.3  
+ -1.28 ± 1.3
   0.551 ± 0.53
   0.918 ± 0.91
   0.624 ± 0.63
@@ -184,24 +184,15 @@ julia> m2 = @model X begin
 end;
 
 julia> 
-symlogpdf(m2)
-                                                    N                         
-                                                   ___                        
-                                                   ╲                          
-                                                    ╲                         
--0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j
-                                                   ╱                          
-                                                   ‾‾‾                        
-                                                 _j1 = 1                      
-
-              k           
-             ___          
-             ╲            
-   2          ╲          2
-1])  - 0.5⋅   ╱    β[_j1] 
-             ╱            
-             ‾‾‾          
-           _j1 = 1        
+symlogpdf(m2).evalf(3)
+                            N                                       k           
+                           ___                                     ___          
+                           ╲                                       ╲            
+                            ╲                            2          ╲          2
+-0.919⋅N - 0.919⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱    β[_j1] 
+                           ╱                                       ╱            
+                           ‾‾‾                                     ‾‾‾          
+                         _j1 = 1                                 _j1 = 1        
 
 ````
 
@@ -209,33 +200,7 @@ symlogpdf(m2)
 
 
 
-There's clearly some redundant computation within the sums, so it helps to expand:
-
-````julia
-julia> symlogpdf(m2) |> expandSums |> foldConstants
-                                                    N                         
-                                                   ___                        
-                                                   ╲                          
-                                                    ╲                         
--0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j
-                                                   ╱                          
-                                                   ‾‾‾                        
-                                                 _j1 = 1                      
-
-              k           
-             ___          
-             ╲            
-   2          ╲          2
-1])  - 0.5⋅   ╱    β[_j1] 
-             ╱            
-             ‾‾‾          
-           _j1 = 1        
-
-````
-
-
-
-
+[the `evalf(3)` is to reduce the displayed number of decimal positions]
 
 We can use the symbolic simplification to speed up computations:
 
@@ -244,11 +209,11 @@ julia> using BenchmarkTools
 
 julia> 
 @btime logpdf($m2(X=X), $truth)
-  1.863 μs (47 allocations: 1.05 KiB)
+  1.957 μs (54 allocations: 1.27 KiB)
 -15.84854642585797
 
 julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  288.658 ns (5 allocations: 208 bytes)
+  291.837 ns (5 allocations: 208 bytes)
 -15.848546425857968
 
 ````
@@ -277,7 +242,7 @@ julia> ℓ
 
 julia> proposal.β
 2-element Array{Float64,1}:
- -1.216679880035586  
+ -1.216679880035586
   0.42410088891060693
 
 ````

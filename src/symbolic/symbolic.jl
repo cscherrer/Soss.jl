@@ -106,6 +106,21 @@ for dist in [:Normal, :Cauchy, :Laplace, :Beta, :Uniform]
     end
 end
 
+for dist in [:Normal, :Cauchy, :Laplace]
+    @eval begin
+        function Distributions.$dist(μ::Sym)
+            Distributions.$dist(μ, 1)
+        end
+    end
+end
+
+for dist in [:Beta]
+    @eval begin
+        function Distributions.$dist(α::Sym)
+            Distributions.$dist(α, α)
+        end
+    end
+end
 
 export sym
 sym(s::Symbol) = sympy.symbols(s, real=true)
@@ -192,7 +207,7 @@ function atoms(s::Sym)
         ixs = [j.args[1] for j in s.args[2:end]]
         bounds = union([j.args[2:3] for j in s.args[2:end]]...)
         return setdiff(union(atoms(summand), atoms.(bounds)...), ixs)
-    end 
+    end
     result = union(map(atoms, s.args)...)
     return result
 end
@@ -241,7 +256,7 @@ function symvar(st::Soss.Sample)
     st.rhs.args[1] ∈ [:For, :iid] && return :($sympy.IndexedBase($(st.x)))
     return :($sym($(st.x)))
 end
-    
+
 
 export sourceSymlogpdf
 function sourceSymlogpdf()
