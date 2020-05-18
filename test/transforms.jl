@@ -27,8 +27,8 @@ end
     end
 end
 
+m1 = prune(m, :z)
 @testset "prune" begin
-    m1 = prune(m, :z)
     @test prune(m, :x, :z) ≊ @model (α, β) begin
         p ~ Beta(α, β)
     end
@@ -50,6 +50,9 @@ end
 @testset "predictive" begin
     @test predictive(m, :p) ≊ @model (n, α, β, p) begin
         z ~ Binomial(n, α / (α + β))
+        x ~ Binomial(n, p)
+    end
+    @test predictive(m1, :p) ≊ @model (n, p) begin
         x ~ Binomial(n, p)
     end
 end
