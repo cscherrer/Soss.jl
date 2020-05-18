@@ -112,7 +112,8 @@ notabovevars(m::Model, xs...; inclusive = true) = setdiff(variables(m), abovevar
 function assemblefrom(m::Model, vars, args; trim_args = false)
     params = setdiff(vars, args)
     if trim_args
-        args = belowvars(m, args...) ∩ belowvars(m, params...)
+        g = digraph(m)
+        args = args ∩ vcat([parents(g, p) for p in params]...)
     end
     theModule = getmodule(m)
     m_init = Model(theModule, args, NamedTuple(), NamedTuple(), nothing)
