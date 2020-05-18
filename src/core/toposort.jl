@@ -1,5 +1,5 @@
 using SimplePosets
-using SimpleGraphs
+using SimpleGraphs: SimpleGraph, AbstractSimpleGraph, SimpleDigraph, vertex_type, NV, elist, in_neighbors, add_edges!
 
 import Graphs
 import Graphs.simple_graph, Graphs.add_edge!, Graphs.topological_sort_by_dfs
