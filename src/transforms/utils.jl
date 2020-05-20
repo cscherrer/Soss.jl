@@ -80,6 +80,7 @@ Transforms `m` by moving `xs` to arguments. If `strict=true`, only descendants o
 `Do(m::Model, xs...) = after(m, xs..., strict = false)`
 
 # Example
+```jldoctest
 m = @model (n, k) begin
     β ~ Gamma()
     α ~ Gamma()
@@ -96,6 +97,7 @@ after(m, :α)
         x ~ Binomial(n, θ)
         z ~ Binomial(k, α / (α + β))
     end
+```
 """
 function after(m::Model, xs...; strict = false)
     g = digraph(m)
