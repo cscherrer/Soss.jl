@@ -54,7 +54,8 @@ X = randn(6,2)
 ```
 
 ```julia; term=true
-truth = rand(m(X=X));
+args = (X=X,)
+truth = merge(args, rand(m(X=X)));
 pairs(truth)
 ```
 

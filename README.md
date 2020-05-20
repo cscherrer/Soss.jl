@@ -77,7 +77,10 @@ julia> X = randn(6,2)
 
 
 ````julia
-julia> truth = rand(m(X=X));
+julia> args = (X=X,)
+(X = [1.1915557734285787 0.10079289135480324; -2.5197330871745263 -0.0019741367391015213; … ; -0.1016067940589428 1.158074626662026; -1.5425131978228126 -0.47515878362112707],)
+
+julia> truth = merge(args, rand(m(X=X)));
 
 julia> pairs(truth)
 pairs(::NamedTuple) with 3 entries:
@@ -209,11 +212,11 @@ julia> using BenchmarkTools
 
 julia> 
 @btime logpdf($m2(X=X), $truth)
-  1.957 μs (54 allocations: 1.27 KiB)
+  2.032 μs (54 allocations: 1.27 KiB)
 -15.84854642585797
 
 julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  291.837 ns (5 allocations: 208 bytes)
+  294.723 ns (5 allocations: 208 bytes)
 -15.848546425857968
 
 ````
