@@ -43,24 +43,18 @@ m1 = prune(m, :z)
     # Doing "@test prune(m1, :p) ≊ @model begin end" strangely causes an error in @model about reducing over an empty collection.
     emptymodel = @model begin end
     @test prune(m1, :p) ≊ emptymodel
-    emptywitharg = @model n begin end
-    @test prune(m,:α,:β; trim_args = false) ≊ emptywitharg
 end
 
 @testset "predictive" begin
-    @test predictive(m, :p) ≊ @model (n, α, β, p) begin
-        z ~ Binomial(n, α / (α + β))
-        x ~ Binomial(n, p)
-    end
-    @test predictive(m1, :p) ≊ @model (n, p) begin
+    @test predictive(m, :p) ≊ @model (n, p) begin
         x ~ Binomial(n, p)
     end
 end
 
 @testset "Do" begin
-    @test Do(m, :p, :z) ≊ @model (n, α, β, p, z) begin
+    @test Do(m, :p, :z) ≊ @model (n, p) begin
         x ~ Binomial(n, p)
     end
-    emptywithargs = @model (n, α, β, p, x, z) begin end
-    @test Do(m, variables(m)...) ≊ emptywithargs
+    empty = @model begin end
+    @test Do(m, variables(m)...) ≊ empty
 end

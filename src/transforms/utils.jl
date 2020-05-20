@@ -62,9 +62,6 @@ function assemblefrom(m::Model, params, args)
     return m
 end
 
-"""
-Enforces that arguments are parents of params (and not params themselves).
-"""
 function trim_args!(args, m, params)
     g = digraph(m)
     intersect!(args, setdiff(vcat((parents(g, p) for p in params)...), params))
@@ -73,6 +70,33 @@ end
 sourcenodes(g::SimpleDigraph) = setdiff(vlist(g), [last(e) for e in elist(g)])
 sinknodes(g::SimpleDigraph) = setdiff(vlist(g), [first(e) for e in elist(g)])
 
+"""
+    after(m::Model, xs...; strict=false)
+
+Transforms `m` by moving `xs` to arguments. If `strict=true`, only descendants of `xs` are retained in the body. Otherwise, the remaining variables in the body are unmodified. Unused arguments are trimmed.
+
+`predictive(m::Model, xs...) = after(m, xs..., strict = true)`
+
+`Do(m::Model, xs...) = after(m, xs..., strict = false)`
+
+# Example
+m = @model (n, k) begin
+    β ~ Gamma()
+    α ~ Gamma()
+    θ ~ Beta(α, β)
+    x ~ Binomial(n, θ)
+    z ~ Binomial(k, α / (α + β))
+end;
+after(m, :α)
+
+# output
+@model (n, k, β) begin
+        α ~ Gamma()
+        θ ~ Beta(α, β)
+        x ~ Binomial(n, θ)
+        z ~ Binomial(k, α / (α + β))
+    end
+"""
 function after(m::Model, xs...; strict = false)
     g = digraph(m)
     for x in xs
@@ -97,7 +121,7 @@ export before
 """
     before(m::Model, xs...; inclusive=true, strict=true)
 
-Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `strict=false`, retains all variables that are not descendants of any `xs`. Note that adding more variables to `xs` cannot result in a larger model. If `inclusive=true`, `xs` is considered to be a descendant and an ancestor of itself.
+Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `strict=false`, retains all variables that are not descendants of any `xs`. Note that adding more variables to `xs` cannot result in a larger model. If `inclusive=true`, `xs` is considered to be a descendant and an ancestor of itself. Unneeded arguments are trimmed.
 
 `prune(m::Model, xs...) = before(m, xs..., inclusive = false, strict = false)`
 
@@ -115,13 +139,13 @@ end;
 before(m, :θ, inclusive = true, strict = false)
 
 # output
-@model begin
+@model k begin
         β ~ Gamma()
         α ~ Gamma()
         θ ~ Beta(α, β)
+        z ~ Binomial(k, α / (α + β))
     end
 ```
-
 """
 function before(m::Model, xs...; inclusive = true, strict = true)
     g = digraph(m)
