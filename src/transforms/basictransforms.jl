@@ -114,11 +114,11 @@ end;
 Do(m, :θ)
 
 # output
-@model (n, m, θ) begin
+@model (n, k, θ) begin
         β ~ Gamma()
         α ~ Gamma()
         x ~ Binomial(n, θ)
-        z ~ Binomial(m, α / (α + β))
+        z ~ Binomial(k, α / (α + β))
     end
 ```
 
