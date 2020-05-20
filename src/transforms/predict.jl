@@ -1,14 +1,3 @@
-using SimplePartitions: find_part
-import SimpleGraphs
-
-
-
-function Base.convert(::Type{SimpleGraph}, d::SimpleDigraph)
-    g = SimpleGraph{Symbol}()
-    add_edges!(g, elist(d))
-    g
-end
-
 export predict
 
 function predict(d::JointDistribution, post::Vector{NamedTuple{N,T}}) where {N,T}

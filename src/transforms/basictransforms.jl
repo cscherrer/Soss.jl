@@ -23,17 +23,14 @@ prior(m, :θ)
     end
 ```
 """
-function prior(m::Model, xs...)
-    variables = belowvars(m, xs...; inclusive = true)
-    return assemblefrom(m, variables, arguments(m) ∩ variables)
-end
+prior(m::Model, xs...) = before(m, xs..., inclusive = true, strict = true)
 
 export prune
 
 """
-    prune(m, xs...; trim_args = true)
+    prune(m, xs...)
 
-Returns a model transformed by removing `xs...` and all variables that depend on `xs...`. If `trim_args = true`, unneeded arguments are also removed. Use `trim_args = false` to leave arguments unaffected.
+Returns a model transformed by removing `xs...` and all variables that depend on `xs...`. Unneeded arguments are also removed.
 
 # Examples
 
@@ -70,55 +67,60 @@ prune(m, :n)
     end
 ```
 """
-function prune(m::Model, xs...; trim_args = true)
-    variables = notabovevars(m, xs...; inclusive = false)
-    return assemblefrom(m, variables, variables ∩ arguments(m), trim_args = trim_args)
-end
+prune(m::Model, xs...) = before(m, xs..., inclusive = false, strict = false)
 
-export Do
-function Do(m::Model, xs...; trim_args = false)
-    args = arguments(m) ∪ xs
-    variables = abovevars(m, args...; inclusive = true)
-    return assemblefrom(m, variables, args, trim_args = trim_args)
-end
-
-Do(m::Model; kwargs...) = Do(m,keys(kwargs)...)(;kwargs...)
 
 export predictive
-predictive(m::Model, xs...) = Do(m::Model, xs...; trim_args = true)
+"""
+    predictive(m, xs...)
 
-function belowvars(m::Model, xs...; inclusive = true)
-    po = poset(m)
-    vars = inclusive ? collect(xs) : Symbol[]
-    for x in xs
-        append!(vars, below(po, x))
+Returns a model transformed by adding `xs...` to arguments with a body containing only statements that depend on `xs`, or statements that are depended upon by children of `xs` through an open path. Unneeded arguments are trimmed.
+
+# Examples
+```jldoctest
+m = @model (n, k) begin
+    β ~ Gamma()
+    α ~ Gamma()
+    θ ~ Beta(α, β)
+    x ~ Binomial(n, θ)
+    z ~ Binomial(k, α / (α + β))
+end;
+predictive(m, :θ)
+
+# output
+@model (n, θ) begin
+        x ~ Binomial(n, θ)
     end
-    return unique!(vars)
-end
+```
 
-notbelowvars(m::Model, xs...; inclusive = false) = setdiff(variables(m), belowvars(m, xs...; inclusive = !inclusive))
+"""
+predictive(m::Model, xs...) = after(m, xs..., strict = true)
 
-function abovevars(m::Model, xs...; inclusive = false)
-    po = poset(m)
-    vars = inclusive ? collect(xs) : Symbol[]
-    for x in xs
-        append!(vars, above(po, x))
+export Do
+"""
+    Do(m, xs...)
+
+Returns a model transformed by adding `xs...` to arguments. The remainder of the body remains the same, consistent with Judea Pearl's "Do" operator. Unneeded arguments are trimmed.
+
+# Examples
+```jldoctest
+m = @model (n, k) begin
+    β ~ Gamma()
+    α ~ Gamma()
+    θ ~ Beta(α, β)
+    x ~ Binomial(n, θ)
+    z ~ Binomial(k, α / (α + β))
+end;
+Do(m, :θ)
+
+# output
+@model (n, m, θ) begin
+        β ~ Gamma()
+        α ~ Gamma()
+        x ~ Binomial(n, θ)
+        z ~ Binomial(m, α / (α + β))
     end
-    return unique!(vars)
-end
+```
 
-notabovevars(m::Model, xs...; inclusive = true) = setdiff(variables(m), abovevars(m, xs...; inclusive = !inclusive))
-
-function assemblefrom(m::Model, vars, args; trim_args = false)
-    params = setdiff(vars, args)
-    if trim_args
-        g = digraph(m)
-        args = args ∩ vcat([parents(g, p) for p in params]...)
-    end
-    theModule = getmodule(m)
-    m_init = Model(theModule, args, NamedTuple(), NamedTuple(), nothing)
-    m = foldl(params; init=m_init) do m0,v
-        merge(m0, Model(theModule, findStatement(m, v)))
-    end
-    return m
-end
+"""
+Do(m::Model, xs...) = after(m, xs..., strict = false)
