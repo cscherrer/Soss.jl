@@ -184,24 +184,15 @@ julia> m2 = @model X begin
 end;
 
 julia> 
-symlogdensity(m2)
-                                                    N                                       k
-                                                   ___                                     __
-                                                   ╲                                       ╲ 
-                                                    ╲                            2          ╲
--0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱
-                                                   ╱                                       ╱ 
-                                                   ‾‾‾                                     ‾‾
-                                                 _j1 = 1                                 _j1 
-
-           
-_          
-           
-          2
-    β[_j1] 
-           
-‾          
-= 1        
+symlogpdf(m2).evalf(3)
+                            N                                       k           
+                           ___                                     ___          
+                           ╲                                       ╲            
+                            ╲                            2          ╲          2
+-0.919⋅N - 0.919⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱    β[_j1] 
+                           ╱                                       ╱            
+                           ‾‾‾                                     ‾‾‾          
+                         _j1 = 1                                 _j1 = 1        
 
 ````
 
@@ -209,33 +200,7 @@ _
 
 
 
-There's clearly some redundant computation within the sums, so it helps to expand:
-
-````julia
-julia> symlogdensity(m2) |> expandSums |> foldConstants
-                                                    N                                       k
-                                                   ___                                     __
-                                                   ╲                                       ╲ 
-                                                    ╲                            2          ╲
--0.918938533204673⋅N - 0.918938533204673⋅k - 0.5⋅   ╱    (y[_j1] - 1.0⋅yhat[_j1])  - 0.5⋅   ╱
-                                                   ╱                                       ╱ 
-                                                   ‾‾‾                                     ‾‾
-                                                 _j1 = 1                                 _j1 
-
-           
-_          
-           
-          2
-    β[_j1] 
-           
-‾          
-= 1        
-
-````
-
-
-
-
+[the `evalf(3)` is to reduce the displayed number of decimal positions]
 
 We can use the symbolic simplification to speed up computations:
 
@@ -243,12 +208,12 @@ We can use the symbolic simplification to speed up computations:
 julia> using BenchmarkTools
 
 julia> 
-@btime logdensity($m2(X=X), $truth)
-  2.068 μs (54 allocations: 1.27 KiB)
+@btime logpdf($m2(X=X), $truth)
+  1.957 μs (54 allocations: 1.27 KiB)
 -15.84854642585797
 
-julia> @btime logdensity($m2(X=X), $truth, $codegen)
-  296.648 ns (5 allocations: 208 bytes)
+julia> @btime logpdf($m2(X=X), $truth, $codegen)
+  291.837 ns (5 allocations: 208 bytes)
 -15.848546425857968
 
 ````
