@@ -1,6 +1,4 @@
-using SimplePartitions: find_part
-import SimpleGraphs
-using SimpleGraphs: vlist, out_neighbors
+using SimpleGraphs: vlist, elist, out_neighbors
 
 # Type piracy, this should really go in SimpleGraphs
 # OTOH there's not anything else this could really mean
@@ -107,11 +105,7 @@ function after(m::Model, xs...; strict = false)
     parms = Symbol[]
     for v in sinknodes(g)
         sinkparents = before(g, v)
-        for x in xs
-            if !strict || x in sinkparents
-                append!(parms, sinkparents)
-            end
-        end
+        !strict || any(in(sinkparents).(xs)) ? append!(parms, sinkparents) : nothing
     end
     args = arguments(m) ∪ xs # Will trim later.
     parms = setdiff(parms, args)
@@ -123,7 +117,7 @@ export before
 """
     before(m::Model, xs...; inclusive=true, strict=true)
 
-Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `strict=false`, retains all variables that are not descendants of any `xs`. Note that adding more variables to `xs` cannot result in a larger model. If `inclusive=true`, `xs` is considered to be a descendant and an ancestor of itself. Unneeded arguments are trimmed.
+Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `strict=false`, retains all variables that are not descendants of any `xs`. Note that adding more variables to `xs` cannot result in a larger model. If `inclusive=true`, `xs` is considered to be an ancestor of itself and is always included in the returned `Model`. Unneeded arguments are trimmed.
 
 `prune(m::Model, xs...) = before(m, xs..., inclusive = false, strict = false)`
 
