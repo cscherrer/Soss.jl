@@ -68,6 +68,7 @@ end
 sourcenodes(g::SimpleDigraph) = setdiff(vlist(g), [last(e) for e in elist(g)])
 sinknodes(g::SimpleDigraph) = setdiff(vlist(g), [first(e) for e in elist(g)])
 
+export after
 """
     after(m::Model, xs...; strict=false)
 
@@ -89,8 +90,8 @@ end;
 after(m, :α)
 
 # output
-@model (n, k, β) begin
-        α ~ Gamma()
+@model (n, k, α) begin
+        β ~ Gamma()
         θ ~ Beta(α, β)
         x ~ Binomial(n, θ)
         z ~ Binomial(k, α / (α + β))
