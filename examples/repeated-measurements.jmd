@@ -1,7 +1,6 @@
 ---
 title: "Soss Example: Industrial Quality Control"
 author: Chad Scherrer
-date: `j Date(now())`
 weave_options:
     line_width: 1500
     dpi: 200 
@@ -25,7 +24,7 @@ m = @model r,s begin
     pos_rate = hcat(fpr, tpr)
 
     y ~ For(r,s) do i,j
-            Bernoulli(pos_rate[r, bad[j] + 1])
+            Bernoulli(pos_rate[i, bad[j] + 1])
         end
 end;
 
@@ -76,7 +75,7 @@ m = @model r,s begin
 
     # Quality assessments, indexed by reviewer and sample
     y ~ For(r,s) do i,j
-            Bernoulli(pos_rate[r, bad[j] + 1])
+            Bernoulli(pos_rate[i, bad[j] + 1])
         end
 end
 ```
@@ -115,4 +114,5 @@ logpdf(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)), codegen)
 
 pairs(truth)
 result |> particles |> pairs
+
 -->
