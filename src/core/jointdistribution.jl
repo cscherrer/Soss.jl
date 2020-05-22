@@ -8,12 +8,21 @@ struct JointDistribution{A0,A,B,M} <: Distribution{MixedVariate, MixedSupport}
     args::A0
 end
 
-(jd::JointDistribution)(nt::NamedTuple) = JointDistribution(jd.model, merge(jd.args, nt))
 
+function (m::Model)(nt::NamedTuple)
+    badargs = setdiff(keys(nt), variables(m))
+    isempty(badargs) || @error "Unused arguments $badargs"
+    
+    m = predictive(m, keys(nt)...)
+    return JointDistribution(m, nt)
+end
 
-(m::Model)(;args...)= JointDistribution(m,(;args...))
+(m::Model)(;args...)= m((;args...))
 
-(m::Model)(nt::NamedTuple) = JointDistribution(m,nt)
+function (jd::JointDistribution)(nt::NamedTuple)
+    jd2 = jd.model(nt)
+    return JointDistribution(jd2.model, merge(jd.args, jd2.args))
+end
 
 function Base.show(io::IO, d :: JointDistribution)
     m = d.model
