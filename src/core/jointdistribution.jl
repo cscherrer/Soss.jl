@@ -19,6 +19,8 @@ end
 
 (m::Model)(;args...)= m((;args...))
 
+(m::Model)() = JointDistribution(m, NamedTuple())
+
 function (jd::JointDistribution)(nt::NamedTuple)
     jd2 = jd.model(nt)
     return JointDistribution(jd2.model, merge(jd.args, jd2.args))
