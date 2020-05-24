@@ -36,6 +36,7 @@ end
 
 predictive(m::Model, x::Symbol, xs...) = predictive(predictive(m,x), xs...)
 
+predictive(m::Model, ::NamedTuple{(),Tuple{}}) = m
 
 export predict
 
