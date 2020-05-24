@@ -27,7 +27,7 @@ and start again. More information on julia projects [here](https://julialang.git
 
 Let's jump right in with a simple linear model:
 
-```julia
+```julia; results="hidden"
 using Soss
 
 m = @model X begin
@@ -35,10 +35,10 @@ m = @model X begin
     y ~ For(eachrow(X)) do x
         Normal(x' * β, 1)
     end
-end;
+end
 ```
 
-In Soss, models are _first-class_ and _function-like_, and "applying" a model to its arguments gives a _joint distribution_.
+In Soss, models are _first-class_ and _function-like_, and applying a model to its arguments gives a _joint distribution_.
 
 Just a few of the things we can do in Soss:
 
@@ -53,9 +53,8 @@ import Random; Random.seed!(3)
 X = randn(6,2)
 ```
 
-```julia; term=true
+```julia; results="hidden"
 truth = rand(m(X=X));
-pairs(truth)
 ```
 
 ```julia; term=true
@@ -90,7 +89,7 @@ truth.y - particles(ppc)
 These play a role similar to that of residuals in a non-Bayesian approach (there's plenty more detail to go into, but that's for another time).
 
 With some minor modifications, we can put this into a form that allows symbolic simplification:
-```julia; term=true; line_width=500
+```julia; results="hidden", line_width=500
 m2 = @model X begin
     N = size(X,1)
     k = size(X,2)
@@ -110,9 +109,9 @@ We can use the symbolic simplification to speed up computations:
 
 ```julia; term=true
 using BenchmarkTools
-
-@btime logpdf($m2(X=X), $truth)
-@btime logpdf($m2(X=X), $truth, $codegen)
+jointdist = m2(X=X)
+@btime logpdf($jointdist, $truth)
+@btime logpdf($jointdist, $truth, $codegen)
 ```
 
 ## What's Really Happening Here?

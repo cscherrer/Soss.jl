@@ -43,24 +43,14 @@ m = @model X begin
     y ~ For(eachrow(X)) do x
         Normal(x' * β, 1)
     end
-end;
-````
-
-
-````
-@model X begin
-        β ~ Normal() |> iid(size(X, 2))
-        y ~ For(eachrow(X)) do x
-                Normal(x' * β, 1)
-            end
-    end
+end
 ````
 
 
 
 
 
-In Soss, models are _first-class_ and _function-like_, and "applying" a model to its arguments gives a _joint distribution_.
+In Soss, models are _first-class_ and _function-like_, and applying a model to its arguments gives a _joint distribution_.
 
 Just a few of the things we can do in Soss:
 
@@ -88,15 +78,7 @@ julia> X = randn(6,2)
 
 
 ````julia
-julia> truth = rand(m(X=X));
-(X = [1.1915557734285787 0.10079289135480324; -2.5197330871745263 -0.0019741367391015213; … ; -0.1016067940589428 1.158074626662026; -1.5425131978228126 -0.47515878362112707], β = [0.07187269298745927, -0.5128103336795292], y = [0.10079289135480324, -2.5197330871745263, 2.0748097755419757, 0.8442227439533416, 1.158074626662026, -0.47515878362112707])
-
-julia> pairs(truth)
-pairs(::NamedTuple) with 3 entries:
-  :X => [1.19156 0.100793; -2.51973 -0.00197414; … ; -0.101607 1.15807; -1.5425…
-  :β => [0.0718727, -0.51281]
-  :y => [0.100793, -2.51973, 2.07481, 0.844223, 1.15807, -0.475159]
-
+truth = rand(m(X=X));
 ````
 
 
@@ -206,7 +188,7 @@ These play a role similar to that of residuals in a non-Bayesian approach (there
 
 With some minor modifications, we can put this into a form that allows symbolic simplification:
 ````julia
-julia> m2 = @model X begin
+m2 = @model X begin
     N = size(X,1)
     k = size(X,2)
     β ~ Normal() |> iid(k)
@@ -215,19 +197,11 @@ julia> m2 = @model X begin
             Normal(yhat[j], 1)
         end
 end;
-@model X begin
-        k = size(X, 2)
-        β ~ Normal() |> iid(k)
-        yhat = X * β
-        N = size(X, 1)
-        y ~ For(N) do j
-                Normal(yhat[j], 1)
-            end
-    end
 
-
-julia> 
 symlogpdf(m2).evalf(3)
+````
+
+
                             N                                       k           
                            ___                                     ___          
                            ╲                                       ╲            
@@ -236,9 +210,6 @@ symlogpdf(m2).evalf(3)
                            ╱                                       ╱            
                            ‾‾‾                                     ‾‾‾          
                          _j1 = 1                                 _j1 = 1        
-
-````
-
 
 
 
@@ -250,13 +221,28 @@ We can use the symbolic simplification to speed up computations:
 ````julia
 julia> using BenchmarkTools
 
-julia> 
-@btime logpdf($m2(X=X), $truth)
-  1.599 ms (6674 allocations: 438.06 KiB)
+julia> jointdist = m2(X=X)
+Joint Distribution
+    Bound arguments: [X]
+    Variables: [k, β, yhat, N, y]
+
+@model X begin
+        k = size(X, 2)
+        β ~ Normal() |> iid(k)
+        yhat = X * β
+        N = size(X, 1)
+        y ~ For(N) do j
+                Normal(yhat[j], 1)
+            end
+    end
+
+
+julia> @btime logpdf($jointdist, $truth)
+  1.645 μs (51 allocations: 1.20 KiB)
 -15.84854642585797
 
-julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  1.611 ms (6625 allocations: 437.00 KiB)
+julia> @btime logpdf($jointdist, $truth, $codegen)
+  73.869 ns (1 allocation: 128 bytes)
 -15.848546425857968
 
 ````
