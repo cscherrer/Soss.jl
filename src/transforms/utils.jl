@@ -68,7 +68,6 @@ end
 sourcenodes(g::SimpleDigraph) = setdiff(vlist(g), [last(e) for e in elist(g)])
 sinknodes(g::SimpleDigraph) = setdiff(vlist(g), [first(e) for e in elist(g)])
 
-export after
 """
     after(m::Model, xs...; strict=false)
 
@@ -114,7 +113,6 @@ function after(m::Model, xs...; strict = false)
     return assemblefrom(m, parms, args)
 end
 
-export before
 """
     before(m::Model, xs...; inclusive=true, strict=true)
 
