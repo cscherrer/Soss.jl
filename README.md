@@ -113,7 +113,7 @@ And now pretend we don't know `β`, and have the model figure it out.
 Often these are easier to work with in terms of `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl)):
 
 ````julia
-julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
+julia> post = dynamicHMC(m(X=X), (y=truth.y,));
 1000-element Array{NamedTuple{(:β,),Tuple{Array{Float64,1}}},1}:
  (β = [0.39734466526796725, 0.9980730158207407],)
  (β = [0.45764947899215946, 0.7167597584561338],)
@@ -164,7 +164,7 @@ julia> pred = predictive(m,:β)
 This requires `X` and `β` as inputs, so we can do something like this to do a _posterior predictive check_
 
 ````julia
-ppc = [rand(pred(;X=truth.X, p...)).y for p in post];
+ppc = [rand(pred(;X=X, p...)).y for p in post];
 
 truth.y - particles(ppc)
 ````
@@ -242,7 +242,7 @@ julia> @btime logpdf($jointdist, $truth)
 -15.84854642585797
 
 julia> @btime logpdf($jointdist, $truth, $codegen)
-  73.869 ns (1 allocation: 128 bytes)
+  73.691 ns (1 allocation: 128 bytes)
 -15.848546425857968
 
 ````
