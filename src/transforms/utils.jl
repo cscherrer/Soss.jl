@@ -86,7 +86,7 @@ m = @model (n, k) begin
     x ~ Binomial(n, θ)
     z ~ Binomial(k, α / (α + β))
 end;
-after(m, :α)
+Soss.after(m, :α)
 
 # output
 @model (n, k, α) begin
@@ -131,7 +131,7 @@ m = @model (n, k) begin
     x ~ Binomial(n, θ)
     z ~ Binomial(k, α / (α + β))
 end;
-before(m, :θ, inclusive = true, strict = false)
+Soss.before(m, :θ, inclusive = true, strict = false)
 
 # output
 @model k begin
