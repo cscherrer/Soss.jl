@@ -21,13 +21,7 @@ end
 
 (m::Model)(;args...)= m((;args...))
 
-
 (m::Model{A,B,M})(nt::NamedTuple) where {A,B,M} = JointDistribution(m,nt)
-
-function (jd::JointDistribution)(nt::NamedTuple)
-    jd2 = jd.model(nt)
-    return JointDistribution(jd2.model, merge(jd.args, jd2.args))
-end
 
 function Base.show(io::IO, d :: JointDistribution)
     m = d.model
