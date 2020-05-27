@@ -15,6 +15,8 @@ end
         sourceImportanceSample()(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()))
 end
 
+sourceImportanceSample(p::Model,q::Model) = sourceImportanceSample()(p::Model,q::Model)
+
 export sourceImportanceSample
 function sourceImportanceSample()
     function(p::Model,q::Model)

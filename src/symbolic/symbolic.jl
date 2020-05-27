@@ -255,6 +255,7 @@ function symvar(st::Sample)
     return :($sym($(st.x)))
 end
 
+sourceSymlogpdf(m::Model) = sourceSymlogpdf()(m)
 
 export sourceSymlogpdf
 function sourceSymlogpdf()

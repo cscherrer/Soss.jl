@@ -11,6 +11,8 @@ end
         type2model(_m) |> sourceWeightedSample(_data) |> loadvals(_args, _data))
 end
 
+sourceWeightedSample(m::Model, data=NamedTuple()) = sourceWeightedSample(data)(m)
+
 function sourceWeightedSample(_data)
     function(_m::Model)
 
