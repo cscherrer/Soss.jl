@@ -69,7 +69,7 @@ And now pretend we don't know `β`, and have the model figure it out.
 Often these are easier to work with in terms of `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl)):
 
 ```julia; term=true
-post = dynamicHMC(m(X=truth.X), (y=truth.y,));
+post = dynamicHMC(m(X=X), (y=truth.y,));
 particles(post)
 ```
 
@@ -81,7 +81,7 @@ pred = predictive(m,:β)
 This requires `X` and `β` as inputs, so we can do something like this to do a _posterior predictive check_
 
 ```julia
-ppc = [rand(pred(;X=truth.X, p...)).y for p in post];
+ppc = [rand(pred(;X=X, p...)).y for p in post];
 
 truth.y - particles(ppc)
 ```
