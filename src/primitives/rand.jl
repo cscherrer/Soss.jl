@@ -35,7 +35,7 @@ function sourceRand()
         proc(_m, st::Return)  = :(return $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
-        vals = map(x -> Expr(:(=), x,x),sampled(_m)) 
+        vals = map(x -> Expr(:(=), x,x),parameters(_m)) 
 
         wrap(kernel) = @q begin
             $kernel
