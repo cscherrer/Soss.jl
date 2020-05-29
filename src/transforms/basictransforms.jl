@@ -1,4 +1,3 @@
-export prior
 """
     prior(m, xs...)
 
@@ -13,7 +12,7 @@ m = @model n begin
     θ ~ Beta(α,β)
     x ~ Binomial(n, θ)
 end;
-prior(m, :θ)
+Soss.prior(m, :θ)
 
 # output
 @model begin
