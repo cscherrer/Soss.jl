@@ -14,6 +14,7 @@ m = @model (n,α,β) begin
 end
 
 @testset "prior" begin
+    using Soss.prior
     m1 = prior(m, :x)
     @test prior(m, :x) ≊ @model (n,α,β) begin
         p ~ Beta(α, β)
