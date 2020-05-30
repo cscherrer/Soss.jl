@@ -17,6 +17,8 @@ end
         type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data))
 end
 
+export sourceLogpdf
+
 sourceLogpdf(m::Model) = sourceLogpdf()(m)
 
 function sourceLogpdf()
