@@ -53,8 +53,9 @@ import Random; Random.seed!(3)
 X = randn(6,2)
 ```
 
-```julia; results="hidden"
+```julia; term=true
 truth = rand(m(X=X));
+pairs(truth)
 ```
 
 ```julia; term=true

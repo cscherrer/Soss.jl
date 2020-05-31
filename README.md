@@ -78,7 +78,14 @@ julia> X = randn(6,2)
 
 
 ````julia
-truth = rand(m(X=X));
+julia> truth = rand(m(X=X));
+(β = [0.07187269298745927, -0.5128103336795292], y = [0.10079289135480324, -2.5197330871745263, 2.0748097755419757, 0.8442227439533416, 1.158074626662026, -0.47515878362112707])
+
+julia> pairs(truth)
+pairs(::NamedTuple) with 2 entries:
+  :β => [0.0718727, -0.51281]
+  :y => [0.100793, -2.51973, 2.07481, 0.844223, 1.15807, -0.475159]
+
 ````
 
 
@@ -201,7 +208,7 @@ end;
 symlogpdf(m2).evalf(3)
 ````
 
-
+```
                             N                                       k           
                            ___                                     ___          
                            ╲                                       ╲            
@@ -210,7 +217,7 @@ symlogpdf(m2).evalf(3)
                            ╱                                       ╱            
                            ‾‾‾                                     ‾‾‾          
                          _j1 = 1                                 _j1 = 1        
-
+```
 
 
 
@@ -238,11 +245,11 @@ Joint Distribution
 
 
 julia> @btime logpdf($jointdist, $truth)
-  1.645 μs (51 allocations: 1.20 KiB)
+  1.665 μs (51 allocations: 1.20 KiB)
 -15.84854642585797
 
 julia> @btime logpdf($jointdist, $truth, $codegen)
-  73.691 ns (1 allocation: 128 bytes)
+  77.007 ns (1 allocation: 128 bytes)
 -15.848546425857968
 
 ````
