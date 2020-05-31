@@ -78,6 +78,8 @@ end
         sourceParticles()(type2model(_m), _n))
 end
 
+sourceParticles(m::Model, N::Int) = sourceParticles()(m, Val(N))
+
 export sourceParticles
 function sourceParticles() 
         

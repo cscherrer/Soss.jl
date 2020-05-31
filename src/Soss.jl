@@ -14,6 +14,7 @@ import MLStyle
 
 using LazyArrays
 using FillArrays
+using Requires
 
 include("core/statement.jl")
 include("core/model.jl")
@@ -35,8 +36,9 @@ include("primitives/rand.jl")
 include("primitives/logpdf.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")
-# include("primitives/bijectors.jl")
-
+@init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
+    include("primitives/bijectors.jl")
+end
 
 include("transforms/predictive.jl")
 include("transforms/markovblanket.jl")

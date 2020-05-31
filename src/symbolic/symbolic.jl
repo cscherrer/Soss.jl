@@ -22,7 +22,7 @@ const symfuncs = Dict()
 
 _pow(a,b) = Base.:^(float(a),b)
 
-function __init__()
+@init begin
     stats = PyCall.pyimport_conda("sympy.stats", "sympy")
     SymPy.import_from(stats)
     global stats = stats
@@ -52,14 +52,13 @@ function __init__()
     ))
 
     @eval begin
-    @gg M function codegen(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
-        f = _codegen(type2model(_m))
-        Expr(:let,
-            Expr(:(=), :M, from_type(M)),
-            :($f(_args, _data)))
+        @gg M function codegen(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
+            f = _codegen(type2model(_m))
+            Expr(:let,
+                Expr(:(=), :M, from_type(M)),
+                :($f(_args, _data)))
+        end
     end
-end
-
 end
 
 
@@ -256,6 +255,7 @@ function symvar(st::Sample)
     return :($sym($(st.x)))
 end
 
+sourceSymlogpdf(m::Model) = sourceSymlogpdf()(m)
 
 export sourceSymlogpdf
 function sourceSymlogpdf()

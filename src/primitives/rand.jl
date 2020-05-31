@@ -25,6 +25,9 @@ end
         type2model(_m) |> sourceRand())
 end
 
+sourceRand(m::Model) = sourceRand()(m)
+sourceRand(jd::JointDistribution) = sourceRand(jd.model)
+
 export sourceRand
 function sourceRand() 
     function(m::Model)

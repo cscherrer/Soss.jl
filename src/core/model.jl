@@ -179,7 +179,6 @@ end
 # For pretty-printing in the REPL
 Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 
-# (m::Model)(;kwargs...) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing,  ;kwargs...)))
 # export observe
 # observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
 # observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))

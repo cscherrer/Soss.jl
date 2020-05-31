@@ -43,14 +43,14 @@ m = @model X begin
     y ~ For(eachrow(X)) do x
         Normal(x' * β, 1)
     end
-end;
+end
 ````
 
 
 
 
 
-In Soss, models are _first-class_ and _function-like_, and "applying" a model to its arguments gives a _joint distribution_.
+In Soss, models are _first-class_ and _function-like_, and applying a model to its arguments gives a _joint distribution_.
 
 Just a few of the things we can do in Soss:
 
@@ -62,6 +62,7 @@ Just a few of the things we can do in Soss:
 Let's use our model to build some fake data:
 ````julia
 julia> import Random; Random.seed!(3)
+Random.MersenneTwister(UInt32[0x00000003], Random.DSFMT.DSFMT_state(Int32[-1359582567, 1073454075, 1934390716, 1073583786, -114685834, 1073112842, -1913218479, 1073122729, -73577195, 1073266439  …  1226759590, 1072980451, -1366384707, 1073012992, 1661148031, 2121090155, 141576524, -658637225, 382, 0]), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], UInt128[0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000  …  0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000, 0x00000000000000000000000000000000], 1002, 0)
 
 julia> X = randn(6,2)
 6×2 Array{Float64,2}:
@@ -77,14 +78,11 @@ julia> X = randn(6,2)
 
 
 ````julia
-julia> args = (X=X,)
-(X = [1.1915557734285787 0.10079289135480324; -2.5197330871745263 -0.0019741367391015213; … ; -0.1016067940589428 1.158074626662026; -1.5425131978228126 -0.47515878362112707],)
-
-julia> truth = merge(args, rand(m(X=X)));
+julia> truth = rand(m(X=X));
+(β = [0.07187269298745927, -0.5128103336795292], y = [0.10079289135480324, -2.5197330871745263, 2.0748097755419757, 0.8442227439533416, 1.158074626662026, -0.47515878362112707])
 
 julia> pairs(truth)
-pairs(::NamedTuple) with 3 entries:
-  :X => [1.19156 0.100793; -2.51973 -0.00197414; … ; -0.101607 1.15807; -1.5425…
+pairs(::NamedTuple) with 2 entries:
   :β => [0.0718727, -0.51281]
   :y => [0.100793, -2.51973, 2.07481, 0.844223, 1.15807, -0.475159]
 
@@ -122,7 +120,28 @@ And now pretend we don't know `β`, and have the model figure it out.
 Often these are easier to work with in terms of `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl)):
 
 ````julia
-julia> post = dynamicHMC(m(X=truth.X), (y=truth.y,));
+julia> post = dynamicHMC(m(X=X), (y=truth.y,));
+1000-element Array{NamedTuple{(:β,),Tuple{Array{Float64,1}}},1}:
+ (β = [0.39734466526796725, 0.9980730158207407],)
+ (β = [0.45764947899215946, 0.7167597584561338],)
+ (β = [0.44310994230948264, 1.1912646425584188],)
+ (β = [0.5804128915563641, 0.9052672328462603],)
+ (β = [0.4911904823400375, 1.3336636471494507],)
+ (β = [0.49901795646365543, 1.3937610114041836],)
+ (β = [0.45240830115259073, 1.0845756727727063],)
+ (β = [0.5850340074895557, 0.9928101856844366],)
+ (β = [0.3914145275648779, 1.0526332372994567],)
+ (β = [0.6832156018930491, 0.5252436259666028],)
+ ⋮
+ (β = [0.09003031741978823, 1.4673228840593469],)
+ (β = [0.7119637329216995, 1.3169083690223835],)
+ (β = [0.7745492796085934, 1.5705570770395088],)
+ (β = [0.4793282827750216, 1.2308875491009093],)
+ (β = [0.5780307659230056, 0.6573161353873793],)
+ (β = [0.4333874984633136, 0.5621670522823905],)
+ (β = [0.671748699538022, 1.2435049706009875],)
+ (β = [0.4123391655698562, 0.6816928239792956],)
+ (β = [0.4337503594945402, 0.9399038270436071],)
 
 julia> particles(post)
 (β = Particles{Float64,1000}[0.538 ± 0.26, 0.775 ± 0.51],)
@@ -152,7 +171,7 @@ julia> pred = predictive(m,:β)
 This requires `X` and `β` as inputs, so we can do something like this to do a _posterior predictive check_
 
 ````julia
-ppc = [rand(pred(;X=truth.X, p...)).y for p in post];
+ppc = [rand(pred(;X=X, p...)).y for p in post];
 
 truth.y - particles(ppc)
 ````
@@ -176,7 +195,7 @@ These play a role similar to that of residuals in a non-Bayesian approach (there
 
 With some minor modifications, we can put this into a form that allows symbolic simplification:
 ````julia
-julia> m2 = @model X begin
+m2 = @model X begin
     N = size(X,1)
     k = size(X,2)
     β ~ Normal() |> iid(k)
@@ -186,8 +205,10 @@ julia> m2 = @model X begin
         end
 end;
 
-julia> 
 symlogpdf(m2).evalf(3)
+````
+
+```
                             N                                       k           
                            ___                                     ___          
                            ╲                                       ╲            
@@ -196,10 +217,7 @@ symlogpdf(m2).evalf(3)
                            ╱                                       ╱            
                            ‾‾‾                                     ‾‾‾          
                          _j1 = 1                                 _j1 = 1        
-
-````
-
-
+```
 
 
 
@@ -210,13 +228,28 @@ We can use the symbolic simplification to speed up computations:
 ````julia
 julia> using BenchmarkTools
 
-julia> 
-@btime logpdf($m2(X=X), $truth)
-  2.032 μs (54 allocations: 1.27 KiB)
+julia> jointdist = m2(X=X)
+Joint Distribution
+    Bound arguments: [X]
+    Variables: [k, β, yhat, N, y]
+
+@model X begin
+        k = size(X, 2)
+        β ~ Normal() |> iid(k)
+        yhat = X * β
+        N = size(X, 1)
+        y ~ For(N) do j
+                Normal(yhat[j], 1)
+            end
+    end
+
+
+julia> @btime logpdf($jointdist, $truth)
+  1.665 μs (51 allocations: 1.20 KiB)
 -15.84854642585797
 
-julia> @btime logpdf($m2(X=X), $truth, $codegen)
-  294.723 ns (5 allocations: 208 bytes)
+julia> @btime logpdf($jointdist, $truth, $codegen)
+  77.007 ns (1 allocation: 128 bytes)
 -15.848546425857968
 
 ````
@@ -239,6 +272,7 @@ This idea can be used in much more complex ways. `weightedSample` is a sort of h
 
 ````julia
 julia> ℓ, proposal = weightedSample(m(X=X), (y=truth.y,));
+(-33.647614702926504, (X = [1.1915557734285787 0.10079289135480324; -2.5197330871745263 -0.0019741367391015213; … ; -0.1016067940589428 1.158074626662026; -1.5425131978228126 -0.47515878362112707], β = [-1.216679880035586, 0.42410088891060693], y = [0.10079289135480324, -2.5197330871745263, 2.0748097755419757, 0.8442227439533416, 1.158074626662026, -0.47515878362112707]))
 
 julia> ℓ
 -33.647614702926504

@@ -17,6 +17,10 @@ end
         type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data))
 end
 
+export sourceLogpdf
+
+sourceLogpdf(m::Model) = sourceLogpdf()(m)
+
 function sourceLogpdf()
     function(_m::Model)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
