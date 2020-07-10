@@ -93,15 +93,27 @@ end
 end
 
 #########################################################
+# T <: AbstractArray
+#########################################################
 
+function For(f::F, θ::T) where {F,T<:AbstractArray}
+    d = f(θ[1])
+    D = typeof(d)
+    X = eltype(d)
+    return For{F,T,D,X}(f, θ)
+end
 
+@inline function logpdf(d::For{F,T}, x) where {F,T<:AbstractArray}
+    s = 0.0
+    @inbounds @simd for j in eachindex(d.θ)
+        s += logpdf(d.f(d.θ[j]), x[j])
+    end
+    return s
+end
 
-
-
-
-
-
-
+@inline function rand(d::For{F,T,D,X}) where {F,T<:AbstractArray,D,X}
+    return rand.(d.f.(d.θ))
+end
 
 export logpdf2
 @inline function logpdf2(d::For{F,N,X1},xs) where {F,N, X1, X2}
