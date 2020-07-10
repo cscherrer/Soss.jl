@@ -73,24 +73,23 @@ end
 # T <: Base.Generator
 #########################################################
 
-function For(f::F, θ::T) where {F, T <: Base.Generator}
-    d = f(θ.f(θ.iter[1]))
+function For(f::F, θ::T) where {F,T<:Base.Generator}
+    d = f(θ.f(iterate(θ.iter)[1]))
     D = typeof(d)
     X = eltype(d)
-    For{F, T, D, X}(f,θ)
+    return For{F,T,D,X}(f, θ)
 end
 
-
-@inline function logpdf(d :: For{F,T}, x) where {F,T <: Base.Generator}
+@inline function logpdf(d::For{F,T}, x) where {F,T<:Base.Generator}
     s = 0.0
     for (θj, xj) in zip(d.θ, x)
         s += logpdf(d.f(θj), xj)
     end
-    s
+    return s
 end
 
-@inline function rand(d :: For{F,T,D,X}) where {F,T <: Base.Generator, D, X}
-    rand.(Base.Generator(d.θ.f, d.θ.iter))
+@inline function rand(d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
+    return rand.(Base.Generator(d.f, d.θ))
 end
 
 #########################################################
