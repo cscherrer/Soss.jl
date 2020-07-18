@@ -1,0 +1,90 @@
+
+```julia
+using Revise, Soss
+import SymPy
+```
+
+
+A `Model` is a 
+
+```julia
+m = @model x begin
+    α ~ Normal()
+    β ~ Normal()
+    σ ~ HalfNormal()
+    yhat = α .+ β .* x
+    n = length(x)
+    y ~ For(n) do j
+        Normal(yhat[j], σ)
+    end
+end;
+```
+
+
+## Symbolic Simplification
+
+A common bottleneck in probabilistic programming comes from evaluation of the log-posterior density, often required in an inner loop. Because of this, optimizing this computation can be a significant benefit to overall computational cost.
+
+## Code Generation
+
+Given values for model arguments and all stochastic variables, ...
+
+- 
+
+```julia
+Soss.sourceSymlogpdf()(m)
+```
+
+
+## Model Transformations
+
+### Markov Blankets
+
+In a DAG-based model, a _Markov blanket_ at a node $v$ is given by the following "moralizing" procedure:
+
+*TODO reference*
+
+1. Connect $v$ to parents of its children
+2. Replace directed edges with undirected edges
+3. Return the nodes connected to $v$ (including $v$)
+
+Markov blankets are commonly used in Gibbs sampling, where a given node can be updated by sampling from the posterior distribution for that node. This is complicated by the presence of deterministic nodes, which can introduce constraints that disallow any update. we address this problem be extending the blanket to ancestors, stopping only when a stochastic node is reached. For example, we have
+
+```julia
+markovBlanket(m,:α)
+```
+
+Note that the arguments of this model consist of the parents of a `:α`, together with its "stochastic childrens'" parents. Equivalently (and more simply), we must include any referenced but undefined variable as an argument.
+
+For deterministic 
+
+```julia
+markovBlanket(m, :yhat)
+```
+
+# Internals
+
+When designing a PPL, it's important to consider the form of the intermediate representation. 
+
+In Soss, a `Model` is a `struct` of the form
+
+```julia
+struct Model{A,B,M} 
+    args  :: Vector{Symbol}
+    vals  :: NamedTuple
+    dists :: NamedTuple
+    retn  :: Union{Nothing, Symbol, Expr}
+end
+```
+
+
+
+
+
+```julia
+symlogpdf(m)
+```
+
+```julia
+symlogpdf(m) |> expandSums |> foldConstants
+```
