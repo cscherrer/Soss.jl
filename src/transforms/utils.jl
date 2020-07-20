@@ -53,12 +53,30 @@ notafter(g::SimpleDigraph, vs...; inclusive = false) = setdiff(vlist(g), after(g
 
 function assemblefrom(m::Model, params, args)
     theModule = getmodule(m)
-    m_init = Model(theModule, args, NamedTuple(), NamedTuple(), nothing)
+    # Keep return elements that depend on params or args
+    retn = trim_retn(m.retn, params, args)
+    #
+    m_init = Model(theModule, args, NamedTuple(), NamedTuple(), retn)
     m = foldl(params; init=m_init) do m0,v
         merge(m0, Model(theModule, findStatement(m, v)))
     end
     return m
 end
+
+trim_retn(retn, params, args) = (retn in params || retn in args) ? retn : nothing
+function trim_retn(retn::Expr, params, args)
+    @assert retn.head==:tuple "The model must return a value or a tuple of values"
+    new_retargs = [retn_arg for retn_arg in retn.args if keep_retn(retn_arg, params, args)]
+    if length(new_retargs)==0
+        return nothing
+    elseif length(new_retargs)==1
+        return first(new_retargs)
+    else
+        return Expr(:tuple, new_retargs...)
+    end
+end
+keep_retn(retn_arg, params, args) = retn_arg in params || retn_arg in args
+keep_retn(retn_arg::Expr, params, args) = any(keep_retn(retn_subarg, params, args) for retn_subarg in retn_arg.args)
 
 function trim_args!(args, m, params)
     g = digraph(m)

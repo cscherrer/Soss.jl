@@ -4,11 +4,6 @@ using SimplePosets
 expr(x) = :(identity($x))
 
 # like `something`, but doesn't throw an error
-maybesomething() = nothing
-maybesomething(x::Nothing, y...) = maybesomething(y...)
-maybesomething(x::Some, y...) = x.value
-maybesomething(x::Any, y...) = x
-
 
 export argtuple
 argtuple(m) = arguments(m) |> astuple

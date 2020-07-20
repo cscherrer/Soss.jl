@@ -11,6 +11,7 @@ m = @model (n,α,β) begin
     p ~ Beta(α, β)
     x ~ Binomial(n, p)
     z ~ Binomial(n, α/(α+β))
+    return p,x,z
 end
 
 @testset "prior" begin
@@ -18,12 +19,15 @@ end
     @test Soss.prior(m, :x) ≊ @model (n,α,β) begin
         p ~ Beta(α, β)
         x ~ Binomial(n, p)
+        return (p,x)
     end
     @test Soss.prior(m1, :p) ≊ @model (α, β) begin
         p ~ Beta(α, β)
+        return p
     end
     @test Soss.prior(m, :z) ≊ @model (n, α, β) begin
         z ~ Binomial(n, α / (α + β))
+        return z
     end
 end
 
@@ -31,12 +35,15 @@ m1 = prune(m, :z)
 @testset "prune" begin
     @test prune(m, :x, :z) ≊ @model (α, β) begin
         p ~ Beta(α, β)
+        return p
     end
     @test prune(m1, :n) ≊ @model (α, β) begin
         p ~ Beta(α, β)
+        return p
     end
     @test prune(m, :p) ≊ @model (α, n, β) begin
         z ~ Binomial(n, α / (α + β))
+        return z
     end
 
     # When I define these variables, the tests pass.
@@ -48,12 +55,14 @@ end
 @testset "predictive" begin
     @test predictive(m, :p) ≊ @model (n, p) begin
         x ~ Binomial(n, p)
+        return (p,x)
     end
 end
 
 @testset "Do" begin
     @test Do(m, :p, :z) ≊ @model (n, p) begin
         x ~ Binomial(n, p)
+        return (p,x)
     end
     empty = @model begin end
     @test Do(m, variables(m)...) ≊ empty

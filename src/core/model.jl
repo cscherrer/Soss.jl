@@ -53,9 +53,19 @@ function Base.merge(m1::Model, m2::Model)
     vals = merge(m1.vals, m2.vals)
     args = setdiff(union(m1.args, m2.args), keys(vals))
     dists = merge(m1.dists, m2.dists)
-    retn = maybesomething(m2.retn, m1.retn) # m2 first so it gets priority
+    retn = merge_retn(m2.retn, m1.retn) # m2 first so it gets priority
 
     Model(theModule, args, vals, dists, retn)
+end
+
+function merge_retn(ret1, ret2)
+    if isnothing(ret1)
+        return ret2
+    elseif isnothing(ret2)
+        return ret1
+    else
+        return :(($ret1,$ret2))
+    end
 end
 
 Base.merge(m::Model, ::Nothing) = m
