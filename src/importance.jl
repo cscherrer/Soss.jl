@@ -45,7 +45,7 @@ function sourceImportanceSample()
 
         body = buildSource(m, proc) |> flatten
 
-        kwargs = freeVariables(q) ∪ arguments(p)
+        kwargs = arguments(q) ∪ arguments(p)
         kwargsExpr = Expr(:tuple,kwargs...)
 
         stochExpr = begin
