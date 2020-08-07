@@ -1,0 +1,41 @@
+```julia
+using Soss
+using RDatasets
+df = RDatasets.dataset("ISLR", "Default");
+df.Default = df.Default .== "Yes"
+df.Student = df.Student .== "Yes"
+df
+```
+
+http://www.stat.columbia.edu/~gelman/research/published/priors11.pdf
+
+```julia
+function center(x)
+    μ = mean(x)
+    σ = std(x; mean=μ)
+    return (x .- μ) ./ σ
+end
+
+df.inc = center(log.(df.Income))
+df.bal = center(log.(df.Balance .+ 0.01))
+```
+
+
+```julia
+m = @model X,λ begin
+    n = size(X,1)
+    k = size(X,2)
+    α ~ Cauchy(5)
+    β ~ TDist(3) |> iid(k)
+    yhat = α .+ X * β
+    y ~ For(eachrow(X)) do xrow
+            BernoulliLogistic(yhat)
+        end
+end
+```
+
+```julia
+X = Matrix(df[:,[:inc, :bal]])
+post = dynamicHMC(m(X=X, λ=1), (y=df.Default,))
+particles(post)
+```

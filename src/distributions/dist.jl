@@ -58,3 +58,22 @@ StudentT(ν, μ = 0.0, σ = 1.0) = LocationScale(μ, σ, TDist(ν))
 
 
 xform(d::Dirichlet, _data) = UnitSimplex(length(d.alpha))
+
+struct BernoulliLogistic{T} <: Distribution{Univariate, Discrete}
+    logit_p :: T
+end
+
+export BernoulliLogistic
+
+function Base.rand(dist::BernoulliLogistic{T}) where {T<:Real}
+    success = logit(rand()) < dist.logit_p
+    return success
+end
+
+function Distributions.logpdf(dist::BernoulliLogistic{T}, x::Bool) where {T<:Real}
+    y = dist.logit_p
+    if x
+        -log(1 + exp(-y))
+    end
+    return -log(1 + exp(y))
+end

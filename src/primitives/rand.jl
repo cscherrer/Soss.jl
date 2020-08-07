@@ -25,6 +25,9 @@ end
         type2model(_m) |> sourceRand())
 end
 
+sourceRand(m::Model) = sourceRand()(m)
+sourceRand(jd::JointDistribution) = sourceRand(jd.model)
+
 export sourceRand
 function sourceRand() 
     function(m::Model)
@@ -35,7 +38,7 @@ function sourceRand()
         proc(_m, st::Return)  = :(return $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
-        vals = map(x -> Expr(:(=), x,x),variables(_m)) 
+        vals = map(x -> Expr(:(=), x,x),parameters(_m)) 
 
         wrap(kernel) = @q begin
             $kernel

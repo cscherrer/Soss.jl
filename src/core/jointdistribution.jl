@@ -1,15 +1,27 @@
+using Distributions: ValueSupport, VariateForm
 
-struct JointDistribution{A0,A,B,M}
+struct MixedSupport <: ValueSupport end
+struct MixedVariate <: VariateForm end
+
+struct JointDistribution{A0,A,B,M} <: Distribution{MixedVariate, MixedSupport}
     model::Model{A,B,M}
     args::A0
 end
 
-(jd::JointDistribution)(nt::NamedTuple) = JointDistribution(jd.model, merge(jd.args, nt))
+(jd::JointDistribution)(nt::NamedTuple) = jd.model(merge(jd.args, nt))
 
 
-(m::Model)(;args...)= JointDistribution(m,(;args...))
+# function (m::Model)(nt::NamedTuple)
+#     badargs = setdiff(keys(nt), variables(m))
+#     isempty(badargs) || @error "Unused arguments $badargs"
+    
+#     m = predictive(m, keys(nt)...)
+#     return JointDistribution(m, nt)
+# end
 
-(m::Model)(nt::NamedTuple) = JointDistribution(m,nt)
+(m::Model)(;args...)= m((;args...))
+
+(m::Model{A,B,M})(nt::NamedTuple) where {A,B,M} = JointDistribution(m,nt)
 
 function Base.show(io::IO, d :: JointDistribution)
     m = d.model
