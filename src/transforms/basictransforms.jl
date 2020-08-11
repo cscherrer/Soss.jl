@@ -12,17 +12,17 @@ m = @model n begin
     θ ~ Beta(α,β)
     x ~ Binomial(n, θ)
 end;
-Soss.prior(m, :x)
+Soss.prior(m, :θ)
 
 # output
 @model begin
-    β ~ Gamma()
-    α ~ Gamma()
-    θ ~ Beta(α, β)
-end
+        β ~ Gamma()
+        α ~ Gamma()
+        θ ~ Beta(α, β)
+    end
 ```
 """
-prior(m::Model, xs...) = before(m, xs..., inclusive = false, strict = true)
+prior(m::Model, xs...) = before(m, xs..., inclusive = true, strict = true)
 
 export prune
 
