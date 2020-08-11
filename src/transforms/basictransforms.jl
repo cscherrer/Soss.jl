@@ -22,7 +22,7 @@ Soss.prior(m, :θ)
     end
 ```
 """
-prior(m::Model, xs...) = before(m, xs..., inclusive = true, strict = true)
+prior(m::Model, xs...) = before(m, xs..., inclusive = false, strict = true)
 
 export prune
 
