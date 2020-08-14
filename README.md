@@ -227,9 +227,6 @@ We can use the symbolic simplification to speed up computations:
 
 ````julia
 julia> using BenchmarkTools
-Error: ArgumentError: Package BenchmarkTools not found in current path:
-- Run `import Pkg; Pkg.add("BenchmarkTools")` to install the BenchmarkTools package.
-
 
 julia> jointdist = m2(X=X)
 Joint Distribution
@@ -248,12 +245,12 @@ Joint Distribution
 
 
 julia> @btime logpdf($jointdist, $truth)
-Error: LoadError: UndefVarError: @btime not defined
-in expression starting at none:1
+  1.731 μs (45 allocations: 1.05 KiB)
+-10.139853153922688
 
 julia> @btime logpdf($jointdist, $truth, $codegen)
-Error: LoadError: UndefVarError: @btime not defined
-in expression starting at none:1
+  74.953 ns (1 allocation: 128 bytes)
+-10.139853153922687
 
 ````
 

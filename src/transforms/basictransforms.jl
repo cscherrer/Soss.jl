@@ -18,7 +18,6 @@ Soss.prior(m, :θ)
 @model begin
         β ~ Gamma()
         α ~ Gamma()
-        θ ~ Beta(α, β)
     end
 ```
 """
