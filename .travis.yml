@@ -3,8 +3,9 @@ os:
     - linux
     - osx
 julia:
-    - 1.4
-    # - nightly
+    - '1.4'
+    - '1' # expands to the latest stable release of Julia
+    - 'nightly'
     
 branches:
   only:
@@ -23,14 +24,15 @@ before_install:
 after_success:
 - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
 
-
 jobs:
+allow_failures:
+  - julia: 'nightly'
   include:
     - stage: "Documentation"
-      julia: 1.4
+      julia: '1.4'
       os: linux
       script:
-        - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
-                                               Pkg.instantiate()'
-        - julia --project=docs/ docs/make.jl
+        - PYTHON=conda julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
+                                                            Pkg.instantiate()'
+        - PYTHON=conda julia --project=docs/ docs/make.jl
       after_success: skip
