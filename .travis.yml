@@ -24,7 +24,8 @@ before_install:
 after_success:
 - julia --depwarn=no -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
 
-script: julia --depwarn=no -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true)'
+# script: julia --depwarn=no -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true)'
+script: julia --depwarn=no --code-coverage -e 'using Pkg; Pkg.build(); include("test/runtests.jl")'
 
 jobs:
   allow_failures:
