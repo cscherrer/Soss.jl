@@ -22,7 +22,9 @@ before_install:
     #install mpmath to test functionality
 #   - if [ $MPMATH = "true" ]; then julia -e 'using Pkg; Pkg.add("Conda"); using Conda; Conda.add("mpmath")';fi
 after_success:
-- julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
+- julia --depwarn=no -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
+
+script: julia --depwarn=no -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true)'
 
 jobs:
   allow_failures:
@@ -32,7 +34,7 @@ jobs:
       julia: '1.4'
       os: linux
       script:
-        - PYTHON=conda julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
+        - PYTHON=conda julia --depwarn=no --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
                                                             Pkg.instantiate()'
-        - PYTHON=conda julia --project=docs/ docs/make.jl
+        - PYTHON=conda julia --depwarn=no --project=docs/ docs/make.jl
       after_success: skip
