@@ -68,7 +68,7 @@ println("Posterior mean β: " * string(round(E_β, digits=2)))
 
 # output
 true β: 0.3
-Posterior mean β: 0.47
+Posterior mean β: 0.19
 ```
 
 """
