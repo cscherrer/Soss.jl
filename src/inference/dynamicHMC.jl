@@ -132,30 +132,30 @@ function dynamicHMC(m::JointDistribution, args...; kwargs...)
 end
 
 
-using ResumableFunctions
+# using ResumableFunctions
 
-export stream
+# export stream
 
-@resumable function stream(
-    rng::AbstractRNG,
-    f::typeof(dynamicHMC),
-    m::JointDistribution,
-    _data::NamedTuple,
-)
-    t = xform(m, _data)
-    (results, steps) = dynamicHMC(rng, m, _data, Val(Inf))
-    Q = results.final_warmup_state.Q
-    while true
-        Q, tree_stats = DynamicHMC.mcmc_next_step(steps, Q)
-        @yield (merge(t(Q.q), (_ℓ = Q.ℓq,)), tree_stats)
-    end
-end
+# @resumable function stream(
+#     rng::AbstractRNG,
+#     f::typeof(dynamicHMC),
+#     m::JointDistribution,
+#     _data::NamedTuple,
+# )
+#     t = xform(m, _data)
+#     (results, steps) = dynamicHMC(rng, m, _data, Val(Inf))
+#     Q = results.final_warmup_state.Q
+#     while true
+#         Q, tree_stats = DynamicHMC.mcmc_next_step(steps, Q)
+#         @yield (merge(t(Q.q), (_ℓ = Q.ℓq,)), tree_stats)
+#     end
+# end
 
-function stream(
-    f::typeof(dynamicHMC),
-    m::JointDistribution,
-    _data::NamedTuple;
-    kwargs...,
-)
-    return stream(Random.GLOBAL_RNG, f, m, _data; kwargs...)
-end
+# function stream(
+#     f::typeof(dynamicHMC),
+#     m::JointDistribution,
+#     _data::NamedTuple;
+#     kwargs...,
+# )
+#     return stream(Random.GLOBAL_RNG, f, m, _data; kwargs...)
+# end
