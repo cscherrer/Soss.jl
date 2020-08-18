@@ -93,7 +93,7 @@ end
 end
 
 @inline function rand(d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
-    return rand.(Base.Generator(d.f, d.θ))
+    return rand.(Base.Generator(d.f ∘ d.θ.f, d.θ.iter))
 end
 
 #########################################################
