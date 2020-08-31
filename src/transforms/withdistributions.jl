@@ -1,0 +1,64 @@
+using Soss
+
+get_distname(x::Symbol) = Symbol(:_, x, :_dist)
+
+"""
+    withdistributions(m::Model) -> Model
+
+julia> m = @model begin
+    σ ~ HalfNormal()
+    y ~ For(10) do j
+        Normal(0,σ)
+    end
+end;
+
+julia> m_dists = Soss.withdistributions(m)
+@model begin
+        _σ_dist = HalfNormal()
+        σ ~ _σ_dist
+        _y_dist = For(10) do j
+                Normal(0, σ)
+            end
+        y ~ _y_dist
+    end
+
+julia> ydist = rand(m_dists())._y_dist
+For{GeneralizedGenerated.Closure{function = (σ, M, j;) -> begin
+    M.Normal(0, σ)
+end,Tuple{Float64,Module}},Tuple{Int64},Normal{Float64},Float64}(GeneralizedGenerated.Closure{function = (σ, M, j;) -> begin
+    M.Normal(0, σ)
+end,Tuple{Float64,Module}}((0.031328640120683524, Main)), (10,))
+
+julia> rand(ydist)
+10-element Array{Float64,1}:
+  0.03454891487870426
+  0.008832782323408313
+ -0.007395186925623771
+ -0.030669004243492004
+ -0.01728630026691135
+  0.011892877715064682
+  0.025576319363013512
+ -0.029323425779917773
+ -0.020502677724193594
+  0.04612690097957398
+"""
+function withdistributions(m::Model)
+    theModule = getmodule(m)
+    m_init = Model(theModule, m.args, NamedTuple(), NamedTuple(), nothing)
+
+    function proc(st::Sample) 
+        distname = get_distname(st.x)
+        assgn = Model(theModule, Assign(distname, st.rhs))
+        sampl = Model(theModule, Sample(st.x, distname))
+        return merge(assgn, sampl)
+    end
+    proc(st) = Model(theModule, st)
+
+    # Rewrite the statements of the model one by one. 
+    # This would be a bit cleaner with a `statements` iterator
+    m_new = foldl(variables(m); init=m_init) do m0,v
+        m1 = proc(findStatement(m, v))
+        merge(m0, m1)
+    end
+    return m_new
+end
