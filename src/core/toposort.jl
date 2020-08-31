@@ -7,7 +7,7 @@ export convert_simple
 
 # From https://github.com/scheinerman/SimpleGraphs.jl/blob/1396758729f95912d7f245f9c70957f4993be417/src/simple_converters.jl
 function convert_simple(G::AbstractSimpleGraph)
-    T = vertex_type(G)
+    T = eltype(G)
     n = NV(G)
     has_dir = isa(G,SimpleDigraph)
 
