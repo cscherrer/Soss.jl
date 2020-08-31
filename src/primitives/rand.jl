@@ -34,7 +34,7 @@ end
         type2model(_m) |> sourceRand(rng))
 end
 
-sourceRand(m::Model) = sourceRand(GLOBAL_RNG)(m)
+sourceRand(m::Model) = sourceRand(typeof(GLOBAL_RNG))(m)
 sourceRand(jd::JointDistribution) = sourceRand(jd.model)
 
 export sourceRand
@@ -43,7 +43,7 @@ function sourceRand(::Type{<:AbstractRNG})
         
         _m = canonical(m)
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
-        proc(_m, st::Sample)  = :($(st.x) = rand($rng, $(st.rhs)))
+        proc(_m, st::Sample)  = :($(st.x) = rand(_rng, $(st.rhs)))
         proc(_m, st::Return)  = :(return $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
