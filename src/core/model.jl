@@ -190,3 +190,7 @@ function findStatement(m::Model, x::Symbol)
     x ∈ arguments(m) && return Arg(x)
     error("statement not found")
 end
+
+function statements(m::Model)
+    Statement[Soss.findStatement(m, v) for v in variables(m)]
+end
