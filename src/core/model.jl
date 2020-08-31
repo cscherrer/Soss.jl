@@ -72,6 +72,7 @@ function Model(theModule::Module, expr :: Expr)
     @match expr begin
         :($k = $v)   => Model(theModule, Assign(k,v))
         :($k ~ $v)   => Model(theModule, Sample(k,v))
+        :($k .~ $v)  => Model(theModule, Sample(k, :(For(identity, $v))))
         Expr(:return, x...) => Model(theModule, Return(x[1]))
         Expr(:block, body...) => foldl(merge, map(body) do line Model(theModule, line) end)
         :(@model $lnn $body) => Model(theModule, body)
