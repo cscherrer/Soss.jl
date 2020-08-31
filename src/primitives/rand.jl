@@ -9,7 +9,7 @@ rand(rng::AbstractRNG, d::JointDistribution, N::Int) = [rand(rng, d) for n in 1:
 rand(d::JointDistribution, N::Int) = rand(GLOBAL_RNG, d, N)
 
 @inline function rand(rng::AbstractRNG, m::JointDistribution)
-    return _rand(rng, getmoduletypencoding(m.model), m.model, m.args)
+    return _rand(getmoduletypencoding(m.model), m.model, m.args)(rng)
 end
 
 @inline function rand(m::JointDistribution) 
@@ -17,28 +17,28 @@ end
 end
 
 @inline function rand(rng::AbstractRNG, m::Model)
-    return _rand(rng, getmoduletypencoding(m), m, NamedTuple())
+    return _rand(getmoduletypencoding(m), m, NamedTuple())(rng)
 end
 
 rand(m::Model) = rand(GLOBAL_RNG, m)
 
-@gg M function _rand(rng::AbstractRNG, _::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
+@gg M function _rand(_::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceRand(rng) |> loadvals(_args, NamedTuple()))
+        type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple()))
 end
 
-@gg M function _rand(rng::AbstractRNG, _::Type{M}, _m::Model, _args::NamedTuple{()}) where M <: TypeLevel{Module}
+@gg M function _rand(_::Type{M}, _m::Model, _args::NamedTuple{()}) where M <: TypeLevel{Module}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceRand(rng))
+        type2model(_m) |> sourceRand())
 end
 
-sourceRand(m::Model) = sourceRand(typeof(GLOBAL_RNG))(m)
+sourceRand(m::Model) = sourceRand()(m)
 sourceRand(jd::JointDistribution) = sourceRand(jd.model)
 
 export sourceRand
-function sourceRand(::Type{<:AbstractRNG}) 
+function sourceRand() 
     function(m::Model)
         
         _m = canonical(m)
@@ -50,8 +50,10 @@ function sourceRand(::Type{<:AbstractRNG})
         vals = map(x -> Expr(:(=), x,x),parameters(_m)) 
 
         wrap(kernel) = @q begin
-            $kernel
-            $(Expr(:tuple, vals...))
+            _rng -> begin
+                $kernel
+                $(Expr(:tuple, vals...))
+            end
         end
 
         buildSource(_m, proc, wrap) |> flatten
