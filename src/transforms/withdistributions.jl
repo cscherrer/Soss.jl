@@ -52,6 +52,8 @@ function withdistributions(m::Model)
         sampl = Model(theModule, Sample(st.x, distname))
         return merge(assgn, sampl)
     end
+    
+    proc(st::Arg) = nothing
     proc(st) = Model(theModule, st)
 
     # Rewrite the statements of the model one by one. 
