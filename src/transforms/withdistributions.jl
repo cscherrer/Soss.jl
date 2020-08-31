@@ -58,9 +58,8 @@ function withdistributions(m::Model)
 
     # Rewrite the statements of the model one by one. 
     # This would be a bit cleaner with a `statements` iterator
-    m_new = foldl(variables(m); init=m_init) do m0,v
-        m1 = proc(findStatement(m, v))
-        merge(m0, m1)
+    m_new = foldl(statements(m); init=m_init) do m0,st
+        merge(m0, proc(st))
     end
     return m_new
 end
