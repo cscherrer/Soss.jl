@@ -41,13 +41,14 @@ struct MarkovChain{P,D}
     step :: D
 end
 
-struct MarkovChainRand{P,D}
+struct MarkovChainRand{R,P,D}
+    rng::R
     mc::MarkovChain{P,D}
 end
 
 Base.IteratorSize(::MarkovChainRand) = Base.IsInfinite()
 
-Base.eltype(mc::MarkovChainRand{P,D}) where {P,D} = typeof(mc.dist.args.state)
+Base.eltype(mc::MarkovChainRand{R,P,D}) where {R,P,D} = typeof(mc.dist.args.state)
 
 export next
 function next(mc::MarkovChain{P,D}, state) where {P,D}
@@ -63,19 +64,19 @@ function Distributions.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where 
     return ℓ
 end
 
-function Base.iterate(r::MarkovChainRand{P,D}) where {P,D}
+function Base.iterate(r::MarkovChainRand{R,P,D}) where {R,P,D}
     state = rand(r.mc.step).next.state
     return (state, state)
 end
 
-function Base.iterate(r::MarkovChainRand{P,D}, state::NamedTuple) where {P,D}
+function Base.iterate(r::MarkovChainRand{R,P,D}, state::NamedTuple) where {R,P,D}
     step = next(r.mc,state).step
     newstate = rand(step).next.state
     return (newstate, newstate)
 end
 
-Base.rand(mc::MarkovChain) = MarkovChainRand(mc)
-
+Base.rand(rng::AbstractRNG, mc::MarkovChain) = MarkovChainRand(rng, mc)
+Base.rand(mc::MarkovChain) = MarkovChainRand(GLOBAL_RNG, mc)
 
 # EXAMPLE 
 
