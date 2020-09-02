@@ -3,6 +3,7 @@ import Distributions.logpdf
 using Base.Cartesian
 using Base.Threads
 using FillArrays
+using Random: GLOBAL_RNG
 
 export logpdf
 export rand
@@ -37,11 +38,13 @@ end
     return s
 end
 
-function Base.rand(dist::For)
+function Base.rand(rng::AbstractRNG, dist::For)
     return map(CartesianIndices(dist.θ)) do I
-        (rand ∘ dist.f)(Tuple(I)...)
+        rand(rng, dist.f(Tuple(I)...))
     end
 end
+
+Base.rand(dist::For) = rand(GLOBAL_RNG, dist)
 
 #########################################################
 # T <: NTuple{N,J} where {J <: AbstractUnitRange}
