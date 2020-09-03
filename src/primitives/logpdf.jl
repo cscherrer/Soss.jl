@@ -1,11 +1,11 @@
 
 export logpdf
 
-function logpdf(m::JointDistribution{A0,A,B,M},x) where {A0,A,B,M}
+function Distributions.logpdf(m::JointDistribution{A0,A,B,M},x) where {A0,A,B,M}
     _logpdf(M, m.model, m.args, x)
 end
 
-function logpdf(m::JointDistribution{A0,A,B,M},x, ::typeof(logpdf)) where {A0,A,B,M}
+function Distributions.logpdf(m::JointDistribution{A0,A,B,M},x, ::typeof(logpdf)) where {A0,A,B,M}
     _logpdf(M, m.model, m.args, x)
 end
 

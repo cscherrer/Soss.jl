@@ -1,12 +1,15 @@
 name = "Soss"
 uuid = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
 author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
-version = "0.13.0"
+version = "0.13.1"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
+Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+DistributionsAD = "ced4e74d-a319-5a8a-b0ac-84af2272839c"
 DynamicHMC = "bbc10e6e-7c05-544b-b16e-64fede858acb"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
