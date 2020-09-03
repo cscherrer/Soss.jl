@@ -13,7 +13,7 @@ end
 
 struct Sample <: Statement
     x :: Symbol
-    rhs 
+    rhs
 end
 
 struct LineNumber <: Statement
@@ -51,8 +51,4 @@ Base.convert(::Type{Expr}, st::LineNumber) = st.node
 
 function Base.convert(::Type{Expr}, sts::Vector{Statement})
     Expr(:block, [convert(Expr, st) for st in sts]...)
-end
-
-function statements(m::Model)
-    Statement[Soss.findStatement(m, v) for v in variables(m)]
 end
