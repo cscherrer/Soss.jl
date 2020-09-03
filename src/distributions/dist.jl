@@ -14,7 +14,7 @@ Distributions.logpdf(d::HalfCauchy, x::Real) = log(2) + logpdf(Cauchy(0, d.σ), 
 
 Distributions.pdf(d::HalfCauchy, x) = 2 * pdf(Cauchy(0, d.σ), x)
 
-Distributions.rand(rng::AbstractRNG, d::HalfCauchy) = abs(rand(rng, Cauchy(0, d.σ)))
+Base.rand(rng::AbstractRNG, d::HalfCauchy) = abs(rand(rng, Cauchy(0, d.σ)))
 
 Distributions.quantile(d::HalfCauchy, p) = quantile(Cauchy(0, d.σ), (p + 1) / 2)
 
@@ -33,7 +33,7 @@ Distributions.logpdf(d::HalfNormal, x::Real) = log(2) + logpdf(Normal(0, d.σ), 
 
 Distributions.pdf(d::HalfNormal, x) = 2 * pdf(Normal(0, d.σ), x)
 
-Distributions.rand(rng::AbstractRNG, d::HalfNormal) = abs(rand(rng, Normal(0, d.σ)))
+Base.rand(rng::AbstractRNG, d::HalfNormal) = abs(rand(rng, Normal(0, d.σ)))
 
 Distributions.quantile(d::HalfNormal, p) = quantile(Normal(0, d.σ), (p + 1) / 2)
 

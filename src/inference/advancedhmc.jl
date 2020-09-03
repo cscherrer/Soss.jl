@@ -22,16 +22,12 @@ Draw `N` samples from the posterior distribution of parameters defined in Soss m
 *  `n_adapts = 1000`: The number of interations used to set HMC parameters.
 
 Returns a tuple of length 2:
-1. Samples from the posterior distribution of parameters.  
-2. Sample summary statistics.  
+1. Samples from the posterior distribution of parameters.
+2. Sample summary statistics.
 
 ## Example
 
-```jldoctest
-
-using Random
-Random.seed!(42);
-
+```
 m = @model x begin
     β ~ Normal()
     yhat = β .* x
@@ -40,36 +36,31 @@ m = @model x begin
     end
 end
 
-x = randn(3);
-truth = rand(m(x=x));
+x = randn(10);
+truth = [0.61, -0.34, -1.74];
 
-post = advancedHMC(m(x=x), (y=truth.y,));
+post = advancedHMC(m(x=x), (y=truth,));
 E_β = mean(post[1])[1]
 
-println("true β: " * string(round(truth.β, digits=2)))
 println("Posterior mean β: " * string(round(E_β, digits=2)))
-
-# output
-true β: -0.3
-Posterior mean β: -0.26
 ```
 
 
 
 """
-function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000; 
+function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000;
                                                          n_adapts  = 1000) where {A,B}
-    
+
     ℓ(pars) = logpdf(m, merge(pars, _data))
 
     t = xform(m,_data)
 
-    function f(x) 
+    function f(x)
         (θ, logjac) = transform_and_logjac(t,x)
         ℓ(θ) + logjac
     end
 
-    
+
     function ∂f(x)
         res = GradientResult(x)
         gradient!(res, f, x)
@@ -97,5 +88,3 @@ function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000;
     samples, stats = sample(hamiltonian, prop, initial_θ, N, adaptor, n_adapts; progress=false, verbose=false)
 
 end
-
-

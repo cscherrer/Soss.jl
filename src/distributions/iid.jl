@@ -1,6 +1,8 @@
 using Distributions
 import Distributions.logpdf
 
+using Random: GLOBAL_RNG
+
 # TODO: iid is currently a bit weird. We'd like it to allow both a specific multiplicity and "on demand" (unspecified but flexible). It's clear how to do either, but not yet if this will allow a single representation.
 
 export iid
@@ -34,16 +36,17 @@ Base.length(d::iid) = prod(d.size)
 import Base.eltype
 Base.eltype(d::iid) = typeof(d.dist)
 
-function Base.rand(d::iid)
-    T = typeof(rand(d.dist))
+function Base.rand(rng::AbstractRNG, d::iid)
+    T = typeof(rand(rng, d.dist))
     x = Array{T}(undef, d.size)
     for cartix in CartesianIndices(x)
         ix = Tuple(cartix)
-        @inbounds setindex!(x,rand(d.dist), ix...)
+        @inbounds setindex!(x,rand(rng, d.dist), ix...)
     end
     x
 end
 
+Base.rand(d::iid) = rand(GLOBAL_RNG, d)
 
 function Distributions.logpdf(d::iid,x)
     s = zero(Float64)
