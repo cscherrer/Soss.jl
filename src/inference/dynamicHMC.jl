@@ -19,7 +19,7 @@ export dynamicHMC
         ad_backend = Val(:ForwardDiff),
         reporter = DynamicHMC.NoProgressReport(),
         kwargs...)
-    
+
 
 Draw `N` samples from the posterior distribution of parameters defined in Soss model `m`, conditional on `_data`. Samples are drawn using Hamiltonial Monte Carlo (HMC) from the `DynamicHMC.jl` package.
 
@@ -44,10 +44,8 @@ Returns an Array of `Namedtuple` of length `N`. Each entry in the array is a sam
 ## Example
 
 ```jldoctest
-
-using Random
-Random.seed!(42);
-rng = MersenneTwister(42);
+using StableRNGs
+rng = StableRNG(42);
 
 m = @model x begin
     β ~ Normal()
@@ -57,18 +55,16 @@ m = @model x begin
     end
 end
 
-x = randn(50);
-truth = rand(m(x=x));
+x = randn(rng, 3);
+truth = [-0.41, 1.21, 0.11];
 
-post = dynamicHMC(rng, m(x=x), (y=truth.y,));
+post = dynamicHMC(rng, m(x=x), (y=truth,));
 E_β = mean(getfield.(post, :β))
 
-println("true β: " * string(round(truth.β, digits=2)))
 println("Posterior mean β: " * string(round(E_β, digits=2)))
 
 # output
-true β: 0.3
-Posterior mean β: 0.47
+Posterior mean β: 0.25
 ```
 
 """
@@ -132,30 +128,30 @@ function dynamicHMC(m::JointDistribution, args...; kwargs...)
 end
 
 
-using ResumableFunctions
+# using ResumableFunctions
 
-export stream
+# export stream
 
-@resumable function stream(
-    rng::AbstractRNG,
-    f::typeof(dynamicHMC),
-    m::JointDistribution,
-    _data::NamedTuple,
-)
-    t = xform(m, _data)
-    (results, steps) = dynamicHMC(rng, m, _data, Val(Inf))
-    Q = results.final_warmup_state.Q
-    while true
-        Q, tree_stats = DynamicHMC.mcmc_next_step(steps, Q)
-        @yield (merge(t(Q.q), (_ℓ = Q.ℓq,)), tree_stats)
-    end
-end
+# @resumable function stream(
+#     rng::AbstractRNG,
+#     f::typeof(dynamicHMC),
+#     m::JointDistribution,
+#     _data::NamedTuple,
+# )
+#     t = xform(m, _data)
+#     (results, steps) = dynamicHMC(rng, m, _data, Val(Inf))
+#     Q = results.final_warmup_state.Q
+#     while true
+#         Q, tree_stats = DynamicHMC.mcmc_next_step(steps, Q)
+#         @yield (merge(t(Q.q), (_ℓ = Q.ℓq,)), tree_stats)
+#     end
+# end
 
-function stream(
-    f::typeof(dynamicHMC),
-    m::JointDistribution,
-    _data::NamedTuple;
-    kwargs...,
-)
-    return stream(Random.GLOBAL_RNG, f, m, _data; kwargs...)
-end
+# function stream(
+#     f::typeof(dynamicHMC),
+#     m::JointDistribution,
+#     _data::NamedTuple;
+#     kwargs...,
+# )
+#     return stream(Random.GLOBAL_RNG, f, m, _data; kwargs...)
+# end
