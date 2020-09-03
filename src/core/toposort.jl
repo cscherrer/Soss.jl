@@ -1,5 +1,5 @@
 using SimplePosets
-using SimpleGraphs: SimpleGraph, AbstractSimpleGraph, SimpleDigraph, vertex_type, NV, elist, in_neighbors, add_edges!
+using SimpleGraphs: SimpleGraph, AbstractSimpleGraph, SimpleDigraph, eltype, NV, elist, in_neighbors, add_edges!
 
 import Graphs
 import Graphs.simple_graph, Graphs.add_edge!, Graphs.topological_sort_by_dfs
@@ -7,7 +7,7 @@ export convert_simple
 
 # From https://github.com/scheinerman/SimpleGraphs.jl/blob/1396758729f95912d7f245f9c70957f4993be417/src/simple_converters.jl
 function convert_simple(G::AbstractSimpleGraph)
-    T = vertex_type(G)
+    T = eltype(G)
     n = NV(G)
     has_dir = isa(G,SimpleDigraph)
 
