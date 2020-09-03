@@ -4,19 +4,19 @@ using Random: GLOBAL_RNG
 export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-rand(rng::AbstractRNG, d::JointDistribution, N::Int) = [rand(rng, d) for n in 1:N]
+Base.rand(rng::AbstractRNG, d::JointDistribution, N::Int) = [rand(rng, d) for n in 1:N]
 
-rand(d::JointDistribution, N::Int) = rand(GLOBAL_RNG, d, N)
+Base.rand(d::JointDistribution, N::Int) = rand(GLOBAL_RNG, d, N)
 
-@inline function rand(rng::AbstractRNG, m::JointDistribution)
+@inline function Base.rand(rng::AbstractRNG, m::JointDistribution)
     return _rand(getmoduletypencoding(m.model), m.model, m.args)(rng)
 end
 
-@inline function rand(m::JointDistribution) 
+@inline function Base.rand(m::JointDistribution) 
     rand(GLOBAL_RNG, m)
 end
 
-@inline function rand(rng::AbstractRNG, m::Model)
+@inline function Base.rand(rng::AbstractRNG, m::Model)
     return _rand(getmoduletypencoding(m), m, NamedTuple())(rng)
 end
 
