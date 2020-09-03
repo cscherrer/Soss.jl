@@ -33,6 +33,6 @@ jointdist = m2(X=X)
 
 @testset "logpdf, symlogpdf" begin
     @test_nowarn symlogpdf(m2).evalf(3)
-    @test logpdf(jointdist, truth)==-11.416468749176302
-    @test logpdf(jointdist, truth, codegen)==-11.4164687491763
+    @test logpdf(jointdist, truth)==-28.551921801470908
+    @test logpdf(jointdist, truth, codegen)==-28.551921801470904
 end
