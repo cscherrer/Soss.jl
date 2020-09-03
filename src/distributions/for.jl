@@ -119,8 +119,7 @@ end
     return rand.(d.f.(d.θ))
 end
 
-export logpdf2
-@inline function Distributions.logpdf2(d::For{F,N,X1}, xs) where {F,N,X1,X2}
+@inline function logpdf2(d::For{F,N,X1}, xs) where {F,N,X1,X2}
     results = zeros(eltype(xs), nthreads())
 
     θ = CartesianIndices(d.θ)
