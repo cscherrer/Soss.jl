@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · Soss.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Soss.jl</span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/cscherrer/Soss.jl/blob/master/docs/src/index.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Soss.jl"><a class="docs-heading-anchor" href="#Soss.jl">Soss.jl</a><a id="Soss.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Soss.jl" title="Permalink"></a></h1><ul><li><a href="#Soss.MarkovChain"><code>Soss.MarkovChain</code></a></li><li><a href="#Soss.PySymPyModule"><code>Soss.PySymPyModule</code></a></li><li><a href="#Soss.Do-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.Do</code></a></li><li><a href="#Soss.advancedHMC-Union{Tuple{B}, Tuple{A}, Tuple{Soss.JointDistribution{A,B,B1,M} where M where B1,Any}, Tuple{Soss.JointDistribution{A,B,B1,M} where M where B1,Any,Any}} where B where A"><code>Soss.advancedHMC</code></a></li><li><a href="#Soss.after-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.after</code></a></li><li><a href="#Soss.before-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.before</code></a></li><li><a href="#Soss.dynamicHMC"><code>Soss.dynamicHMC</code></a></li><li><a href="#Soss.predictive-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.predictive</code></a></li><li><a href="#Soss.prior-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.prior</code></a></li><li><a href="#Soss.prune-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.prune</code></a></li><li><a href="#Soss.withdistributions-Tuple{Model}"><code>Soss.withdistributions</code></a></li></ul><article class="docstring"><header><a class="docstring-binding" id="Soss.MarkovChain" href="#Soss.MarkovChain"><code>Soss.MarkovChain</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">MarkovChain</code></pre><p><code>MarkovChain(pars, step)</code> defines a Markov Chain with global parameters <code>pars</code> and transition kernel <code>step</code>. Here, <code>pars</code> is a named tuple, and <code>step</code> is a Soss model that takes arguments <code>(pars, state)</code> and returns a <code>next</code> value containing the new <code>pars</code> and <code>state</code>.</p><p>NOTE: This is experimental, and may change in the near future.</p><pre><code class="language-julia">mstep = @model pars,state begin
+    σ = pars.σ
+    x0 = state.x
+    x ~ Normal(x0, σ)
+    next = (pars=pars, state=(x=x,))
+end;
+
+m = @model s0 begin
+    σ ~ Exponential()
+    pars = (σ=σ,)
+    chain ~ MarkovChain(pars, mstep(pars=pars, state=s0))
+end;
+
+r = rand(m(s0=(x=2,),));
+
+for s in Iterators.take(r.chain,3)
+    println(s)
+end
+
+# output
+
+(x = -6.596883394256064,)
+(x = 0.48200039561318864,)
+(x = -2.838556784903994,)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/distributions/markovchain.jl#LL5-L38">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.PySymPyModule" href="#Soss.PySymPyModule"><code>Soss.PySymPyModule</code></a> — <span class="docstring-category">Type</span></header><section><div><p>As type encoding a PyObject is unsafe without some hard works with reference counting, we simply use a Julia proxy to imitate the <code>sympy</code> module, e.g.,     <code>sympy.attr = _pysympy.attr</code></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/symbolic/symbolic.jl#LL11-L16">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.Do-Tuple{Model,Vararg{Any,N} where N}" href="#Soss.Do-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.Do</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Do(m, xs...)</code></pre><p>Returns a model transformed by adding <code>xs...</code> to arguments. The remainder of the body remains the same, consistent with Judea Pearl&#39;s &quot;Do&quot; operator. Unneeded arguments are trimmed.</p><p><strong>Examples</strong></p><pre><code class="language-julia">m = @model (n, k) begin
+    β ~ Gamma()
+    α ~ Gamma()
+    θ ~ Beta(α, β)
+    x ~ Binomial(n, θ)
+    z ~ Binomial(k, α / (α + β))
+end;
+Do(m, :θ)
+
+# output
+@model (n, k, θ) begin
+        β ~ Gamma()
+        α ~ Gamma()
+        x ~ Binomial(n, θ)
+        z ~ Binomial(k, α / (α + β))
+    end</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/transforms/basictransforms.jl#LL99-L124">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.advancedHMC-Union{Tuple{B}, Tuple{A}, Tuple{Soss.JointDistribution{A,B,B1,M} where M where B1,Any}, Tuple{Soss.JointDistribution{A,B,B1,M} where M where B1,Any,Any}} where B where A" href="#Soss.advancedHMC-Union{Tuple{B}, Tuple{A}, Tuple{Soss.JointDistribution{A,B,B1,M} where M where B1,Any}, Tuple{Soss.JointDistribution{A,B,B1,M} where M where B1,Any,Any}} where B where A"><code>Soss.advancedHMC</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">advancedHMC(m, data, N = 1000; n_adapts = 1000)</code></pre><p>Draw <code>N</code> samples from the posterior distribution of parameters defined in Soss model <code>m</code>, conditional on <code>data</code>. Samples are drawn using Hamiltonial Monte Carlo (HMC) from the <code>advancedHMC.jl</code> package.</p><p><strong>Keywords</strong></p><ul><li><code>n_adapts = 1000</code>: The number of interations used to set HMC parameters.</li></ul><p>Returns a tuple of length 2:</p><ol><li>Samples from the posterior distribution of parameters.</li><li>Sample summary statistics.</li></ol><p><strong>Example</strong></p><pre><code class="language-none">m = @model x begin
+    β ~ Normal()
+    yhat = β .* x
+    y ~ For(eachindex(x)) do j
+        Normal(yhat[j], 2.0)
+    end
+end
+
+x = randn(10);
+truth = [0.61, -0.34, -1.74];
+
+post = advancedHMC(m(x=x), (y=truth,));
+E_β = mean(post[1])[1]
+
+println(&quot;Posterior mean β: &quot; * string(round(E_β, digits=2)))</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/inference/advancedhmc.jl#LL16-L50">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.after-Tuple{Model,Vararg{Any,N} where N}" href="#Soss.after-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.after</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">after(m::Model, xs...; strict=false)</code></pre><p>Transforms <code>m</code> by moving <code>xs</code> to arguments. If <code>strict=true</code>, only descendants of <code>xs</code> are retained in the body. Otherwise, the remaining variables in the body are unmodified. Unused arguments are trimmed.</p><p><code>predictive(m::Model, xs...) = after(m, xs..., strict = true)</code></p><p><code>Do(m::Model, xs...) = after(m, xs..., strict = false)</code></p><p><strong>Example</strong></p><pre><code class="language-julia">m = @model (n, k) begin
+    β ~ Gamma()
+    α ~ Gamma()
+    θ ~ Beta(α, β)
+    x ~ Binomial(n, θ)
+    z ~ Binomial(k, α / (α + β))
+end;
+Soss.after(m, :α)
+
+# output
+@model (n, k, α) begin
+        β ~ Gamma()
+        θ ~ Beta(α, β)
+        x ~ Binomial(n, θ)
+        z ~ Binomial(k, α / (α + β))
+    end</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/transforms/utils.jl#LL71-L99">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.before-Tuple{Model,Vararg{Any,N} where N}" href="#Soss.before-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.before</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">before(m::Model, xs...; inclusive=true, strict=true)</code></pre><p>Transforms <code>m</code> by retaining all ancestors of any of <code>xs</code> if <code>strict=true</code>; if <code>strict=false</code>, retains all variables that are not descendants of any <code>xs</code>. Note that adding more variables to <code>xs</code> cannot result in a larger model. If <code>inclusive=true</code>, <code>xs</code> is considered to be an ancestor of itself and is always included in the returned <code>Model</code>. Unneeded arguments are trimmed.</p><p><code>prune(m::Model, xs...) = before(m, xs..., inclusive = false, strict = false)</code></p><p><code>prior(m::Model, xs...) = before(m, xs..., inclusive = true, strict = true)</code></p><p><strong>Examples</strong></p><pre><code class="language-julia">m = @model (n, k) begin
+    β ~ Gamma()
+    α ~ Gamma()
+    θ ~ Beta(α, β)
+    x ~ Binomial(n, θ)
+    z ~ Binomial(k, α / (α + β))
+end;
+Soss.before(m, :θ, inclusive = true, strict = false)
+
+# output
+@model k begin
+        β ~ Gamma()
+        α ~ Gamma()
+        θ ~ Beta(α, β)
+        z ~ Binomial(k, α / (α + β))
+    end</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/transforms/utils.jl#LL116-L144">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.dynamicHMC" href="#Soss.dynamicHMC"><code>Soss.dynamicHMC</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">dynamicHMC(
+    rng::AbstractRNG,
+    m::JointDistribution,
+    _data,
+    N::Int = 1000;
+    method = logpdf,
+    ad_backend = Val(:ForwardDiff),
+    reporter = DynamicHMC.NoProgressReport(),
+    kwargs...)</code></pre><p>Draw <code>N</code> samples from the posterior distribution of parameters defined in Soss model <code>m</code>, conditional on <code>_data</code>. Samples are drawn using Hamiltonial Monte Carlo (HMC) from the <code>DynamicHMC.jl</code> package.</p><p>This function is essentially a wrapper around <code>DynamicHMC.mcmc_with_warmup()</code>. Arguments <code>reporter</code>, <code>ad_backend</code> <a href="https://tamaspapp.eu/DynamicHMC.jl/stable/interface/#DynamicHMC.mcmc_with_warmup">DynamicHMC docs here</a>)</p><p><strong>Arguments</strong></p><ul><li><code>rng</code>: Random number generator.</li><li><code>m</code>: Soss model.</li><li><code>_data</code>: <code>NamedTuple</code> of data to condition on.</li></ul><p><strong>Keyword Arguments</strong></p><ul><li><code>N = 1000</code>: Number of samples to draw.</li><li><code>method = logpdf</code>: How to compute the log-density. Options are <code>logpdf</code> (delegates to <code>logpdf</code> of each component) or <code>codegen</code> (symbolic simplification and code generation).</li><li><code>ad_backend = Val(:ForwardDiff)</code>: Automatic differentiation backend.</li><li><code>reporter = DynamicHMC.NoProgressReport()</code>: Specify logging during sampling. Default: do not log progress.</li><li><code>kwargs</code>: Additional keyword arguments passed to core sampling function <code>DynamicHMC.mcmc_with_warmup()</code>.</li></ul><p>Returns an Array of <code>Namedtuple</code> of length <code>N</code>. Each entry in the array is a sample of parameters indexed by the parameter symbol.</p><p><strong>Example</strong></p><pre><code class="language-julia">using StableRNGs
+rng = StableRNG(42);
+
+m = @model x begin
+    β ~ Normal()
+    yhat = β .* x
+    y ~ For(eachindex(x)) do j
+        Normal(yhat[j], 2.0)
+    end
+end
+
+x = randn(rng, 3);
+truth = [-0.41, 1.21, 0.11];
+
+post = dynamicHMC(rng, m(x=x), (y=truth,));
+E_β = mean(getfield.(post, :β))
+
+println(&quot;Posterior mean β: &quot; * string(round(E_β, digits=2)))
+
+# output
+Posterior mean β: 0.25</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/inference/dynamicHMC.jl#LL12-L70">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.predictive-Tuple{Model,Vararg{Any,N} where N}" href="#Soss.predictive-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.predictive</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">predictive(m, xs...)</code></pre><p>Returns a model transformed by adding <code>xs...</code> to arguments with a body containing only statements that depend on <code>xs</code>, or statements that are depended upon by children of <code>xs</code> through an open path. Unneeded arguments are trimmed.</p><p><strong>Examples</strong></p><pre><code class="language-julia">m = @model (n, k) begin
+    β ~ Gamma()
+    α ~ Gamma()
+    θ ~ Beta(α, β)
+    x ~ Binomial(n, θ)
+    z ~ Binomial(k, α / (α + β))
+end;
+predictive(m, :θ)
+
+# output
+@model (n, θ) begin
+        x ~ Binomial(n, θ)
+    end</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/transforms/basictransforms.jl#LL73-L95">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.prior-Tuple{Model,Vararg{Any,N} where N}" href="#Soss.prior-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.prior</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">prior(m, xs...)</code></pre><p>Returns the minimal model required to sample random variables <code>xs...</code>. Useful for extracting a prior distribution from a joint model <code>m</code> by designating <code>xs...</code> and the variables they depend on as the prior and hyperpriors.</p><p><strong>Example</strong></p><pre><code class="language-julia">m = @model n begin
+    α ~ Gamma()
+    β ~ Gamma()
+    θ ~ Beta(α,β)
+    x ~ Binomial(n, θ)
+end;
+Soss.prior(m, :θ)
+
+# output
+@model begin
+        β ~ Gamma()
+        α ~ Gamma()
+        θ ~ Beta(α, β)
+    end</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/transforms/basictransforms.jl#LL1-L24">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.prune-Tuple{Model,Vararg{Any,N} where N}" href="#Soss.prune-Tuple{Model,Vararg{Any,N} where N}"><code>Soss.prune</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">prune(m, xs...)</code></pre><p>Returns a model transformed by removing <code>xs...</code> and all variables that depend on <code>xs...</code>. Unneeded arguments are also removed.</p><p><strong>Examples</strong></p><pre><code class="language-julia">m = @model n begin
+    α ~ Gamma()
+    β ~ Gamma()
+    θ ~ Beta(α,β)
+    x ~ Binomial(n, θ)
+end;
+prune(m, :θ)
+
+# output
+@model begin
+        β ~ Gamma()
+        α ~ Gamma()
+    end</code></pre><pre><code class="language-julia">m = @model n begin
+    α ~ Gamma()
+    β ~ Gamma()
+    θ ~ Beta(α,β)
+    x ~ Binomial(n, θ)
+end;
+prune(m, :n)
+
+# output
+@model begin
+        β ~ Gamma()
+        α ~ Gamma()
+        θ ~ Beta(α, β)
+    end</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/transforms/basictransforms.jl#LL29-L68">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Soss.withdistributions-Tuple{Model}" href="#Soss.withdistributions-Tuple{Model}"><code>Soss.withdistributions</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">withdistributions(m::Model) -&gt; Model</code></pre><p>julia&gt; m = @model begin     σ ~ HalfNormal()     y ~ For(10) do j         Normal(0,σ)     end end;</p><p>julia&gt; m<em>dists = Soss.withdistributions(m) @model begin         _σ</em>dist = HalfNormal()         σ ~ <em>σ</em>dist         <em>y</em>dist = For(10) do j                 Normal(0, σ)             end         y ~ <em>y</em>dist     end</p><p>julia&gt; ydist = rand(m<em>dists()).</em>y_dist For{GeneralizedGenerated.Closure{function = (σ, M, j;) -&gt; begin     M.Normal(0, σ) end,Tuple{Float64,Module}},Tuple{Int64},Normal{Float64},Float64}(GeneralizedGenerated.Closure{function = (σ, M, j;) -&gt; begin     M.Normal(0, σ) end,Tuple{Float64,Module}}((0.031328640120683524, Main)), (10,))</p><p>julia&gt; rand(ydist) 10-element Array{Float64,1}:   0.03454891487870426   0.008832782323408313  -0.007395186925623771  -0.030669004243492004  -0.01728630026691135   0.011892877715064682   0.025576319363013512  -0.029323425779917773  -0.020502677724193594   0.04612690097957398</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/cscherrer/Soss.jl/blob/d4f6759b5c99e73cb901323eb081441f30b4a795/src/transforms/withdistributions.jl#LL5-L44">source</a></section></article></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 3 September 2020 23:03">Thursday 3 September 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
