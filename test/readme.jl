@@ -8,13 +8,13 @@ m = @model X begin
 end
 
 rng = StableRNG(42)
-X = randn(rng, 6,2)
+X = randn(rng, 20,2)
 truth = rand(rng, m(X=X))
 post = dynamicHMC(rng, m(X=X), (y=truth.y,))
 pred = predictive(m,:β)
 
 @testset "dynamicHMC" begin
-    @test sum(v.β for v in post) == [137.9498847939604, 1253.8966977259338]
+    @test abs(sum(mean(v.β for v in post)) - -2.084) < 0.05
     @test_nowarn [rand(rng, pred(;X=X, p...)).y for p in post];
     #particles(post)
 end
