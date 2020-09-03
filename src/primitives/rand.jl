@@ -1,17 +1,26 @@
 using GeneralizedGenerated
+using Random: GLOBAL_RNG
 
 export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-Base.rand(d::JointDistribution, N::Int) = [rand(d) for n in 1:N]
+Base.rand(rng::AbstractRNG, d::JointDistribution, N::Int) = [rand(rng, d) for n in 1:N]
 
-@inline function Base.rand(m::JointDistribution)
-    return _rand(getmoduletypencoding(m.model), m.model, m.args)
+Base.rand(d::JointDistribution, N::Int) = rand(GLOBAL_RNG, d, N)
+
+@inline function Base.rand(rng::AbstractRNG, m::JointDistribution)
+    return _rand(getmoduletypencoding(m.model), m.model, m.args)(rng)
 end
 
-@inline function Base.rand(m::Model)
-    return _rand(getmoduletypencoding(m), m, NamedTuple())
+@inline function Base.rand(m::JointDistribution) 
+    rand(GLOBAL_RNG, m)
 end
+
+@inline function Base.rand(rng::AbstractRNG, m::Model)
+    return _rand(getmoduletypencoding(m), m, NamedTuple())(rng)
+end
+
+rand(m::Model) = rand(GLOBAL_RNG, m)
 
 @gg M function _rand(_::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
     Expr(:let,
@@ -34,15 +43,17 @@ function sourceRand()
         
         _m = canonical(m)
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
-        proc(_m, st::Sample)  = :($(st.x) = rand($(st.rhs)))
+        proc(_m, st::Sample)  = :($(st.x) = rand(_rng, $(st.rhs)))
         proc(_m, st::Return)  = :(return $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
         vals = map(x -> Expr(:(=), x,x),parameters(_m)) 
 
         wrap(kernel) = @q begin
-            $kernel
-            $(Expr(:tuple, vals...))
+            _rng -> begin
+                $kernel
+                $(Expr(:tuple, vals...))
+            end
         end
 
         buildSource(_m, proc, wrap) |> flatten

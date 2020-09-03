@@ -3,6 +3,7 @@ import Distributions.logpdf
 using Base.Cartesian
 using Base.Threads
 using FillArrays
+using Random: GLOBAL_RNG
 
 export logpdf
 export rand
@@ -37,11 +38,13 @@ end
     return s
 end
 
-function Base.rand(dist::For)
+function Base.rand(rng::AbstractRNG, dist::For)
     return map(CartesianIndices(dist.θ)) do I
-        (rand ∘ dist.f)(Tuple(I)...)
+        rand(rng, dist.f(Tuple(I)...))
     end
 end
+
+Base.rand(dist::For) = rand(GLOBAL_RNG, dist)
 
 #########################################################
 # T <: NTuple{N,J} where {J <: AbstractUnitRange}
@@ -67,11 +70,13 @@ end
     return s
 end
 
-function Base.rand(dist::For{F,T}) where {F,N,J<:AbstractRange,T<:NTuple{N,J}}
+function Base.rand(rng::AbstractRNG, dist::For{F,T}) where {F,N,J<:AbstractRange,T<:NTuple{N,J}}
     return map(CartesianIndices(dist.θ)) do I
-        (rand ∘ dist.f)(Tuple(I)...)
+        rand(rng, dist.f(Tuple(I)...))
     end
 end
+
+Base.rand(dist::For{F,T}) where {F,N,J<:AbstractRange,T<:NTuple{N,J}} = rand(GLOBAL_RNG, dist)
 
 #########################################################
 # T <: Base.Generator
@@ -92,9 +97,12 @@ end
     return s
 end
 
-@inline function Base.rand(d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
-    return rand.(Base.Generator(d.f ∘ d.θ.f, d.θ.iter))
+
+@inline function Base.rand(rng::AbstractRNG, d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
+    return rand.(rng, Base.Generator(d.f ∘ d.θ.f, d.θ.iter))
 end
+
+Base.rand(d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X} = rand(GLOBAL_RNG, d)
 
 #########################################################
 # T <: AbstractArray
@@ -115,9 +123,11 @@ end
     return s
 end
 
-@inline function Base.rand(d::For{F,T,D,X}) where {F,T<:AbstractArray,D,X}
+@inline function Base.rand(rng::AbstractRNG, d::For{F,T,D,X}) where {F,T<:AbstractArray,D,X}
     return rand.(d.f.(d.θ))
 end
+
+Base.rand(d::For{F,T,D,X}) where {F,T<:AbstractArray,D,X} = rand(GLOBAL_RNG, d)
 
 @inline function logpdf2(d::For{F,N,X1}, xs) where {F,N,X1,X2}
     results = zeros(eltype(xs), nthreads())

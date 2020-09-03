@@ -19,7 +19,7 @@ export dynamicHMC
         ad_backend = Val(:ForwardDiff),
         reporter = DynamicHMC.NoProgressReport(),
         kwargs...)
-    
+
 
 Draw `N` samples from the posterior distribution of parameters defined in Soss model `m`, conditional on `_data`. Samples are drawn using Hamiltonial Monte Carlo (HMC) from the `DynamicHMC.jl` package.
 
@@ -44,10 +44,8 @@ Returns an Array of `Namedtuple` of length `N`. Each entry in the array is a sam
 ## Example
 
 ```jldoctest
-
-using Random
-Random.seed!(42);
-rng = MersenneTwister(42);
+using StableRNGs
+rng = StableRNG(42);
 
 m = @model x begin
     β ~ Normal()
@@ -57,18 +55,16 @@ m = @model x begin
     end
 end
 
-x = randn(50);
-truth = rand(m(x=x));
+x = randn(rng, 3);
+truth = [-0.41, 1.21, 0.11];
 
-post = dynamicHMC(rng, m(x=x), (y=truth.y,));
+post = dynamicHMC(rng, m(x=x), (y=truth,));
 E_β = mean(getfield.(post, :β))
 
-println("true β: " * string(round(truth.β, digits=2)))
 println("Posterior mean β: " * string(round(E_β, digits=2)))
 
 # output
-true β: 0.3
-Posterior mean β: 0.19
+Posterior mean β: 0.25
 ```
 
 """
