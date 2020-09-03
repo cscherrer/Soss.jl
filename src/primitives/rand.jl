@@ -3,13 +3,13 @@ using GeneralizedGenerated
 export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-rand(d::JointDistribution, N::Int) = [rand(d) for n in 1:N]
+Base.rand(d::JointDistribution, N::Int) = [rand(d) for n in 1:N]
 
-@inline function rand(m::JointDistribution)
+@inline function Base.rand(m::JointDistribution)
     return _rand(getmoduletypencoding(m.model), m.model, m.args)
 end
 
-@inline function rand(m::Model)
+@inline function Base.rand(m::Model)
     return _rand(getmoduletypencoding(m), m, NamedTuple())
 end
 
