@@ -2,20 +2,40 @@
 
 # ## Defining the linear regression model
 
-# Let's define our linear regression model:
+# In this example, we fit a Bayesian linear regression model with the
+# canonical link function.
+
+# Suppose that we are given a matrix of features `X` and a column vector of
+# labels `y`. `X` has `n` rows and `p` columns. `y` has `n` elements. We assume
+# that our observation vector `y` is a realization of a random variable `Y`.
+# We define `μ` (mu) as the expected value of `Y`, i.e. `μ := E[Y]`. Our model
+# comprises three components:
+#
+# 1. The probability distribution of `Y`: for linear regression, we assume that each `Yᵢ` follows a normal distribution with mean `μᵢ` and variance `σ²`.
+# 2. The systematic component, which consists of linear predictor `η` (eta), which we define as `η := α + Xβ`, where `α` is the scalar intercept and `β` is the column vector of `p` coefficients.
+# 3. The link function `g`, which provides the following relationship: `g(E[Y]) = g(μ) = η = Xβ`. It follows that `μ = g⁻¹(η)`, where `g⁻¹` denotes the inverse of `g`. For linear regression, the canonical link function is the identity function. Therefore, when using the canonical link function, `μ = g⁻¹(η) = η`.
+#
+# In this model, the parameters that we want to estimate are `α`, `β`, and `σ`.
+# We need to select prior distributions for these parameters. For `α`, we choose
+# a normal distribution with zero mean and unit variance. For each `βᵢ`,
+# we choose a normal distribution with zero mean and unit variance. Here, `βᵢ`
+# denotes the `i`th component of `β`. For `σ`, we will choose a half-normal
+# distribution with unit variance.
+
+# We define this model using Soss:
 
 using Soss
 using Random
 
 model = @model X begin
-    p = size(X, 2) # `p` is the number of features
-    α ~ Normal(0, 1) # `α` (alpha) is the intercept
-    β ~ Normal(0, 1) |> iid(p) # `β` (beta) is the vector of coefficients
-    σ ~ HalfNormal(1) # `σ` (sigma) is the dispersion parameter
-    η = α .+ X * β # `η` (eta) is the linear predictor
-    μ = η # `μ` (mu) is the expected value of `Y`
+    p = size(X, 2) # number of features
+    α ~ Normal(0, 1) # intercept
+    β ~ Normal(0, 1) |> iid(p) # coefficients
+    σ ~ HalfNormal(1) # dispersion
+    η = α .+ X * β # linear predictor
+    μ = η # `μ = g⁻¹(η) = η`
     y ~ For(eachindex(μ)) do j
-        Normal(μ[j], σ)
+        Normal(μ[j], σ) # `Yᵢ ~ Normal(mean=μᵢ, variance=σ²)`
     end
 end;
 
