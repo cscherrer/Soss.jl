@@ -1,7 +1,7 @@
 name = "Soss"
 uuid = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
 author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
-version = "0.14.0-DEV"
+version = "0.14.0"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
