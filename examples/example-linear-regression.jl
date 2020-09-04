@@ -15,12 +15,12 @@
 # 2. The systematic component, which consists of linear predictor `η` (eta), which we define as `η := α + Xβ`, where `α` is the scalar intercept and `β` is the column vector of `p` coefficients.
 # 3. The link function `g`, which provides the following relationship: `g(E[Y]) = g(μ) = η = Xβ`. It follows that `μ = g⁻¹(η)`, where `g⁻¹` denotes the inverse of `g`. For linear regression, the canonical link function is the identity function. Therefore, when using the canonical link function, `μ = g⁻¹(η) = η`.
 #
-# In this model, the parameters that we want to estimate are `β` and `σ`.
-# We need to select prior distributions for these parameters. For each `βᵢ`
-# we choose a normal distribution with zero mean and variance `s²`. Here, `βᵢ`
+# In this model, the parameters that we want to estimate are `α`, `β`, and `σ`.
+# We need to select prior distributions for these parameters. For `α`, we choose
+# a normal distribution with zero mean and unit variance. For each `βᵢ`,
+# we choose a normal distribution with zero mean and unit variance. Here, `βᵢ`
 # denotes the `i`th component of `β`. For `σ`, we will choose a half-normal
-# distribution with variance `t²`. `s` and `t` are hyperparameters that we will
-# need to choose.
+# distribution with unit variance.
 
 # We define this model using Soss:
 
