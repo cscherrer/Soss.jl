@@ -79,7 +79,7 @@ Transforms `m` by moving `xs` to arguments. If `strict=true`, only descendants o
 
 # Example
 ```jldoctest
-m = @model (n, k) begin
+m = Soss.@model (n, k) begin
     β ~ Gamma()
     α ~ Gamma()
     θ ~ Beta(α, β)
@@ -124,7 +124,7 @@ Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `s
 
 # Examples
 ```jldoctest
-m = @model (n, k) begin
+m = Soss.@model (n, k) begin
     β ~ Gamma()
     α ~ Gamma()
     θ ~ Beta(α, β)
