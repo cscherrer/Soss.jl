@@ -58,41 +58,41 @@ truth.y - particles(ppc)
 
 # With some minor modifications, we can put this into a form that allows symbolic simplification: [the `evalf(3)` is to reduce the displayed number of decimal positions]
 
-m2 = @model X begin
-    N = size(X,1)
-    k = size(X,2)
-    β ~ Normal() |> iid(k)
-    yhat = X * β
-    y ~ For(N) do j
-            Normal(yhat[j], 1)
-        end
-end;
-
-symlogpdf(m2).evalf(3)
+# m2 = @model X begin
+#     N = size(X,1)
+#     k = size(X,2)
+#     β ~ Normal() |> iid(k)
+#     yhat = X * β
+#     y ~ For(N) do j
+#             Normal(yhat[j], 1)
+#         end
+# end;
+#
+# symlogpdf(m2).evalf(3)
 
 # We can use the symbolic simplification to speed up computations:
 
-using BenchmarkTools
-
-jointdist = m2(X=X)
-
-@model X begin
-    k = size(X, 2)
-    β ~ Normal() |> iid(k)
-    yhat = X * β
-    N = size(X, 1)
-    y ~ For(N) do j
-        Normal(yhat[j], 1)
-    end
-end
+# using BenchmarkTools
+#
+# jointdist = m2(X=X)
+#
+# @model X begin
+#     k = size(X, 2)
+#     β ~ Normal() |> iid(k)
+#     yhat = X * β
+#     N = size(X, 1)
+#     y ~ For(N) do j
+#         Normal(yhat[j], 1)
+#     end
+# end
 
 # Without symbolic simplification:
 
-@btime logpdf($jointdist, $truth)
+# @btime logpdf($jointdist, $truth)
 
 # With symbolic simplification:
 
-@btime logpdf($jointdist, $truth, $codegen)
+# @btime logpdf($jointdist, $truth, $codegen)
 
 # What's Really Happening Here?
 
