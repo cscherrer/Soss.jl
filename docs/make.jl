@@ -7,11 +7,12 @@ include(joinpath(dirname(dirname(@__FILE__)), "test", "examples-list.jl"))
 
 pages_before_examples = [
     "Home" => "index.md",
-    "Getting Started" => "getting-started.md",
+    "Installing Soss" => "installing-soss.md",
 ]
 pages_examples = ["Examples" => ["$(example[1])" => "example-$(example[2]).md" for example in EXAMPLES]]
 pages_after_examples = [
-    "API" => "api.md",
+    "Soss API" => "api.md",
+    "SossMLJ.jl" => "sossmlj.md",
     "Internals" => "internals.md",
     "Miscellaneous" => "misc.md",
     "To-Do List" => "to-do-list.md",
