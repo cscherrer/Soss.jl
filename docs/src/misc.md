@@ -4,13 +4,11 @@ A `Model` in Soss
 
 # Model Combinators
 
-
-
 # Building Inference Algorithms
 
 ## Inference Primitives
 
-At its core, Soss is about source code generation. Instances of this are referred to as *inference primitives*, or simply "primitives". As a general rule, **new primitives are rarely needed**. A wide variety of inference algorithms can be built using what's provided. 
+At its core, Soss is about source code generation. Instances of this are referred to as *inference primitives*, or simply "primitives". As a general rule, **new primitives are rarely needed**. A wide variety of inference algorithms can be built using what's provided.
 
 To easily find all available inference primitives, enter `Soss.source<TAB>` at a REPL. Currently this returns this result:
 
@@ -20,7 +18,7 @@ sourceLogpdf         sourceRand            sourceXform
 sourceParticles      sourceWeightedSample
 ```
 
-The general pattern is that a primitive `sourceFoo` specifies how code is generated for an inference function `foo`. 
+The general pattern is that a primitive `sourceFoo` specifies how code is generated for an inference function `foo`.
 
 For more details on inference primitives, see the *Internals* section.
 
@@ -34,17 +32,11 @@ There's some variability , but is often of the form
 foo(d::JointDistribution, data::NamedTuple)
 ```
 
-For example, `advancedHMC` uses [`TuringLang/AdvancedHMC.jl`](https://github.com/TuringLang/AdvancedHMC.jl) , which needs a `logpdf` and its gradient. 
+For example, `advancedHMC` uses [`TuringLang/AdvancedHMC.jl`](https://github.com/TuringLang/AdvancedHMC.jl) , which needs a `logpdf` and its gradient.
 
-Most inference algorithms can be expressed in terms of inference primitives. 
+Most inference algorithms can be expressed in terms of inference primitives.
 
 ## Chain Combinators
-
-
-
-## 
-
-## 
 
 # Internals
 
@@ -77,12 +69,12 @@ function sourceWeightedSample(_data)
             return :($(st.x) = rand($(st.rhs)))
         end
 
-        vals = map(x -> Expr(:(=), x,x),variables(_m)) 
+        vals = map(x -> Expr(:(=), x,x),variables(_m))
 
         wrap(kernel) = @q begin
             _ℓ = 0.0
             $kernel
-            
+
             return (_ℓ, $(Expr(:tuple, vals...)))
         end
 
@@ -91,7 +83,3 @@ function sourceWeightedSample(_data)
 end
 
 ```
-
-
-
-## 
