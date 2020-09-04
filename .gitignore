@@ -1,9 +1,12 @@
-*.jl.cov
 *.jl.*.cov
+*.jl.cov
 *.jl.mem
-deps/deps.jl
-src/sandbox.jl
+.DS_Store
+/deps/deps.jl
+/docs/build/
+/src/sandbox.jl
 Manifest.toml
 Soss.code-workspace
-tracefile*.info
 cache/
+example-*.md
+tracefile*.info

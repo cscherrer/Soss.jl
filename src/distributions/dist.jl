@@ -1,6 +1,5 @@
 export LogisticBinomial, HalfCauchy, HalfNormal, EqualMix, StudentT
 import Distributions.logpdf
-# using SymPy
 
 struct HalfCauchy{T<:Real} <: Distribution{Univariate,Continuous}
     σ::T
