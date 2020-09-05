@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Linear regression · Soss.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Soss.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../installing-soss/">Installing Soss</a></li><li><span class="tocitem">Examples</span><ul><li class="is-active"><a class="tocitem" href>Linear regression</a><ul class="internal"><li><a class="tocitem" href="#Defining-the-linear-regression-model"><span>Defining the linear regression model</span></a></li><li><a class="tocitem" href="#Sampling-from-the-forward-model"><span>Sampling from the forward model</span></a></li><li><a class="tocitem" href="#Use-MCMC-to-sample-from-the-posterior-distribution"><span>Use MCMC to sample from the posterior distribution</span></a></li><li><a class="tocitem" href="#Construct-the-posterior-predictive-distribution"><span>Construct the posterior predictive distribution</span></a></li><li><a class="tocitem" href="#So,-what&#39;s-really-happening-here?"><span>So, what&#39;s really happening here?</span></a></li></ul></li></ul></li><li><a class="tocitem" href="../api/">Soss API</a></li><li><a class="tocitem" href="../sossmlj/">SossMLJ.jl</a></li><li><a class="tocitem" href="../internals/">Internals</a></li><li><a class="tocitem" href="../misc/">Miscellaneous</a></li><li><a class="tocitem" href="../to-do-list/">To-Do List</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Linear regression</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Linear regression</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/cscherrer/Soss.jl/blob/master/examples/example-linear-regression.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Example:-Linear-regression"><a class="docs-heading-anchor" href="#Example:-Linear-regression">Example: Linear regression</a><a id="Example:-Linear-regression-1"></a><a class="docs-heading-anchor-permalink" href="#Example:-Linear-regression" title="Permalink"></a></h1><h2 id="Defining-the-linear-regression-model"><a class="docs-heading-anchor" href="#Defining-the-linear-regression-model">Defining the linear regression model</a><a id="Defining-the-linear-regression-model-1"></a><a class="docs-heading-anchor-permalink" href="#Defining-the-linear-regression-model" title="Permalink"></a></h2><p>In this example, we fit a Bayesian linear regression model with the canonical link function.</p><p>Suppose that we are given a matrix of features <code>X</code> and a column vector of labels <code>y</code>. <code>X</code> has <code>n</code> rows and <code>p</code> columns. <code>y</code> has <code>n</code> elements. We assume that our observation vector <code>y</code> is a realization of a random variable <code>Y</code>. We define <code>μ</code> (mu) as the expected value of <code>Y</code>, i.e. <code>μ := E[Y]</code>. Our model comprises three components:</p><ol><li>The probability distribution of <code>Y</code>: for linear regression, we assume that each <code>Yᵢ</code> follows a normal distribution with mean <code>μᵢ</code> and variance <code>σ²</code>.</li><li>The systematic component, which consists of linear predictor <code>η</code> (eta), which we define as <code>η := α + Xβ</code>, where <code>α</code> is the scalar intercept and <code>β</code> is the column vector of <code>p</code> coefficients.</li><li>The link function <code>g</code>, which provides the following relationship: <code>g(E[Y]) = g(μ) = η = Xβ</code>. It follows that <code>μ = g⁻¹(η)</code>, where <code>g⁻¹</code> denotes the inverse of <code>g</code>. For linear regression, the canonical link function is the identity function. Therefore, when using the canonical link function, <code>μ = g⁻¹(η) = η</code>.</li></ol><p>In this model, the parameters that we want to estimate are <code>α</code>, <code>β</code>, and <code>σ</code>. We need to select prior distributions for these parameters. For <code>α</code>, we choose a normal distribution with zero mean and unit variance. For each <code>βᵢ</code>, we choose a normal distribution with zero mean and unit variance. Here, <code>βᵢ</code> denotes the <code>i</code>th component of <code>β</code>. For <code>σ</code>, we will choose a half-normal distribution with unit variance.</p><p>We define this model using Soss:</p><pre><code class="language-julia">using Soss
+using Random
+
+model = @model X begin
+    p = size(X, 2) # number of features
+    α ~ Normal(0, 1) # intercept
+    β ~ Normal(0, 1) |&gt; iid(p) # coefficients
+    σ ~ HalfNormal(1) # dispersion
+    η = α .+ X * β # linear predictor
+    μ = η # `μ = g⁻¹(η) = η`
+    y ~ For(eachindex(μ)) do j
+        Normal(μ[j], σ) # `Yᵢ ~ Normal(mean=μᵢ, variance=σ²)`
+    end
+end;</code></pre><p>In Soss, models are <em>first-class</em> and <em>function-like</em>, and applying a model to its arguments gives a <em>joint distribution</em>.</p><p>Just a few of the things we can do in Soss:</p><ul><li>Sample from the forward model</li><li>Condition a joint distribution on a subset of parameters</li><li>Have arbitrary Julia values (yes, even other models) as inputs or outputs of a model</li><li>Build a new model for the <em>predictive</em> distribution, for assigning parameters to particular values</li></ul><h2 id="Sampling-from-the-forward-model"><a class="docs-heading-anchor" href="#Sampling-from-the-forward-model">Sampling from the forward model</a><a id="Sampling-from-the-forward-model-1"></a><a class="docs-heading-anchor-permalink" href="#Sampling-from-the-forward-model" title="Permalink"></a></h2><p>First, create some fake data:</p><pre><code class="language-julia">X = randn(6,2)</code></pre><pre class="documenter-example-output">6×2 Array{Float64,2}:
+  1.19156    0.100793
+ -2.51973   -0.00197414
+  2.07481    1.00879
+ -0.97325    0.844223
+ -0.101607   1.15807
+ -1.54251   -0.475159</pre><p>Now, sample from the forward model:</p><pre><code class="language-julia">forward_sample = rand(model(X=X))</code></pre><pre class="documenter-example-output">(p = 2, η = [-1.7594980814027883, 4.052641925023078, -2.6906654875759615, 2.041794054481416, 0.8249747704382002, 2.266292299044693], μ = [-1.7594980814027883, 4.052641925023078, -2.6906654875759615, 2.041794054481416, 0.8249747704382002, 2.266292299044693], σ = 0.2446115210956974, α = 0.07187269298745927, β = [-1.5802385327213029, 0.5116588280674325], y = [-1.93250510039172, 3.7674010814886754, -2.796433732547994, 1.8683749900151079, 0.7739922918191082, 2.0838041219530106])</pre><p>The <code>pairs</code> function can make this a little easier to read:</p><pre><code class="language-julia">pairs(forward_sample)</code></pre><pre class="documenter-example-output">pairs(::NamedTuple) with 7 entries:
+  :p =&gt; 2
+  :η =&gt; [-1.7595, 4.05264, -2.69067, 2.04179, 0.824975, 2.26629]
+  :μ =&gt; [-1.7595, 4.05264, -2.69067, 2.04179, 0.824975, 2.26629]
+  :σ =&gt; 0.244612
+  :α =&gt; 0.0718727
+  :β =&gt; [-1.58024, 0.511659]
+  :y =&gt; [-1.93251, 3.7674, -2.79643, 1.86837, 0.773992, 2.0838]</pre><h2 id="Use-MCMC-to-sample-from-the-posterior-distribution"><a class="docs-heading-anchor" href="#Use-MCMC-to-sample-from-the-posterior-distribution">Use MCMC to sample from the posterior distribution</a><a id="Use-MCMC-to-sample-from-the-posterior-distribution-1"></a><a class="docs-heading-anchor-permalink" href="#Use-MCMC-to-sample-from-the-posterior-distribution" title="Permalink"></a></h2><p>First, generate some fake data:</p><pre><code class="language-julia">num_rows = 1_000
+num_features = 2
+X = randn(num_rows, num_features)</code></pre><pre class="documenter-example-output">1000×2 Array{Float64,2}:
+  0.844167    1.41969
+  0.448818    1.05645
+ -0.113053    0.787576
+  0.721098   -0.781535
+ -0.282472    1.11821
+  2.16331    -1.37008
+ -0.232196   -0.187953
+  0.265794    1.16541
+  0.222061   -0.425117
+  0.28501     0.924975
+  ⋮          
+  0.257052   -0.330507
+ -0.550402    0.633498
+ -0.436634    1.31619
+  0.73531    -0.368827
+ -0.566161    1.87493
+  0.287621    0.833153
+ -0.227225    1.04894
+  0.366533    0.354276
+ -0.0456497  -0.32037</pre><p>Pick the true values for our coefficients <code>β</code>:</p><pre><code class="language-julia">β_true = [2.0, -1.0]</code></pre><pre class="documenter-example-output">2-element Array{Float64,1}:
+  2.0
+ -1.0</pre><p>We also need to pick a true value for the intercept <code>α</code>:</p><pre><code class="language-julia">α_true = 1.0</code></pre><pre class="documenter-example-output">1.0</pre><p>And we also need to pick a true value for the dispersion parameter <code>σ</code></p><pre><code class="language-julia">σ_true = 0.5</code></pre><pre class="documenter-example-output">0.5</pre><p>Now, generate the true labels:</p><pre><code class="language-julia">η_true = α_true .+ X * β_true
+μ_true = η_true
+noise = randn(num_rows) .* σ_true
+y_true = μ_true .+ noise</code></pre><pre class="documenter-example-output">1000-element Array{Float64,1}:
+  2.196426590194571
+  1.840362851781725
+  0.6673855714936384
+  3.1141626232847095
+ -0.8284381755210188
+  6.9834095285364635
+ -0.4198791618699007
+  0.176269689261934
+  1.388703377370637
+  1.2384220161485253
+  ⋮
+  1.0346798005235076
+ -0.47505206504509623
+ -1.9877934509146507
+  3.211819204334507
+ -2.3395024847880665
+  0.8824127053016024
+ -0.6425883441499981
+  1.9893542744706818
+  0.8385456099193442</pre><p>Now we use MCMC (specifically, the No-U-turn sampler) to sample from the posterior distribution:</p><pre><code class="language-julia">posterior = dynamicHMC(model(X=X), (y=y_true,))</code></pre><pre class="documenter-example-output">1000-element Array{NamedTuple{(:σ, :α, :β),Tuple{Float64,Float64,Array{Float64,1}}},1}:
+ (σ = 0.4671111324573686, α = 1.0085982562732028, β = [1.9862233995749632, -0.9644423486764698])
+ (σ = 0.4934761582166657, α = 0.9542379522951409, β = [2.004314093438344, -0.9858544347377615])
+ (σ = 0.4869458709789229, α = 0.9711124389486936, β = [1.9685212176855835, -0.9503982576404645])
+ (σ = 0.48575475770467336, α = 0.9707934717622152, β = [1.9615445185328304, -0.9795821987153137])
+ (σ = 0.47062244295899847, α = 0.9771752630962974, β = [1.9795377560356213, -0.9657331020868865])
+ (σ = 0.4915766448708524, α = 0.994132232715656, β = [1.9722940865512244, -0.9753922110896279])
+ (σ = 0.46519566290319303, α = 0.9737172825197713, β = [2.026526676893822, -0.961033300168404])
+ (σ = 0.4973815599627667, α = 0.9847231693640646, β = [1.9998010681490976, -0.9995991750491223])
+ (σ = 0.4981306867646483, α = 0.9710012155285128, β = [1.9989476239894548, -0.9936417444401155])
+ (σ = 0.47468363476403963, α = 0.9831145404733579, β = [1.9917385760030188, -0.9658352159920276])
+ ⋮
+ (σ = 0.4962410647803711, α = 0.9761032158120818, β = [1.9980674523022512, -0.9791893663482489])
+ (σ = 0.4495588692597463, α = 0.98044294328064, β = [1.9983349181112018, -0.9589597341776204])
+ (σ = 0.461627718551127, α = 0.9468545482086731, β = [1.9893862827516198, -0.9733755929168094])
+ (σ = 0.48735564861730507, α = 0.99743472511694, β = [2.0090110670885264, -0.9757465430906572])
+ (σ = 0.4854088550813136, α = 0.9843843684225695, β = [1.998567134262791, -0.9858489559630422])
+ (σ = 0.47249047482658235, α = 0.9713925227066278, β = [2.0088749513775332, -0.9968341759586379])
+ (σ = 0.4858269609841195, α = 0.9656159697128472, β = [1.9493922542785171, -0.9434351393077021])
+ (σ = 0.470252720287639, α = 0.9734014339849856, β = [2.007238809597784, -0.991687956713456])
+ (σ = 0.47796480831827504, α = 0.9965811750745768, β = [1.98125447348818, -0.9587108369330919])</pre><p>Often, the posterior distributions are easier to work with in terms of <code>particles</code> (built using <a href="https://github.com/baggepinnen/MonteCarloMeasurements.jl">MonteCarloMeasurements.jl</a>):</p><pre><code class="language-julia">particles(posterior)</code></pre><pre class="documenter-example-output">(σ = 0.48 ± 0.011, α = 0.981 ± 0.014, β = Particles{Float64,1000}[2.0 ± 0.014, -0.971 ± 0.015])</pre><p>Again, the <code>pairs</code> function can make this a little easier to read:</p><pre><code class="language-julia">pairs(particles(posterior))</code></pre><pre class="documenter-example-output">pairs(::NamedTuple) with 3 entries:
+  :σ =&gt; 0.48 ± 0.011
+  :α =&gt; 0.981 ± 0.014
+  :β =&gt; Particles{Float64,1000}[2.0 ± 0.014, -0.971 ± 0.015]</pre><p>Compare the posterior distributions on <code>σ</code>, <code>α</code>, and <code>β</code> to the true values:</p><pre><code class="language-julia">@show σ_true; @show α_true; @show β_true;</code></pre><pre class="documenter-example-output">σ_true = 0.5
+α_true = 1.0
+β_true = [2.0, -1.0]</pre><p>We did a pretty good job at recovering the true parameter values!</p><h2 id="Construct-the-posterior-predictive-distribution"><a class="docs-heading-anchor" href="#Construct-the-posterior-predictive-distribution">Construct the posterior predictive distribution</a><a id="Construct-the-posterior-predictive-distribution-1"></a><a class="docs-heading-anchor-permalink" href="#Construct-the-posterior-predictive-distribution" title="Permalink"></a></h2><p>For model diagnostics and prediction, we need the posterior <em>predictive distribution</em>:</p><pre><code class="language-julia">posterior_predictive = predictive(model, :β)</code></pre><pre class="documenter-example-output">@model (X, β) begin
+        σ ~ HalfNormal(1)
+        α ~ Normal(0, 1)
+        η = α .+ X * β
+        μ = η
+        y ~ For(eachindex(μ)) do j
+                Normal(μ[j], σ)
+            end
+    end
+</pre><p>This requires <code>X</code> and <code>β</code> as inputs, so we can do something like this to do a <em>posterior predictive check (PPC)</em></p><pre><code class="language-julia">y_ppc = [rand(posterior_predictive(;X=X, p...)).y for p in posterior]</code></pre><pre class="documenter-example-output">1000-element Array{Array{Float64,1},1}:
+ [0.9712594407324491, 1.1347170441853707, 0.6259246421074491, 3.796121503444766, 0.9435352074281373, 7.911282800212946, 0.3633675810494462, 0.028038069292381063, 2.2398123680920583, 0.7448890087934774  …  -0.40849052676991415, 1.7860109561976651, -0.7546212373787978, -1.4686652323021185, 3.315803689952113, -1.6747964167046867, 1.5483304630246473, 1.0837908803511185, 2.4742353215437345, 1.1126561012981906]
+ [-2.564921984972011, -2.302247460822517, -0.8740836543013882, 1.662080533863003, -3.8045107825033164, 5.934328925680586, 0.8216187003608497, 1.0854995038657678, -0.5811224355590456, 0.39136211198731163  …  -6.87548892522743, -0.4879027641587303, -0.7019869824534368, -2.7262473468856685, 0.296011186833224, -4.804400373539595, -0.019015346170634717, -2.659763945001793, -0.41626638843990366, 2.9795632211703755]
+ [0.7768156772654902, 0.06008379533528829, -1.3188990461337649, 2.407427260509527, 0.11605341027875604, 6.4506940017776495, 0.3023147053353384, 0.23773080212797656, 1.8374758178858828, 0.7153269111174362  …  -0.9217487484596011, 1.3808325608068939, -0.9302828500734385, -0.10214646699361807, 3.253838290077532, -1.5610237582142377, 0.08540854752813148, -0.8508557927461785, 0.15347305566796132, 1.214789717922807]
+ [1.919119302854842, 0.9202446230418913, -0.042659758559081454, 3.4040913051733166, -0.5229993290894173, 6.684524646023734, 0.026710659746199017, -0.16912940674804505, 2.3869098561403046, 0.16529770630185386  …  -1.3305534825218073, 0.598430226704002, -0.2758545133146262, -2.301430891997734, 2.587431868952331, -2.988948819261272, -0.14735760169245038, -0.2797486784107939, 0.9568012779016717, 1.5703895244715833]
+ [3.1530957142996696, -0.40353533320667845, 4.514125980765657, 4.948775336773774, -0.5150642120149312, 3.26918001003464, 1.4412427601428541, -2.1952367509051247, 4.9427267199173315, 2.4112363128291294  …  3.260472803327907, 4.135721824905298, 0.47537388737905517, 0.017187480713156233, 0.7880806898313444, 0.3955724270634402, 0.5782938041143523, 1.719522639948853, 5.105647284659185, -0.6811868584855363]
+ [0.6811342179951827, 0.7188728312182828, 1.0967673295982514, 3.4562412891451775, 0.7394047959439365, 6.019981248407436, 1.133902184156441, -0.18135030873935032, 1.7746427212680183, 1.5575856322312558  …  -1.799671531487964, 2.5242180289668994, 0.3850648203985416, -1.9024141964453345, 1.941903583656467, -2.4163586623018736, 0.4639125309707249, -0.12071241281545092, 1.7368059772953854, 1.1788618363091374]
+ [-0.49386003469545825, -0.9730577009629251, -1.4858596468889804, 1.1827807110741622, -3.676679901337148, 4.721542866939951, -1.1746181422524824, -1.5397122088322652, -0.18809394306518368, -0.5773620322284757  …  -2.9733782633909533, -0.20098883380739818, -2.8662983541122244, -2.803544893191119, 1.3274325368473678, -4.13617786106348, -1.0163491600948518, -3.508238978378186, -1.019559097866037, -0.7975585722415732]
+ [1.8416887171464997, -2.6320923521418207, 2.206475136352653, 3.8347032232849543, 0.20970266693969397, 5.553650192675785, 1.4522377870675325, -0.9364307490461571, 0.6073784121034379, 1.309913785234588  …  -2.541013442355183, 1.9018460969036959, -0.5278500278717715, -1.4930080410650237, -1.2067180037442653, -2.5493496320770914, -1.8929074322868495, 0.9750194505287002, -1.5705225043765858, -0.3804714053179782]
+ [0.6604655404748905, 0.8147815965419782, 0.7894089708914268, 3.2800376951108605, -0.703256223874223, 5.24765087545344, -0.34820540933604993, 0.8649012389135009, 2.2437483083952614, 0.04103844528080172  …  -2.174781048166275, 2.248914930516261, -0.7210085837115371, -1.2863330186743327, 3.1344113506778832, -3.3727479875415174, -0.6717398974150657, -0.8891449379990625, 0.7964248947213916, -0.3890658457508166]
+ [1.7887587802370761, 2.134220615067142, 1.0038589698344245, 3.8940954581346916, -0.31469921529313594, 5.9039705510770695, 0.20469914204193396, 1.703712113105761, 1.018784653041376, 0.29926041387646396  …  0.1037582171010345, 4.078349539948162, -0.7422593081837938, -1.712717284375818, 4.504727298891176, -1.480057441975692, 1.6516470881165324, -0.05363880675901905, 2.9872286857998356, 2.9247794143684613]
+ ⋮
+ [0.7221865457825427, 0.7510964151517809, -0.8987272901405042, 2.528430719664214, -0.31798077335007424, 5.190706057070461, -0.11399181426554711, -0.11451307124530982, 1.1619740849235503, 0.955840980355846  …  -1.7839198729876626, 1.4962685328577017, -1.165119123023723, -1.0112998090082024, 2.1735402253357083, -2.2885277701738422, -0.018213558432110283, -0.8278470913380006, 1.1856887642911043, 2.1174490399811527]
+ [0.6524789373226998, 0.26623822565091615, -0.6649208051806926, 2.6122017605359424, -1.1093886110277598, 5.984497295847415, -0.09672010110941082, -0.24852275395837575, 1.1995358467960622, 0.04073600820386365  …  -1.5239846124912475, 1.0915583147418952, -1.1222057888534602, -1.95334302938527, 1.9451523316731247, -2.397201937930376, 0.14888632483213507, -1.1046876942657202, 0.5952639969135876, 0.4377343836298785]
+ [0.5297250968809031, 0.35473405329666163, -1.3517056473583628, 0.9592581224529174, -3.3595163604224196, 5.125858935961068, 0.036203323141794086, -1.9801896614272336, 0.1497837882628908, -1.5791575420902961  …  -2.014486317325309, -0.00015412479751789054, -2.5234332914642357, -2.5728733040222083, 1.2138062058953283, -3.2059827786971598, -1.1920489260156701, -2.946773763018737, 0.7096274301384766, 0.8399824978401436]
+ [-1.1956227686745482, -0.9060239634491063, -3.503141285444756, 1.1580910545133114, -3.6595704239679137, 3.9026751271151747, -1.0952430299853426, -2.625737991678672, -1.0706601507229372, -1.9467046082366704  …  -5.145866768862709, -1.0507461894522347, -3.664104985641362, -3.173129732186578, 1.741243091670355, -4.591633415287405, -2.0224034931812565, -2.7989663277436216, -0.011202087658932491, -2.148278575117356]
+ [1.6646708604060763, 0.9868167766719899, -0.38915107096468504, 3.081202478993359, -0.6346800091336697, 7.033328339594749, 0.6072510219840741, 0.7673563451905593, 1.7924902553585822, 0.5831335641424318  …  -0.9226187414688024, 1.9355452395431638, -0.39562392261790463, -1.6261783534588967, 2.538293926464355, -2.1290821738468035, 0.7510888116799205, -0.46234601538832865, 0.8981117274549061, 0.8270493922641353]
+ [-0.32588680276797344, -3.724517504537946, -2.70062547677652, -1.0863405919130333, -1.9292763529387413, 4.19701252670032, 0.7987762072857407, -2.5639384796252216, -1.2485346583515047, -4.979065490542809  …  -2.3175945220786955, 0.24874168435346766, 0.05321183277058639, -2.4837212345471924, -1.8257850913290183, -3.8365083474585395, -3.629432988532452, -2.4595774958347065, 0.9581062851300413, -0.5474932014647601]
+ [1.5557997137249762, 1.1217821795783314, -0.5639094961796792, 3.7783415904053044, -1.921912647362471, 7.2904597851131125, -0.8461734513716042, 1.5750224040156184, 1.0179469116135944, -2.510854701443798  …  -4.556031331802107, 0.6671872485279075, 0.09709351606431982, -3.5327103414524474, 2.835924339814182, -5.051423047057217, -0.8143102064259646, -1.9119393365844637, 1.0796586894136242, 2.61500230177979]
+ [-0.3127566488327701, -0.6234122553478502, -1.5613785640286733, 1.6456173552389632, -2.1557010418464926, 5.217573194025142, -0.8996907798019206, -1.1700444982572364, 0.39754979684239355, -0.9124579494072433  …  -2.4447323946004134, 0.20967718971800028, -2.18838511313419, -2.6989852834794155, 1.2921963948180695, -3.5978039496702183, -0.7661817804421917, -2.067576949465815, -0.20495880958102797, -0.36001817824527965]
+ [0.17116818353464006, 0.17620013533112494, -0.9266657478222381, 2.1469966994226457, -1.245918119454441, 5.989837975190189, -0.306955019173037, -0.6627702480236876, 0.6903524857689571, 0.05778027419536891  …  -1.7271488972064586, 1.628201577412192, -1.609593945688999, -1.7634911486938385, 1.798982047854429, -3.087367655039079, 0.04695494314630064, -1.2428936523078775, 0.11754728750393695, 0.7941682305752129]</pre><p>We can compare the posterior predictive distribution on <code>y</code> to the true values of <code>y</code>:</p><pre><code class="language-julia">y_true - particles(y_ppc)</code></pre><pre class="documenter-example-output">1000-element Array{Particles{Float64,1000},1}:
+  1.89 ± 1.4
+  1.97 ± 1.4
+  1.66 ± 1.4
+  0.925 ± 1.4
+  0.773 ± 1.5
+  1.29 ± 1.4
+ -0.191 ± 1.4
+  0.736 ± 1.3
+  0.53 ± 1.4
+  1.57 ± 1.5
+  ⋮
+  0.177 ± 1.4
+  1.24 ± 1.4
+  0.179 ± 1.5
+  1.38 ± 1.4
+  0.639 ± 1.5
+  1.1 ± 1.4
+  0.843 ± 1.4
+  1.57 ± 1.4
+  0.604 ± 1.4</pre><p>These play a role similar to that of residuals in a non-Bayesian approach (there&#39;s plenty more detail to go into, but that&#39;s for another time).</p><h2 id="So,-what&#39;s-really-happening-here?"><a class="docs-heading-anchor" href="#So,-what&#39;s-really-happening-here?">So, what&#39;s really happening here?</a><a id="So,-what&#39;s-really-happening-here?-1"></a><a class="docs-heading-anchor-permalink" href="#So,-what&#39;s-really-happening-here?" title="Permalink"></a></h2><p>Under the hood, <code>rand</code> and <code>logpdf</code> specify different ways of &quot;running&quot; the model.</p><p><code>rand</code>  turns each <code>v ~ dist</code> into <code>v = rand(dist)</code>, finally outputting the <code>NamedTuple</code> of all values it has seen.</p><p><code>logpdf</code> steps through the same program, but instead accumulates a log-density. It begins by initializing <code>_ℓ = 0.0</code>. Then at each step, it turns <code>v ~ dist</code> into <code>_ℓ += logpdf(dist, v)</code>, before finally returning <code>_ℓ</code>.</p><p>Note that I said &quot;turns into&quot; instead of &quot;interprets&quot;. Soss uses <a href="https://github.com/thautwarm/GG.jl"><code>GG.jl</code></a> to generate specialized code for a given model, inference primitive (like <code>rand</code> and <code>logpdf</code>), and type of data.</p><p>This idea can be used in much more complex ways. <code>weightedSample</code> is a sort of hybrid between <code>rand</code> and <code>logpdf</code>. For data that are provided, it increments a <code>_ℓ</code> using <code>logpdf</code>. Unknown values are sampled using <code>rand</code>.</p><pre><code class="language-julia">ℓ, proposal = weightedSample(model(X=X), (y=y_true,));</code></pre><p><code>ℓ</code>:</p><pre><code class="language-julia">ℓ</code></pre><pre class="documenter-example-output">-6883.93696430965</pre><p><code>proposal.β</code>:</p><pre><code class="language-julia">proposal.β</code></pre><pre class="documenter-example-output">2-element Array{Float64,1}:
+ -2.069173404676051
+ -0.30867448133666425</pre><p>Again, there&#39;s no runtime check needed for this. Each of these is compiled the first time it is called, so future calls are very fast. Functions like this are great to use in tight loops.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../installing-soss/">« Installing Soss</a><a class="docs-footer-nextpage" href="../api/">Soss API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 5 September 2020 00:26">Saturday 5 September 2020</span>. Using Julia version 1.5.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
