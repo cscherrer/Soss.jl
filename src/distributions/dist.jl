@@ -49,6 +49,8 @@ end
 
 Distributions.logpdf(m::EqualMix, x) = logsumexp(map(d -> logpdf(d, x), m.components))
 
+rand(m::EqualMix) = rand(GLOBAL_RNG, m)
+
 Base.rand(rng::AbstractRNG, m::EqualMix) = rand(rng, rand(rng, m.components))
 
 xform(d::EqualMix, _data) = xform(d.components[1], _data)
