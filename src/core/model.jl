@@ -60,6 +60,7 @@ end
 
 Base.merge(m::Model, ::Nothing) = m
 
+Model(theModule::Module, arg::Arg) = Model(theModule, Symbol[arg.x], NamedTuple(), NamedTuple(), nothing)
 Model(theModule::Module, st::Assign) = Model(theModule, Symbol[], namedtuple(st.x)([st.rhs]), NamedTuple(), nothing)
 Model(theModule::Module, st::Sample) = Model(theModule, Symbol[], NamedTuple(), namedtuple(st.x)([st.rhs]), nothing)
 Model(theModule::Module, st::Return) = Model(theModule, Symbol[], NamedTuple(), NamedTuple(), st.rhs)
