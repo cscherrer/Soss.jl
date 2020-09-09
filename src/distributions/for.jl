@@ -37,6 +37,8 @@ function Base.collect(d::For{F,T,D,X}) where {F,T,D,X}
     return result
 end
 
+Base.rand(dist::For) = rand(GLOBAL_RNG, dist)
+
 #########################################################
 # T <: NTuple{N,J} where {J <: Integer}
 #########################################################
@@ -67,7 +69,6 @@ function Base.rand(rng::AbstractRNG, dist::For)
     end
 end
 
-Base.rand(dist::For) = rand(GLOBAL_RNG, dist)
 
 #########################################################
 # T <: NTuple{N,J} where {J <: AbstractUnitRange}
@@ -121,8 +122,13 @@ end
 end
 
 @inline function Base.rand(rng::AbstractRNG, d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
-    return rand.(rng, Base.Generator(d.f ∘ d.θ.f, d.θ.iter))
+    return Base.Generator(rand ∘ d.f ∘ d.θ.f, d.θ.iter)
 end
+
+@inline function Base.collect(rng::AbstractRNG, d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
+    return Base.Generator(d.f ∘ d.θ.f, d.θ.iter)
+end
+
 
 Base.rand(d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X} = rand(GLOBAL_RNG, d)
 
@@ -149,11 +155,22 @@ end
     ind = CartesianIndices(d.θ)
     dims = size(ind)
     result = Array{X, length(dims)}(undef, dims)
-    @inbounds @simd for θ in ind
-        result[θ] = rand(d.f(Tuple(θ)...))
+    @inbounds @simd for j in ind
+        result[j] = rand(d.f(d.θ[j]))
     end
     return result
 end
+
+function Base.collect(d::For{F,T,D,X}) where {F,T,D,X}
+    ind = CartesianIndices(d.θ)
+    dims = size(ind)
+    result = Array{D, length(dims)}(undef, dims)
+    @inbounds @simd for j in ind
+        result[j] = d.f(d.θ[j])
+    end
+    return result
+end
+
 # @inline function Base.rand(rng::AbstractRNG, d::For{F,T,D,X}) where {F,T<:AbstractArray,D,X}
 #     return rand.(d.f.(d.θ))
 # end
