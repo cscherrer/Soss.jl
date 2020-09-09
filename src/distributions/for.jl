@@ -27,15 +27,15 @@ function Base.eltype(d::For{F,T,D,X}) where {F,T,D,X}
     return X
 end
 
-function Base.collect(d::For{F,T,D,X}) where {F,T,D,X}
-    ind = CartesianIndices(d.θ)
-    dims = size(ind)
-    result = Array{D, length(dims)}(undef, dims)
-    @inbounds @simd for θ in ind
-        result[θ] = d.f(Tuple(θ)...)
-    end
-    return result
-end
+# function Base.collect(d::For{F,T,D,X}) where {F,T,D,X}
+#     ind = CartesianIndices(d.θ)
+#     dims = size(ind)
+#     result = Array{D, length(dims)}(undef, dims)
+#     @inbounds @simd for θ in ind
+#         result[θ] = d.f(Tuple(θ)...)
+#     end
+#     return result
+# end
 
 Base.rand(dist::For) = rand(GLOBAL_RNG, dist)
 
@@ -69,6 +69,15 @@ function Base.rand(rng::AbstractRNG, dist::For)
     end
 end
 
+function Base.collect(d::For{F,T,D,X}) where {F,J<:Integer,N, T<:NTuple{N,J},D,X}
+    ind = CartesianIndices(d.θ)
+    dims = size(ind)
+    result = Array{D, length(dims)}(undef, dims)
+    @inbounds @simd for θ in ind
+        result[θ] = d.f(Tuple(θ)...)
+    end
+    return result
+end
 
 #########################################################
 # T <: NTuple{N,J} where {J <: AbstractUnitRange}
@@ -102,6 +111,16 @@ end
 
 Base.rand(dist::For{F,T}) where {F,N,J<:AbstractRange,T<:NTuple{N,J}} = rand(GLOBAL_RNG, dist)
 
+@inline function Base.collect(d::For{F,T,D,X}) where {F,N,J<:AbstractRange,T<:NTuple{N,J},D,X}
+    ind = CartesianIndices(d.θ)
+    dims = size(ind)
+    result = Array{D, length(dims)}(undef, dims)
+    @inbounds @simd for j in ind
+        result[j] = d.f(Tuple(j)...)
+    end
+    return result
+end
+
 #########################################################
 # T <: Base.Generator
 #########################################################
@@ -125,8 +144,8 @@ end
     return Base.Generator(rand ∘ d.f ∘ d.θ.f, d.θ.iter)
 end
 
-@inline function Base.collect(rng::AbstractRNG, d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
-    return Base.Generator(d.f ∘ d.θ.f, d.θ.iter)
+@inline function Base.collect(d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
+    return collect(Base.Generator(d.f ∘ d.θ.f, d.θ.iter))
 end
 
 
@@ -161,7 +180,7 @@ end
     return result
 end
 
-function Base.collect(d::For{F,T,D,X}) where {F,T,D,X}
+function Base.collect(d::For{F,T,D,X}) where {F,T<:AbstractArray,D,X}
     ind = CartesianIndices(d.θ)
     dims = size(ind)
     result = Array{D, length(dims)}(undef, dims)
