@@ -141,7 +141,7 @@ end
 end
 
 @inline function Base.rand(rng::AbstractRNG, d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
-    return Base.Generator(rand ∘ d.f ∘ d.θ.f, d.θ.iter)
+    return rand.(rng, Base.Generator(d.f ∘ d.θ.f, d.θ.iter))
 end
 
 @inline function Base.collect(d::For{F,T,D,X}) where {F,T<:Base.Generator,D,X}
