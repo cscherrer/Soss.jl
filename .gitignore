@@ -10,3 +10,4 @@ Soss.code-workspace
 cache/
 example-*.md
 tracefile*.info
+.history
