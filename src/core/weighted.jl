@@ -6,6 +6,6 @@ end
 
 using Printf
 function Base.show(io::IO, ℓx::Weighted)
-    @printf io "Weighted(%g.4\n" (ℓx.ℓ)
-    println(",", ℓx.val)
+    @printf io "Weighted(%.4g" (ℓx.ℓ)
+    println(io, ", ", ℓx.val)
 end

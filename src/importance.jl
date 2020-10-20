@@ -1,6 +1,30 @@
 using Distributions
 using MonteCarloMeasurements
 
+"""
+    importanceSample(p(p_args), q(q_args), observed_data)
+
+Sample from `q`, and weight the result to behave as if the sample were taken from `p`. For example,
+
+```
+julia> p = @model begin
+    x ~ Normal()
+    y ~ Normal(x,1) |> iid(5)
+end;
+
+julia> q = @model μ,σ begin
+    x ~ Normal(μ,σ)
+end;
+
+julia> y = rand(p()).y;
+
+julia> importanceSample(p(),q(μ=0.0, σ=0.5), (y=y,))
+Weighted(-7.13971.4
+,(x = -0.12280566635062592,)
+````
+"""
+function importanceSample end
+
 export importanceSample
 @inline function importanceSample(p::JointDistribution, q::JointDistribution, _data)
     return _importanceSample(getmoduletypencoding(p.model), p.model, p.args, q.model, q.args, _data)
@@ -9,25 +33,31 @@ end
 @gg M function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
     p = type2model(p)
     q = type2model(q)
-
+        
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        sourceImportanceSample()(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()))
+        sourceImportanceSample(_data)(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()) |> merge_pqargs)
+
+
 end
 
-sourceImportanceSample(p::Model,q::Model) = sourceImportanceSample()(p::Model,q::Model)
+sourceImportanceSample(p::Model,q::Model,_data) = sourceImportanceSample(_data)(p::Model,q::Model)
 
 export sourceImportanceSample
-function sourceImportanceSample()
+function sourceImportanceSample(_data)
     function(p::Model,q::Model)
         p = canonical(p)
         q = canonical(q)
         m = merge(p,q)
 
+        _datakeys = getntkeys(_data)
+
         function proc(m, st::Sample) 
+            st.x ∈ _datakeys && return :(_ℓ += logpdf($(st.rhs), $(st.x)))
+
             if hasproperty(p.dists, st.x)
                 pdist = getproperty(p.dists, st.x)
-                qdist = st.rhs
+                qdist = getproperty(q.dists, st.x)
                 @gensym ℓx
                 result = @q begin
                     $ℓx = importanceSample($pdist, $qdist, _data)
@@ -35,7 +65,7 @@ function sourceImportanceSample()
                     $(st.x) = $ℓx.val
                 end
                 return flatten(result)
-            else return :($(st.x) = $(st.rhs))
+            else return :($(st.x) = rand($(st.rhs)))
             end
             return flatten(result)
         end
@@ -45,11 +75,11 @@ function sourceImportanceSample()
 
         body = buildSource(m, proc) |> flatten
 
-        kwargs = freeVariables(q) ∪ arguments(p)
+        kwargs = arguments(p) ∪ arguments(q)
         kwargsExpr = Expr(:tuple,kwargs...)
 
         stochExpr = begin
-            vals = map(sampled(m)) do x Expr(:(=), x,x) end
+            vals = map(sampled(q)) do x Expr(:(=), x,x) end
             Expr(:tuple, vals...)
         end
 
@@ -64,7 +94,7 @@ function sourceImportanceSample()
 end
 
 @inline function importanceSample(p, q, _data)
-    x = merge(rand(q), _data)
+    x = rand(q)
     ℓ = logpdf(p,x) - logpdf(q,x)
     Weighted(ℓ,x)
 end
@@ -139,3 +169,10 @@ end
 #     ))
 
 # end
+
+function merge_pqargs(src)
+    @q begin
+        _args = merge(_pargs, _qargs)
+        $src
+    end |> flatten
+end

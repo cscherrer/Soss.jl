@@ -57,12 +57,10 @@ include("inference/rejection.jl")
 include("inference/dynamicHMC.jl")
 include("inference/advancedhmc.jl")
 
-
-# include("weighted.jl")
 #
 # # include("graph.jl")
 # # # include("optim.jl")
-# include("importance.jl")
+include("importance.jl")
 #
 # # # include("sobols.jl")
 # # # include("fromcube.jl")

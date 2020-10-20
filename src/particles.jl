@@ -33,6 +33,7 @@ end
 
 export parts
 
+using MappedArrays, FillArrays
 
 # Just a little helper function for particles
 # https://github.com/baggepinnen/MonteCarloMeasurements.jl/issues/22
@@ -43,12 +44,9 @@ parts(x::Integer, N::Int=DEFAULT_SAMPLE_SIZE) = parts(float(x))
 parts(x::Real, N::Int=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
 parts(x::AbstractArray, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(x)
 parts(p::Particles, N::Int=DEFAULT_SAMPLE_SIZE) = p
-parts(d::For, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(d.f.(d.θ...), N)
-function parts(d::For{F,Tuple{I}}, N::Int=DEFAULT_SAMPLE_SIZE) where {F <: Function, I <: Integer}
-    parts.(d.f.(Base.OneTo.(d.θ)...), N)
-end
+parts(d::For, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(mappedarray(d.f, CartesianIndices(d.θ)), N)
 
-parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = map(1:d.size) do j parts(d.dist, N) end
+parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(fill(d.dist, d.size))
 # size
 # dist 
 
