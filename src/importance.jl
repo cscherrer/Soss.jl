@@ -1,6 +1,30 @@
 using Distributions
 using MonteCarloMeasurements
 
+"""
+    importanceSample(p(p_args), q(q_args), observed_data)
+
+Sample from `q`, and weight the result to behave as if the sample were taken from `p`. For example,
+
+```
+julia> p = @model begin
+    x ~ Normal()
+    y ~ Normal(x,1) |> iid(5)
+end;
+
+julia> q = @model μ,σ begin
+    x ~ Normal(μ,σ)
+end;
+
+julia> y = rand(p()).y;
+
+julia> importanceSample(p(),q(μ=0.0, σ=0.5), (y=y,))
+Weighted(-7.13971.4
+,(x = -0.12280566635062592,)
+````
+"""
+function importanceSample end
+
 export importanceSample
 @inline function importanceSample(p::JointDistribution, q::JointDistribution, _data)
     return _importanceSample(getmoduletypencoding(p.model), p.model, p.args, q.model, q.args, _data)
