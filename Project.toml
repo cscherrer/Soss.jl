@@ -1,7 +1,7 @@
 name = "Soss"
 uuid = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
 author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
-version = "0.15.3"
+version = "0.15.4"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -20,6 +20,7 @@ LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 LogDensityProblems = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
 MLStyle = "d8e11817-5142-5d16-987a-aa16d5891078"
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+MappedArrays = "dbb5928d-eab1-5f90-85c2-b9b0edb7c900"
 MonteCarloMeasurements = "0987c9cc-fe09-11e8-30f0-b96dd679fdca"
 NamedTupleTools = "d9ec5142-1e00-5aa0-9d6a-321866360f50"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
