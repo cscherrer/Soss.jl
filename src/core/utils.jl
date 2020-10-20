@@ -226,7 +226,7 @@ end
 
 getntkeys(::NamedTuple{A,B}) where {A,B} = A
 getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A
-
+getntkeys(::Type{NamedTuple{A}}) where {A} = A
 
 # These macros quickly define additional methods for when you get tired of typing `NamedTuple()`
 macro tuple3args(f)
