@@ -1,7 +1,7 @@
 name = "Soss"
 uuid = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
 author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
-version = "0.15.4"
+version = "0.15.5"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -55,6 +55,7 @@ LazyArrays = "0.14, 0.15, 0.16, 0.17, 0.18"
 LogDensityProblems = "0.10"
 MLStyle = "0.3, 0.4"
 MacroTools = "0.5"
+MappedArrays = "0.3"
 MonteCarloMeasurements = "0.6,0.7, 0.8, 0.9"
 NamedTupleTools = "0.12, 0.13"
 RecipesBase = "0.7,0.8, 1.0"
