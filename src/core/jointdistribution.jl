@@ -1,8 +1,3 @@
-using Distributions: ValueSupport, VariateForm
-
-struct MixedSupport <: ValueSupport end
-struct MixedVariate <: VariateForm end
-
 struct JointDistribution{A0,A,B,M} <: Distribution{MixedVariate, MixedSupport}
     model::Model{A,B,M}
     args::A0
