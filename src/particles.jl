@@ -44,7 +44,28 @@ parts(x::Integer, N::Int=DEFAULT_SAMPLE_SIZE) = parts(float(x))
 parts(x::Real, N::Int=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
 parts(x::AbstractArray, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(x)
 parts(p::Particles, N::Int=DEFAULT_SAMPLE_SIZE) = p
-parts(d::For, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(mappedarray(d.f, CartesianIndices(d.θ)), N)
+
+function parts(x::Bernoulli{P} where {P <: AbstractParticles}, N::Int=DEFAULT_SAMPLE_SIZE) 
+    k = length(x)
+    us = Particles(k, Uniform()).particles
+    ps = x.p.particles
+
+    return Particles(collect(us .< ps))
+end
+
+# function Base.:<(x::AbstractParticles, y::Particles{T,N}) where {T, N}
+#     return Particles(x.particles .< y.particles)
+# end
+
+# function parts(d::For, N::Int=DEFAULT_SAMPLE_SIZE)
+#     ci = CartesianIndices(d.θ)
+#     result = similar(Array{Any}, axes(ci))
+#     for j in ci
+#         result[j] = parts(d.f(Tuple(j)...), N)
+#     end
+# end
+
+parts(d::For, N::Int=DEFAULT_SAMPLE_SIZE) = parts.((d.f(Tuple(cind)...) for cind in CartesianIndices(d.θ)), N)
 
 parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(fill(d.dist, d.size))
 # size
@@ -98,3 +119,36 @@ function sourceParticles()
         buildSource(_m, proc, wrap) |> flatten
     end
 end
+
+function Base.getindex(a::AbstractArray{P}, i::Particles) where P <: AbstractParticles
+    return Particles([a[i.particles[n]][n] for n in eachindex(i.particles)])
+end
+
+function Base.getindex(a::AbstractArray{P}, i, j::Particles) where P <: AbstractParticles
+    return Particles([a[i,j.particles[n]][n] for n in eachindex(j.particles)])
+end
+
+function Base.getindex(a::AbstractArray{P}, i::Particles, j) where P <: AbstractParticles
+    return Particles([a[i.particles[n], j][n] for n in eachindex(i.particles)])
+end
+
+function Base.getindex(a::AbstractArray{P}, i::Particles, j::Particles) where P <: AbstractParticles
+    return Particles([a[i.particles[n], j.particles[n]][n] for n in eachindex(i.particles)])
+end
+
+# function Base.getindex(a::AbstractArray, i::Particles)
+#     return Particles([a[ii] for ii in i.particles])
+# end
+
+# function Base.getindex(a::AbstractArray, i::Particles, j::Particles)
+#     return Particles([a[ii,jj] for (ii,jj) in zip(i.particles, j.particles)])
+# end
+
+
+
+# function Base.getindex(a::AbstractArray, i::Particles, j)
+#     return Particles([a[ii,j] for ii in i.particles])
+# end
+
+
+# Base.to_indices(A, ::Particles) = i.particles

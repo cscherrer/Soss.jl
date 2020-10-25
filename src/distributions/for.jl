@@ -46,7 +46,7 @@ Base.rand(dist::For) = rand(GLOBAL_RNG, dist)
 For(f, θ::J...) where {J<:Integer} = For(f, θ)
 
 function For(f::F, θ::T) where {F,N,J<:Integer,T<:NTuple{N,J}}
-    d = f.(Ones{Int}(N)...)
+    d = f(Ones{Int}(N)...)
     D = typeof(d)
     X = eltype(d)
     return For{F,NTuple{N,J},D,X}(f, θ)
