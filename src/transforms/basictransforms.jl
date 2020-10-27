@@ -1,3 +1,5 @@
+export prior
+
 """
     prior(m, xs...)
 
@@ -12,7 +14,7 @@ m = @model n begin
     θ ~ Beta(α,β)
     x ~ Binomial(n, θ)
 end;
-Soss.prior(m, :θ)
+Soss.prior(m, :x)
 
 # output
 @model begin
@@ -22,7 +24,17 @@ Soss.prior(m, :θ)
     end
 ```
 """
-prior(m::Model, xs...) = before(m, xs..., inclusive = true, strict = true)
+prior(m::Model, xs...) = before(m, xs..., inclusive = false, strict = true)
+
+
+export likelihood
+"""
+    likelihood(m, xs...)
+
+Return a model with only the specified variables in the body. Required dependencies will be included as arguments.
+
+"""
+likelihood(m::Model, xs...) = predictive(m, variables(prior(m, xs...))...)
 
 export prune
 
