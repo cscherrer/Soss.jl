@@ -128,6 +128,10 @@ function Base.getindex(a::AbstractArray{P}, i, j::Particles) where P <: Abstract
     return Particles([a[i,j.particles[n]][n] for n in eachindex(j.particles)])
 end
 
+function Base.getindex(a::AbstractArray, i, j::Particles) 
+    return Particles([a[i,j.particles[n]] for n in eachindex(j.particles)])
+end
+
 function Base.getindex(a::AbstractArray{P}, i::Particles, j) where P <: AbstractParticles
     return Particles([a[i.particles[n], j][n] for n in eachindex(i.particles)])
 end
