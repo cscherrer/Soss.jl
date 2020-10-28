@@ -34,7 +34,19 @@ export likelihood
 Return a model with only the specified variables in the body. Required dependencies will be included as arguments.
 
 """
-likelihood(m::Model, xs...) = predictive(m, variables(prior(m, xs...))...)
+function likelihood(m::Model, xs...) 
+    M = getmodule(m)
+    result = foldl(merge, (Model(M, findStatement(m,x)) for x in xs))
+
+    for x in xs
+        for pa in parents(digraph(m), x)
+            pa ∈ xs && continue
+            result = merge(result, Model(M, Arg(pa)))
+        end
+    end
+
+    return result
+end
 
 export prune
 

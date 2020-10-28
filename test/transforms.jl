@@ -15,15 +15,8 @@ end
 
 @testset "prior" begin
     m1 = Soss.prior(m, :x)
-    @test Soss.prior(m, :x) ≊ @model (n,α,β) begin
+    @test Soss.prior(m, :x) ≊ @model (α, β) begin
         p ~ Beta(α, β)
-        x ~ Binomial(n, p)
-    end
-    @test Soss.prior(m1, :p) ≊ @model (α, β) begin
-        p ~ Beta(α, β)
-    end
-    @test Soss.prior(m, :z) ≊ @model (n, α, β) begin
-        z ~ Binomial(n, α / (α + β))
     end
 end
 
