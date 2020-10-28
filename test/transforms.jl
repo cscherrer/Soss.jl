@@ -20,6 +20,14 @@ end
     end
 end
 
+
+@testset "likelihood" begin
+    m1 = Soss.likelihood(m, :x)
+    @test Soss.likelihood(m, :x) ≊ @model (p, n) begin
+        x ~ Binomial(n, p)
+    end
+end
+
 m1 = prune(m, :z)
 @testset "prune" begin
     @test prune(m, :x, :z) ≊ @model (α, β) begin
