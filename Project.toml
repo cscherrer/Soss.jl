@@ -44,8 +44,6 @@ StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 StructArrays = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
 TensorOperations = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
-Tullio = "bc48ee85-29a4-5162-ae0b-a64e1601d4bc"
-WeightedOnlineStats = "bbac0a1f-7c9d-5672-960b-c6ca726e5d5d"
 
 [compat]
 AdvancedHMC = "0.2"
