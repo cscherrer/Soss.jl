@@ -1,11 +1,11 @@
 using Distributions
-import Distributions.logpdf
+import Distributions.logdensity
 using Base.Cartesian
 using Base.Threads
 using FillArrays
 using Random: GLOBAL_RNG
 
-export logpdf
+export logdensity
 export rand
 
 export For
@@ -52,13 +52,13 @@ function For(f::F, θ::T) where {F,N,J<:Integer,T<:NTuple{N,J}}
     return For{F,NTuple{N,J},D,X}(f, θ)
 end
 
-@inline function Distributions.logpdf(
+@inline function Distributions.logdensity(
     d::For{F,T,D,X1},
     xs::AbstractArray{X2,N},
 ) where {F,N,J<:Integer,T<:NTuple{N,J},D,X1,X2}
     s = 0.0
     @inbounds @simd for θ in CartesianIndices(d.θ)
-        s += logpdf(d.f(Tuple(θ)...), xs[θ])
+        s += logdensity(d.f(Tuple(θ)...), xs[θ])
     end
     return s
 end
@@ -92,13 +92,13 @@ function For(f::F, θ::T) where {F,N,J<:AbstractRange,T<:NTuple{N,J}}
     return For{F,NTuple{N,J},D,X}(f, θ)
 end
 
-@inline function Distributions.logpdf(
+@inline function Distributions.logdensity(
     d::For{F,T,D,X1},
     xs::AbstractArray{X2,N},
 ) where {F,N,J<:AbstractRange,T<:NTuple{N,J},D,X1,X2}
     s = 0.0
     @inbounds @simd for θ in CartesianIndices(d.θ)
-        s += logpdf(d.f(Tuple(θ)...), xs[θ])
+        s += logdensity(d.f(Tuple(θ)...), xs[θ])
     end
     return s
 end
@@ -132,10 +132,10 @@ function For(f::F, θ::T) where {F,T<:Base.Generator}
     return For{F,T,D,X}(f, θ)
 end
 
-@inline function Distributions.logpdf(d::For{F,T}, x) where {F,T<:Base.Generator}
+@inline function Distributions.logdensity(d::For{F,T}, x) where {F,T<:Base.Generator}
     s = 0.0
     for (θj, xj) in zip(d.θ, x)
-        s += logpdf(d.f(θj), xj)
+        s += logdensity(d.f(θj), xj)
     end
     return s
 end
@@ -162,10 +162,10 @@ function For(f::F, θ::T) where {F,T<:AbstractArray}
     return For{F,T,D,X}(f, θ)
 end
 
-@inline function Distributions.logpdf(d::For{F,T}, x) where {F,T<:AbstractArray}
+@inline function Distributions.logdensity(d::For{F,T}, x) where {F,T<:AbstractArray}
     s = 0.0
     @inbounds @simd for j in eachindex(d.θ)
-        s += logpdf(d.f(d.θ[j]), x[j])
+        s += logdensity(d.f(d.θ[j]), x[j])
     end
     return s
 end
@@ -196,7 +196,7 @@ end
 
 Base.rand(d::For{F,T,D,X}) where {F,T<:AbstractArray,D,X} = rand(GLOBAL_RNG, d)
 
-@inline function logpdf2(d::For{F,N,X1}, xs) where {F,N,X1,X2}
+@inline function logdensity2(d::For{F,N,X1}, xs) where {F,N,X1,X2}
     results = zeros(eltype(xs), nthreads())
 
     θ = CartesianIndices(d.θ)
@@ -211,7 +211,7 @@ Base.rand(d::For{F,T,D,X}) where {F,T<:AbstractArray,D,X} = rand(GLOBAL_RNG, d)
         s = 0.0
         for j in domain
             @inbounds θj = θ[j]
-            @inbounds s += logpdf(d.f(Tuple(θj)...), xs[θj])
+            @inbounds s += logdensity(d.f(Tuple(θj)...), xs[θj])
         end
 
         Threads.atomic_add!(total, s)

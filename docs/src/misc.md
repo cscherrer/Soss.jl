@@ -14,7 +14,7 @@ To easily find all available inference primitives, enter `Soss.source<TAB>` at a
 
 ```julia
 julia> Soss.source
-sourceLogpdf         sourceRand            sourceXform
+sourcelogdensity         sourceRand            sourceXform
 sourceParticles      sourceWeightedSample
 ```
 
@@ -32,7 +32,7 @@ There's some variability , but is often of the form
 foo(d::JointDistribution, data::NamedTuple)
 ```
 
-For example, `advancedHMC` uses [`TuringLang/AdvancedHMC.jl`](https://github.com/TuringLang/AdvancedHMC.jl) , which needs a `logpdf` and its gradient.
+For example, `advancedHMC` uses [`TuringLang/AdvancedHMC.jl`](https://github.com/TuringLang/AdvancedHMC.jl) , which needs a `logdensity` and its gradient.
 
 Most inference algorithms can be expressed in terms of inference primitives.
 
@@ -65,7 +65,7 @@ function sourceWeightedSample(_data)
         proc(_m, st :: LineNumber) = nothing
 
         function proc(_m, st :: Sample)
-            st.x ∈ _datakeys && return :(_ℓ += logpdf($(st.rhs), $(st.x)))
+            st.x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $(st.x)))
             return :($(st.x) = rand($(st.rhs)))
         end
 

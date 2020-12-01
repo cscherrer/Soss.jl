@@ -77,11 +77,10 @@ end
 
 xform(mix::MixVec) = xform(mix.dists[1])
 
-function Distributions.logpdf(mix::MixVec, x)
+function Distributions.logdensity(mix::MixVec, x)
     ℓ = 0.0
     @simd for j in eachindex(mix.weights)
-        @inbounds ℓ += log(mix.weights[j]) + logpdf(mix.dists[j], x)
+        @inbounds ℓ += log(mix.weights[j]) + logdensity(mix.dists[j], x)
     end
     ℓ
 end
-

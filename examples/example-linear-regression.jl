@@ -126,15 +126,15 @@ y_true - particles(y_ppc)
 
 # ## So, what's really happening here?
 
-# Under the hood, `rand` and `logpdf` specify different ways of "running" the model.
+# Under the hood, `rand` and `logdensity` specify different ways of "running" the model.
 
  # `rand`  turns each `v ~ dist` into `v = rand(dist)`, finally outputting the `NamedTuple` of all values it has seen.
 
-# `logpdf` steps through the same program, but instead accumulates a log-density. It begins by initializing `_ℓ = 0.0`. Then at each step, it turns `v ~ dist` into `_ℓ += logpdf(dist, v)`, before finally returning `_ℓ`.
+# `logdensity` steps through the same program, but instead accumulates a log-density. It begins by initializing `_ℓ = 0.0`. Then at each step, it turns `v ~ dist` into `_ℓ += logdensity(dist, v)`, before finally returning `_ℓ`.
 
-# Note that I said "turns into" instead of "interprets". Soss uses [`GG.jl`](https://github.com/thautwarm/GG.jl) to generate specialized code for a given model, inference primitive (like `rand` and `logpdf`), and type of data.
+# Note that I said "turns into" instead of "interprets". Soss uses [`GG.jl`](https://github.com/thautwarm/GG.jl) to generate specialized code for a given model, inference primitive (like `rand` and `logdensity`), and type of data.
 
-# This idea can be used in much more complex ways. `weightedSample` is a sort of hybrid between `rand` and `logpdf`. For data that are provided, it increments a `_ℓ` using `logpdf`. Unknown values are sampled using `rand`.
+# This idea can be used in much more complex ways. `weightedSample` is a sort of hybrid between `rand` and `logdensity`. For data that are provided, it increments a `_ℓ` using `logdensity`. Unknown values are sampled using `rand`.
 
 ℓ, proposal = weightedSample(model(X=X), (y=y_true,));
 

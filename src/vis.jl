@@ -12,7 +12,7 @@ using PositiveFactorizations
 using LinearAlgebra
 using PDMats
 
-# register_primitive(logpdf)
+# register_primitive(logdensity)
 
 # Kish's effective sample size,
 # $n _ { \mathrm { eff } } = \frac { \left( \sum _ { i = 1 } ^ { n } w _ { i } \right) ^ { 2 } } { \sum _ { i = 1 } ^ { n } w _ { i } ^ { 2 } }$
@@ -84,7 +84,7 @@ end
 
 @inline function visStep(N,logp,q)
     x = Particles(N,q)
-    ℓ = logp(x) - logpdf(q,x)
+    ℓ = logp(x) - logdensity(q,x)
     μ = expect(x,ℓ)
     Σ = cholesky(Positive, expect(0.5 * self_outer(x-μ),ℓ)) |> PDMat
     return (x,ℓ,μ,Σ)
@@ -119,7 +119,7 @@ function runInference(m; kwargs...)
     N = 1000
     q = fit_mle(MvNormal, asmatrix(x))
     x = Particles(N,q)
-    ℓ = logp(x) - logpdf(q,x)
+    ℓ = logp(x) - logdensity(q,x)
 
 
     plts = []
@@ -142,7 +142,7 @@ function runInference(m; kwargs...)
 
     x = Particles(N,q)
     θ = t(x)
-    ℓ = logp(x) - logpdf(q,x)
+    ℓ = logp(x) - logdensity(q,x)
     (θ,q,ℓ,elbo,neff)
 end
 
@@ -167,5 +167,3 @@ plot(neff, label="Effective Sample Size")
 @unpack μ,σ = θ
 
 scatter(μ.particles,σ.particles, alpha=exp(ℓ - maximum(ℓ)).particles)
-
-
