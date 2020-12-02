@@ -16,6 +16,4 @@ import Base
 
 Base.:|(m::Model, nt::NamedTuple) = ConditionalModel(m) | nt
 
-Base.:|(d::JointDistribution, nt::NamedTuple) = ConditionalModel(d.model, d.args, nt)
-
 Base.:|(cm::ConditionalModel, nt::NamedTuple) = ConditionalModel(cm.model, cm.args, merge(cm.obs, nt))
