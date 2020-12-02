@@ -1,24 +1,24 @@
 using Distributions: ValueSupport, VariateForm
 
-struct Conditional{A0,Obs,A,B,M} <: Distribution{MixedVariate, MixedSupport}
-    model::Model{A,B,M}
-    args::A0
-    obs::Obs
+struct ConditionalModel{AT,BT,MT,A,O} <: AbstractModel{AT,BT,MT,A,O}
+    model :: Model{AT,BT,MT}
+    args :: A
+    obs :: O
 end
 
 
-(cm::Conditional)(nt::NamedTuple) = Conditional(cm.model, merge(cm.args, nt), cm.obs)
+(cm::ConditionalModel)(nt::NamedTuple) = ConditionalModel(cm.model, merge(cm.args, nt), cm.obs)
 
 import Base
 
-Base.:|(m::Model, nt::NamedTuple) = Conditional(m, NamedTuple(), nt)
+Base.:|(m::Model, nt::NamedTuple) = ConditionalModel(m, NamedTuple(), nt)
 
-Base.:|(d::JointDistribution, nt::NamedTuple) = Conditional(d.model, d.args, nt)
+Base.:|(d::JointDistribution, nt::NamedTuple) = ConditionalModel(d.model, d.args, nt)
 
-function Base.:|(cm::Conditional, nt::NamedTuple) 
+function Base.:|(cm::ConditionalModel, nt::NamedTuple) 
     new_obs = merge(cm.obs, nt)
     @assert new_obs == merge(nt, cm.obs)
-    Conditional(cm.model, cm.args, new_obs)
+    ConditionalModel(cm.model, cm.args, new_obs)
 end
 
 # function (m::Model)(nt::NamedTuple)
@@ -44,3 +44,14 @@ end
 #     println(io, "]\n")
 #     println(io, convert(Expr, m))
 # end
+
+
+|(m::Soss.Model,y) = ConditionalModel(m,NamedTuple(), y)
+|(m::Soss.JointDistribution,y) = ConditionalModel(m.model,m.args, y)
+
+m = @model begin
+    x ~ Normal()
+    y ~ Normal()
+end
+
+m() | (y=2.0,)

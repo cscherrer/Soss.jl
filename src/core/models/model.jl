@@ -6,24 +6,15 @@ using MacroTools: @q, striplines
 using SimplePosets
 using GeneralizedGenerated
 
-struct Model{A,B,M}
+struct Model{AT,BT,MT} <: AbstractModel{AT,BT,MT,Nothing,Nothing}
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
     retn  :: Union{Nothing, Symbol, Expr}
 end
 
-argstype(::Model{A,B,M}) where {A,B,M} = A
-bodytype(::Model{A,B,M}) where {A,B,M} = B
 
-argstype(::Type{Model{A,B,M}}) where {A,B,M} = A
-bodytype(::Type{Model{A,B,M}}) where {A,B,M} = B
 
-getmodule(::Type{Model{A,B,M}}) where {A,B,M} = from_type(M)
-getmodule(::Model{A,B,M}) where {A,B,M} = from_type(M)
-
-getmoduletypencoding(::Type{Model{A,B,M}}) where {A, B, M} = M
-getmoduletypencoding(::Model{A,B,M}) where {A,B,M} = M
 
 function Model(theModule::Module, args, vals, dists, retn)
     M = to_type(theModule)

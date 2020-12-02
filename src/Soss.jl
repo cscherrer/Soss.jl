@@ -16,16 +16,16 @@ using LazyArrays
 using FillArrays
 using Requires
 
-include("core/abstractmodel.jl")
+include("core/models/abstractmodel.jl")
 include("core/statement.jl")
-include("core/model.jl")
-include("core/jointdistribution.jl")
+include("core/models/model.jl")
+include("core/models/jointdistribution.jl")
 include("core/canonical.jl")
 include("core/dependencies.jl")
 include("core/toposort.jl")
 include("core/weighted.jl")
 include("core/utils.jl")
-include("core/conditional.jl")
+include("core/models/conditional.jl")
 
 include("distributions/dist.jl")
 include("distributions/for.jl")
