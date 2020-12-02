@@ -4,7 +4,7 @@ struct MixedSupport <: ValueSupport end
 struct MixedVariate <: VariateForm end
 
 """
-    AbstractModel{AT,BT,MT,A,O}
+    AbstractModel{A,B,M,Args,Obs}
 
 Gives an abstract type for all Soss models
 
@@ -15,16 +15,16 @@ N gives the Names of arguments (each a Symbol)
 B gives the Body, as an Expr
 M gives the Module where the model is defined
 """
-abstract type AbstractModel{AT,BT,MT,A,O} end
+abstract type AbstractModel{A,B,M,Args,Obs} end
 
-argstype(::AbstractModel{AT,BT,MT,A,O}) where {AT,BT,MT,A,O} = AT
-argstype(::Type{AM}) where {AT,BT,MT,A,O,AM<:AbstractModel{AT,BT,MT,A,O}} = AT
+argstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = AT
+argstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = AT
 
-bodytype(::AbstractModel{AT,BT,MT,A,O}) where {AT,BT,MT,A,O} = BT
-bodytype(::Type{AM}) where {AT,BT,MT,A,O,AM<:AbstractModel{AT,BT,MT,A,O}} = BT
+bodytype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = BT
+bodytype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = BT
 
-getmodule(::Type{AbstractModel{AT,BT,MT,A,O}}) where  {AT,BT,MT,A,O,AM<:AbstractModel{AT,BT,MT,A,O}} = from_type(MT)
-getmodule(::AbstractModel{AT,BT,MT,A,O}) where {AT,BT,MT,A,O,AM<:AbstractModel{AT,BT,MT,A,O}} = from_type(MT)
+getmodule(::Type{AbstractModel{A,B,M,Args,Obs}}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(MT)
+getmodule(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(MT)
 
-getmoduletypencoding(::Type{AbstractModel{AT,BT,MT,A,O}}) where  {AT,BT,MT,A,O,AM<:AbstractModel{AT,BT,MT,A,O}} = MT
-getmoduletypencoding(::AbstractModel{AT,BT,MT,A,O}) where  {AT,BT,MT,A,O,AM<:AbstractModel{AT,BT,MT,A,O}} = MT
+getmoduletypencoding(::Type{AbstractModel{A,B,M,Args,Obs}}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = MT
+getmoduletypencoding(::AbstractModel{A,B,M,Args,Obs}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = MT
