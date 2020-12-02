@@ -1,12 +1,12 @@
 
 export logpdf
 
-function Distributions.logpdf(m::ConditionalModel{A0,A,B,M},x) where {A0,A,B,M}
-    _logpdf(M, m.model, m.args, x)
+function Distributions.logpdf(c::ConditionalModel{A0,A,B,M}) where {A0,A,B,M}
+    _logpdf(M, Model(c), argvals(c), obs(c))
 end
 
-function Distributions.logpdf(m::ConditionalModel{A0,A,B,M},x, ::typeof(logpdf)) where {A0,A,B,M}
-    _logpdf(M, m.model, m.args, x)
+function Distributions.logpdf(m::ConditionalModel{A0,A,B,M}, ::typeof(logpdf)) where {A0,A,B,M}
+    _logpdf(M, Model(c), argvals(c), obs(c))
 end
 
 

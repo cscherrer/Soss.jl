@@ -8,8 +8,9 @@ Base.rand(rng::AbstractRNG, d::ConditionalModel, N::Int) = [rand(rng, d) for n i
 
 Base.rand(d::ConditionalModel, N::Int) = rand(GLOBAL_RNG, d, N)
 
-@inline function Base.rand(rng::AbstractRNG, m::ConditionalModel)
-    return _rand(getmoduletypencoding(m.model), m.model, m.args)(rng)
+@inline function Base.rand(rng::AbstractRNG, c::ConditionalModel)
+    m = Model(c)
+    return _rand(getmoduletypencoding(m), m, argvals(c))(rng)
 end
 
 @inline function Base.rand(m::ConditionalModel) 

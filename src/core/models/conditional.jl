@@ -1,8 +1,10 @@
-struct ConditionalModel{A,B,M,Args,Obs} <: AbstractModel{A,B,M,Args,Obs}
+struct ConditionalModel{A,B,M,Argvals,Obs} <: AbstractModel{A,B,M,Argvals,Obs}
     model :: Model{A,B,M}
-    args :: Args
+    argvals :: Argvals
     obs :: Obs
 end
+
+argvals(c::ConditionalModel) = c.argvals
 
 Model(c::ConditionalModel) = c.model
 
@@ -10,12 +12,12 @@ ConditionalModel(m::Model) = ConditionalModel(m,NamedTuple(), NamedTuple())
 
 (m::Model)(nt::NamedTuple) = ConditionalModel(m)(nt)
 
-(cm::ConditionalModel)(nt::NamedTuple) = ConditionalModel(cm.model, merge(cm.args, nt), cm.obs)
+(cm::ConditionalModel)(nt::NamedTuple) = ConditionalModel(cm.model, merge(cm.argvals, nt), cm.obs)
 
-(m::Model)(;args...)= m((;args...))
+(m::Model)(;argvals...)= m((;argvals...))
 
 import Base
 
 Base.:|(m::Model, nt::NamedTuple) = ConditionalModel(m) | nt
 
-Base.:|(cm::ConditionalModel, nt::NamedTuple) = ConditionalModel(cm.model, cm.args, merge(cm.obs, nt))
+Base.:|(cm::ConditionalModel, nt::NamedTuple) = ConditionalModel(cm.model, cm.argvals, merge(cm.obs, nt))

@@ -177,13 +177,21 @@ Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 # observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
 # observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
 
-function findStatement(m::Model, x::Symbol)
+function findStatement(am::AbstractModel, x::Symbol)
+    m = Model(am)
+    x == :return && return Return(m.retn)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
     x ∈ keys(m.dists) && return Sample(x,m.dists[x])
     x ∈ arguments(m) && return Arg(x)
     error("statement not found")
 end
 
-function statements(m::Model)
-    Statement[Soss.findStatement(m, v) for v in variables(m)]
+findReturn(am::AbstractModel) = Model(am).retn
+
+function statements(am::AbstractModel)
+    m = Model(am)
+    s = Statement[Soss.findStatement(m, v) for v in variables(m)]
+    retn = findStatement(m, :return)
+    isnothing(retn) || push!(s, retn)
+    return s
 end
