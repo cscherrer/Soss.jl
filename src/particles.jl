@@ -60,7 +60,7 @@ parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(fill(d.dist, d.size))
 # promote_rule(::Type{B}, ::Type{A}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
 
 
-@inline function particles(m::JointDistribution, N::Int=DEFAULT_SAMPLE_SIZE)
+@inline function particles(m::ConditionalModel, N::Int=DEFAULT_SAMPLE_SIZE)
     return _particles(getmoduletypencoding(m.model), m.model, m.args, Val(N))
 end
 

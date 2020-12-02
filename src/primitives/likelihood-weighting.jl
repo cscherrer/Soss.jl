@@ -1,7 +1,7 @@
 
 export weightedSample
 
-function weightedSample(m::JointDistribution, _data) 
+function weightedSample(m::ConditionalModel, _data) 
     return _weightedSample(getmoduletypencoding(m.model), m.model, m.args, _data)    
 end
 

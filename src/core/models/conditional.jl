@@ -4,6 +4,8 @@ struct ConditionalModel{A,B,M,Args,Obs} <: AbstractModel{A,B,M,Args,Obs}
     obs :: Obs
 end
 
+Model(c::ConditionalModel) = c.model
+
 ConditionalModel(m::Model) = ConditionalModel(m,NamedTuple(), NamedTuple())
 
 (m::Model)(nt::NamedTuple) = ConditionalModel(m)(nt)

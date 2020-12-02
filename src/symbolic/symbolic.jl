@@ -353,7 +353,7 @@ end
 
 symlogpdf(d,x::Sym) = logpdf(d,x)
 
-function symlogpdf(d::JointDistribution, simplify=true)
+function symlogpdf(d::ConditionalModel, simplify=true)
     symlogpdf(d.model)
 end
 

@@ -23,8 +23,8 @@ argstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = 
 bodytype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = BT
 bodytype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = BT
 
-getmodule(::Type{AbstractModel{A,B,M,Args,Obs}}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(MT)
-getmodule(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(MT)
+getmodule(::Type{AbstractModel{A,B,M,Args,Obs}}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(M)
+getmodule(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(M)
 
-getmoduletypencoding(::Type{AbstractModel{A,B,M,Args,Obs}}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = MT
-getmoduletypencoding(::AbstractModel{A,B,M,Args,Obs}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = MT
+getmoduletypencoding(::Type{AbstractModel{A,B,M,Args,Obs}}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = M
+getmoduletypencoding(::AbstractModel{A,B,M,Args,Obs}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = M

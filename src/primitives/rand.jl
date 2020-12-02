@@ -4,15 +4,15 @@ using Random: GLOBAL_RNG
 export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-Base.rand(rng::AbstractRNG, d::JointDistribution, N::Int) = [rand(rng, d) for n in 1:N]
+Base.rand(rng::AbstractRNG, d::ConditionalModel, N::Int) = [rand(rng, d) for n in 1:N]
 
-Base.rand(d::JointDistribution, N::Int) = rand(GLOBAL_RNG, d, N)
+Base.rand(d::ConditionalModel, N::Int) = rand(GLOBAL_RNG, d, N)
 
-@inline function Base.rand(rng::AbstractRNG, m::JointDistribution)
+@inline function Base.rand(rng::AbstractRNG, m::ConditionalModel)
     return _rand(getmoduletypencoding(m.model), m.model, m.args)(rng)
 end
 
-@inline function Base.rand(m::JointDistribution) 
+@inline function Base.rand(m::ConditionalModel) 
     rand(GLOBAL_RNG, m)
 end
 
@@ -35,7 +35,7 @@ end
 end
 
 sourceRand(m::Model) = sourceRand()(m)
-sourceRand(jd::JointDistribution) = sourceRand(jd.model)
+sourceRand(jd::ConditionalModel) = sourceRand(jd.model)
 
 export sourceRand
 function sourceRand() 

@@ -19,7 +19,7 @@ using Requires
 include("core/models/abstractmodel.jl")
 include("core/statement.jl")
 include("core/models/model.jl")
-include("core/models/jointdistribution.jl")
+# include("core/models/jointdistribution.jl")
 include("core/canonical.jl")
 include("core/dependencies.jl")
 include("core/toposort.jl")

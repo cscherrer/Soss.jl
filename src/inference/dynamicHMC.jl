@@ -12,7 +12,7 @@ export dynamicHMC
 """
     dynamicHMC(
         rng::AbstractRNG,
-        m::JointDistribution,
+        m::ConditionalModel,
         _data,
         N::Int = 1000;
         method = logpdf,
@@ -70,7 +70,7 @@ Posterior mean β: 0.25
 """
 function dynamicHMC(
     rng::AbstractRNG,
-    m::JointDistribution,
+    m::ConditionalModel,
     _data,
     N::Int = 1000;
     method = logpdf,
@@ -96,7 +96,7 @@ end
 
 function dynamicHMC(
     rng::AbstractRNG,
-    m::JointDistribution,
+    m::ConditionalModel,
     _data,
     ::Val{Inf};
     method = logpdf,
@@ -123,7 +123,7 @@ function dynamicHMC(
     return results, steps
 end
 
-function dynamicHMC(m::JointDistribution, args...; kwargs...)
+function dynamicHMC(m::ConditionalModel, args...; kwargs...)
     return dynamicHMC(Random.GLOBAL_RNG, m, args...; kwargs...)
 end
 
@@ -135,7 +135,7 @@ end
 # @resumable function stream(
 #     rng::AbstractRNG,
 #     f::typeof(dynamicHMC),
-#     m::JointDistribution,
+#     m::ConditionalModel,
 #     _data::NamedTuple,
 # )
 #     t = xform(m, _data)
@@ -149,7 +149,7 @@ end
 
 # function stream(
 #     f::typeof(dynamicHMC),
-#     m::JointDistribution,
+#     m::ConditionalModel,
 #     _data::NamedTuple;
 #     kwargs...,
 # )

@@ -19,17 +19,19 @@ astuple(x::Symbol) = Expr(:tuple,x)
 
 
 export arguments
-arguments(m::Model) = m.args
-arguments(d::JointDistribution) = d.args
+arguments(m::AbstractModel) = Model(m).args
 
 export sampled
-sampled(m::Model) = keys(m.dists) |> collect
+sampled(m::AbstractModel) = keys(Model(m).dists) |> collect
 
 export assigned
-assigned(m::Model) = keys(m.vals) |> collect
+assigned(m::AbstractModel) = keys(Model(m).vals) |> collect
 
 export parameters
-parameters(m::Model) = union(assigned(m), sampled(m))
+function parameters(a::AbstractModel)
+    m = Model(a)
+    union(assigned(Model(m)), sampled(m))
+end
 
 export variables
 variables(m::Model) = union(arguments(m), parameters(m))

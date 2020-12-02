@@ -61,6 +61,6 @@ export codegen
 
 function codegen end
 
-function Distributions.logpdf(m::JointDistribution{A0,A,B,M},x,::typeof(codegen)) where {A0,A,B,M}
+function Distributions.logpdf(m::ConditionalModel{A0,A,B,M},x,::typeof(codegen)) where {A0,A,B,M}
     codegen(M, m.model, m.args, x)
 end

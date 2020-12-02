@@ -94,6 +94,7 @@ function Model(theModule::Module, args::Vector{Symbol}, expr::Expr)
     merge(m1, m2)
 end
 
+Model(m::Model) = m
 
 Expr(m::Model,v) = convert(Expr,findStatement(m,v) )
 

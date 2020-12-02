@@ -26,7 +26,7 @@ Weighted(-7.13971.4
 function importanceSample end
 
 export importanceSample
-@inline function importanceSample(p::JointDistribution, q::JointDistribution, _data)
+@inline function importanceSample(p::ConditionalModel, q::ConditionalModel, _data)
     return _importanceSample(getmoduletypencoding(p.model), p.model, p.args, q.model, q.args, _data)
 end
 
