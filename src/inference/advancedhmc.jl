@@ -1,6 +1,7 @@
 ### Define the target distribution and its gradient
 using Distributions: logpdf, MvNormal
-using DiffResults: GradientResult, value, gradient
+using DiffResults: GradientResult
+import DiffResults
 using ForwardDiff: gradient!
 
 
@@ -64,7 +65,7 @@ function advancedHMC(m :: ConditionalModel{A,B}, _data, N = 1000;
     function ∂f(x)
         res = GradientResult(x)
         gradient!(res, f, x)
-        return (value(res), gradient(res))
+        return (DiffResults.value(res), DiffResults.gradient(res))
     end
 
     # Sampling parameter settings
