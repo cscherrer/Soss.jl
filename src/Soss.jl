@@ -16,6 +16,7 @@ using LazyArrays
 using FillArrays
 using Requires
 
+include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/statement.jl")
 include("core/models/model.jl")
@@ -35,6 +36,8 @@ include("distributions/mix.jl")
 include("distributions/markovchain.jl")
 
 include("primitives/rand.jl")
+include("sample.jl")
+
 include("primitives/logpdf.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")

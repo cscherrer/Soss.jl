@@ -186,7 +186,6 @@ function findStatement(am::AbstractModel, x::Symbol)
     error("statement not found")
 end
 
-findReturn(am::AbstractModel) = Model(am).retn
 
 function statements(am::AbstractModel)
     m = Model(am)

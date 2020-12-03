@@ -16,8 +16,8 @@ end
 # TODO: These don't yet work properly t on particles
 
 function predict(d::ConditionalModel, post::NamedTuple{N,T}) where {N,T}
-    args = d.args
-    m = d.model
+    args = argvals(d)
+    m = Model(d)
     pred = predictive(m, keys(post)...)
     rand(pred(merge(args,post)))
 end

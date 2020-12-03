@@ -28,3 +28,9 @@ getmodule(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs,AM<:AbstractMod
 
 getmoduletypencoding(::Type{AbstractModel{A,B,M,Args,Obs}}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = M
 getmoduletypencoding(::AbstractModel{A,B,M,Args,Obs}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = M
+
+argvalstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = Args
+argvalstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = Args
+
+obstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = Obs
+obstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = Obs
