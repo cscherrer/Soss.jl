@@ -4,7 +4,7 @@ function StatsBase.sample(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Argvals,E
     m = Model(cm)
     cm0 = setReturn(m, nothing)(argvals(cm))
     info = StructArray(rand(rng, cm0, N))
-    vals = [predict(m(a=0), pars) for pars in info]
+    vals = [predict(cm, pars) for pars in info]
     return StructArray{Noted}((vals, info))
 end
 
@@ -17,7 +17,7 @@ function StatsBase.sample(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Argvals,E
     m = Model(cm)
     cm0 = setReturn(m, nothing)(argvals(cm))
     info = rand(rng, cm0)
-    val = predict(m(a=0), info)
+    val = predict(cm, info)
     return Noted(val, info)
 end
 

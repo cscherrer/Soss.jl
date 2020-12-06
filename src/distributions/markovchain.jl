@@ -52,14 +52,14 @@ Base.eltype(mc::MarkovChainRand{R,P,D}) where {R,P,D} = typeof(mc.dist.args.stat
 
 export next
 function next(mc::MarkovChain{P,D}, state) where {P,D}
-    @set mc.step.args.state = state
+    @set mc.step.argvals.state = state
 end
 
 function Distributions.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where {P,D,X}
     ℓ = 0.0
     for xj in x
         ℓ += logpdf(mc.step,xj)
-        @set! mc.step.args.state = xj
+        @set! mc.step.argvals.state = xj
     end
     return ℓ
 end
