@@ -121,4 +121,4 @@ function xform(d::iid, _data)
     as(Array, xform(d.dist, _data), d.size...)
 end
 
-xform(d::MvNormal) =  as(Vector, length(d))
+xform(d::MvNormal, _data=NamedTuple()) = as(Array, size(d))
