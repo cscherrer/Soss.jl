@@ -21,14 +21,23 @@ export info
 info(n::Noted) = N.info
 info(other) = other
 
-export values
-values(s::StructArray{N}) where {N <: Noted} = s.value
+value(s::StructArray{N}) where {N <: Noted} = s.value
 
-export infos
-infos(s::StructArray{N}) where {N <: Noted} = s.info
+info(s::StructArray{N}) where {N <: Noted} = s.info
 
 
 
 # s = StructArray{Noted}((randn(10),Fill(5,(10,))))
 
 # r = StructArray{NamedTuple{(:a, :b, :c),Tuple{Float64,Float64,Float64}}}((randn(10),randn(10),randn(10)))
+
+# StructArray{NamedTuple{(:a, :b),Tuple{Int64,NamedTuple{(:b1, :b2),Tuple{Int64,Int64}}}}}((rand(1:10,4),rand(1:10,4),rand(1:10,4)))
+
+
+# StructArray{NamedTuple{(:a, :b),Tuple{Int64,NamedTuple{(:b1, :b2),Tuple{Int64,Int64}}}}}((rand(
+    
+
+
+# StructArray{NamedTuple{(:b1, :b2),Tuple{Int64,Int64}}}((rand(1:10,4),rand(1:10,4)))
+
+# StructArray((1,2,3); names=(:a,:B,:c))

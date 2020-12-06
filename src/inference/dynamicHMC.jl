@@ -71,15 +71,15 @@ Posterior mean β: 0.25
 function dynamicHMC(
     rng::AbstractRNG,
     m::ConditionalModel,
-    _data,
     N::Int = 1000;
     method = logpdf,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
+    _data = m.obs
     ℓ(pars) = logpdf(m, merge(pars, _data), method)
-    t = xform(m, _data)
+    t = xform(m)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)
 
@@ -97,13 +97,13 @@ end
 function dynamicHMC(
     rng::AbstractRNG,
     m::ConditionalModel,
-    _data,
     ::Val{Inf};
     method = logpdf,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
+    _data = m.obs
     ℓ(pars) = logpdf(m, merge(pars, _data), method)
     t = xform(m, _data)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)

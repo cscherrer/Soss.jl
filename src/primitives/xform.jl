@@ -11,8 +11,8 @@ using Distributions
 export xform
 
 
-function xform(m::ConditionalModel{A, B}, _data = NamedTuple{}()) where {A,B}
-    return _xform(getmoduletypencoding(m.model), m.model, m.args, _data)
+function xform(m::ConditionalModel{A, B}) where {A,B}
+    return _xform(getmoduletypencoding(m.model), m.model, m.argvals, m.obs)
 end
 
 @gg M function _xform(_::Type{M}, _m::Model{Asub,B}, _args::A, _data) where {M <: TypeLevel{Module}, Asub, A,B}
