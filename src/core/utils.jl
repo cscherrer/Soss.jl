@@ -274,3 +274,7 @@ const TypeLevel = GeneralizedGenerated.TypeLevel
 
 unVal(::Type{Val{T}}) where {T} = T
 unVal(::Val{T}) where {T} = T
+
+function isleaf(m, v::Symbol)
+    isempty(digraph(m).N[v])
+end

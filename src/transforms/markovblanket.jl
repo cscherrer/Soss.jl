@@ -85,7 +85,7 @@ function markovBlanketVars(m::Model, g::SimpleDigraph,st::Sample)
         union!(body, interval(p, st.x, y))
     end
 
-    setdiff!(args, body)
+    setdiff!(body, args)
     (args, body)
 end
 
@@ -128,4 +128,3 @@ function markovBlanket(m::Model, x :: Symbol)
     m = merge(m, Model(M,findStatement(m,x)))
     
 end
-

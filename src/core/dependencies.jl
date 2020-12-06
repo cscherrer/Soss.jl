@@ -27,4 +27,3 @@ digraph(m::Model) = graph(SimpleDigraph{Symbol}, m)
 
 export poset
 poset(m::Model) = graph(SimplePoset{Symbol}, m)
-    
