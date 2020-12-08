@@ -1,7 +1,7 @@
 name = "Soss"
 uuid = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
 author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
-version = "0.16.2"
+version = "0.16.3"
 
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
@@ -70,7 +70,7 @@ Setfield = "0.6, 0.7"
 SimpleGraphs = "0.3, 0.4, 0.5, 0.6, 0.7"
 SimplePartitions = "0.2, 0.3"
 SimplePosets = "0.0, 0.1"
-SpecialFunctions = "0.9, 0.10"
+SpecialFunctions = "0.9, 0.10, 1.0"
 StatsBase = "0.33"
 StatsFuns = "0.9"
 TransformVariables = "0.3"
