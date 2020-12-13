@@ -12,7 +12,7 @@ export xform
 
 
 function xform(m::ConditionalModel{A, B}) where {A,B}
-    return _xform(getmoduletypencoding(m.model), m.model, m.argvals, m.obs)
+    return _xform(getmoduletypencoding(m), Model(m), argvals(m), obs(m))
 end
 
 @gg M function _xform(_::Type{M}, _m::Model{Asub,B}, _args::A, _data) where {M <: TypeLevel{Module}, Asub, A,B}

@@ -1,5 +1,7 @@
 using StructArrays
 
+abstract type AbstractNote{X,I} end
+
 struct Noted{X,I}
     value :: X
     info :: I
@@ -15,10 +17,11 @@ end
 
 export value
 value(n::Noted) = n.value
+value(nt::NamedTuple) = nt.value
 value(other) = other
 
 export info
-info(n::Noted) = N.info
+info(n::Noted) = n.info
 info(other) = other
 
 value(s::StructArray{N}) where {N <: Noted} = s.value
