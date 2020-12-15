@@ -28,3 +28,5 @@ function predict(m::Model, post::NamedTuple{N,T}) where {N,T}
 end
 
 predict(m::Model; kwargs...) = predict(m,(;kwargs...))
+
+predict(d,x) = x

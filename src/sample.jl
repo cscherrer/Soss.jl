@@ -27,11 +27,23 @@ import StatsBase
 
 using GeneralizedGenerated
 using Random: GLOBAL_RNG
+using NestedTuples
 
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 export sample
 
-StatsBase.sample(rng::AbstractRNG, d::ConditionalModel, N::Int) = [sample(rng, d) for n in 1:N]
+function StatsBase.sample(rng::AbstractRNG, d::ConditionalModel, N::Int)
+    x = sample(rng, d)
+    T = typeof(x)
+    ta = TupleArray{T, 1}(undef, N)
+    @inbounds ta[1] = x
+
+    for j in 2:N
+        @inbounds ta[j] = sample(rng, d)
+    end
+
+    return ta
+end
 
 StatsBase.sample(d::ConditionalModel, N::Int) = sample(GLOBAL_RNG, d, N)
 
@@ -68,20 +80,28 @@ sourceSample(jd::ConditionalModel) = sourceSample(jd.model)
 export sourceSample
 function sourceSample() 
     function(m::Model)
-        
         _m = canonical(m)
+        pars = sort(parameters(_m))
+        
+        _traceName = Dict((k => Symbol(:_trace_, k) for k in pars))
+
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
-        proc(_m, st::Sample)  = :($(st.x) = value(sample(_rng, $(st.rhs))))
+        
+        proc(_m, st::Sample)  = @q begin
+            $(_traceName[st.x]) = sample(_rng, $(st.rhs))
+            $(st.x) = value($(_traceName[st.x]))
+        end
+
         proc(_m, st::Return)  = :(_value = $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
-        vals = map(x -> Expr(:(=), x,x),parameters(_m)) 
+        _traces = map(x -> Expr(:(=), x,_traceName[x]), pars) 
 
         wrap(kernel) = @q begin
             _rng -> begin
                 _value = nothing
                 $kernel
-                _trace = $(Expr(:tuple, vals...))
+                _trace = $(Expr(:tuple, _traces...))
                 return (value = _value, trace = _trace)
             end
         end
@@ -93,3 +113,6 @@ end
 StatsBase.sample(rng::AbstractRNG, d::Distribution) = rand(rng, d)
 
 StatsBase.sample(rng::AbstractRNG, d::iid{Int}) = [sample(rng, d.dist) for j in 1:d.size]
+
+trace(x::NamedTuple) = x.trace
+trace(x) = x

@@ -278,3 +278,16 @@ unVal(::Val{T}) where {T} = T
 function isleaf(m, v::Symbol)
     isempty(digraph(m).N[v])
 end
+
+function safeselect(t::NamedTuple, v::Symbol)
+    return _safeselect(t, Val(v))
+end
+
+@generated function _safeselect(NT::NamedTuple, V::Val) 
+    v = unVal(V)
+    if hasfield(NT, v)
+        return :(NT.$v)
+    else
+        return NamedTuple()
+    end
+end

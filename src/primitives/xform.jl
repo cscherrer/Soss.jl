@@ -10,6 +10,7 @@ using Distributions
 
 export xform
 
+xform(m::ConditionalModel{A, B}, _data) where {A,B} = xform(m | _data)
 
 function xform(m::ConditionalModel{A, B}) where {A,B}
     return _xform(getmoduletypencoding(m), Model(m), argvals(m), obs(m))
@@ -41,14 +42,19 @@ function sourceXform(_data=NamedTuple())
         proc(_m, st::LineNumber) = nothing
         
         function proc(_m, st::Sample)
+            x = st.x
+            xname = QuoteNode(x)
+            rhs = st.rhs
             if st.x ∈ _datakeys
-                return :($(st.x) = _data.$(st.x))
+                return (@q begin
+                    $x = _data.$x
+                end)
             else
                 return (@q begin
-                    $(st.x) = rand($(st.rhs))
-                    _t = xform($(st.rhs), _data)
+                    $x = rand($rhs)
+                    _t = xform($rhs, NamedTuple())
 
-                    _result = merge(_result, ($(st.x)=_t,))
+                    _result = merge(_result, ($x=_t,))
                 end)
             end
             
