@@ -81,7 +81,7 @@ export sourceSample
 function sourceSample() 
     function(m::Model)
         _m = canonical(m)
-        pars = sort(parameters(_m))
+        pars = sort(sampled(_m))
         
         _traceName = Dict((k => Symbol(:_trace_, k) for k in pars))
 
@@ -106,7 +106,7 @@ function sourceSample()
             end
         end
 
-        buildSource(_m, proc, wrap) |> flatten
+        buildSource(_m, proc, wrap) |> MacroTools.flatten
     end
 end
 

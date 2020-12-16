@@ -41,7 +41,7 @@ function sourceLogpdf()
             return _ℓ
         end
 
-        buildSource(_m, proc, wrap) |> flatten
+        buildSource(_m, proc, wrap) |> MacroTools.flatten
     end
 end
 

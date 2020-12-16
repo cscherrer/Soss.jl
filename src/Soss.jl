@@ -8,7 +8,8 @@ using Reexport: @reexport
 @reexport using StatsFuns
 using NamedTupleTools
 
-import MacroTools: prewalk, postwalk, @q, striplines, replace, flatten, @capture
+import MacroTools: prewalk, postwalk, @q, striplines, replace, @capture
+import MacroTools
 import MLStyle
 @reexport using MonteCarloMeasurements
 

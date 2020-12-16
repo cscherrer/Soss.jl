@@ -142,7 +142,7 @@ function buildSource(m, proc, wrap=identity; kwargs...)
     #     end
     # end
 
-    wrap(kernel) |> flatten
+    wrap(kernel) |> MacroTools.flatten
     # flatten(body)
 end
 
@@ -196,7 +196,7 @@ function loadvals(argstype, datatype)
     src -> (@q begin
         $loader
         $src
-    end) |> flatten
+    end) |> MacroTools.flatten
 end
 
 function loadvals(argstype, datatype, parstype)
@@ -222,7 +222,7 @@ function loadvals(argstype, datatype, parstype)
     src -> (@q begin
         $loader
         $src
-    end) |> flatten
+    end) |> MacroTools.flatten
 end
 
 
@@ -272,22 +272,11 @@ end
 
 const TypeLevel = GeneralizedGenerated.TypeLevel
 
-unVal(::Type{Val{T}}) where {T} = T
-unVal(::Val{T}) where {T} = T
 
 function isleaf(m, v::Symbol)
     isempty(digraph(m).N[v])
 end
 
-function safeselect(t::NamedTuple, v::Symbol)
-    return _safeselect(t, Val(v))
-end
 
-@generated function _safeselect(NT::NamedTuple, V::Val) 
-    v = unVal(V)
-    if hasfield(NT, v)
-        return :(NT.$v)
-    else
-        return NamedTuple()
-    end
-end
+unVal(::Type{Val{T}}) where {T} = T
+unVal(::Val{T}) where {T} = T

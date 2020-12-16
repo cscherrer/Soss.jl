@@ -37,6 +37,6 @@ function sourceWeightedSample(_data)
             return (_ℓ, $(Expr(:tuple, vals...)))
         end
 
-        buildSource(_m, proc, wrap) |> flatten
+        buildSource(_m, proc, wrap) |> MacroTools.flatten
     end
 end

@@ -73,7 +73,7 @@ function sourceImportanceSample(_data)
         proc(m, st::Return)  = :(return $(st.rhs))
         proc(m, st::LineNumber) = nothing
 
-        body = buildSource(m, proc) |> flatten
+        body = buildSource(m, proc) |> MacroTools.flatten
 
         kwargs = arguments(p) ∪ arguments(q)
         kwargsExpr = Expr(:tuple,kwargs...)
@@ -89,7 +89,7 @@ function sourceImportanceSample(_data)
             return Weighted(_ℓ, $stochExpr)
         end
 
-        buildSource(m, proc, wrap) |> flatten
+        buildSource(m, proc, wrap) |> MacroTools.flatten
     end
 end
 
@@ -174,5 +174,5 @@ function merge_pqargs(src)
     @q begin
         _args = merge(_pargs, _qargs)
         $src
-    end |> flatten
+    end |> MacroTools.flatten
 end
