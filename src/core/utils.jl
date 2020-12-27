@@ -1,5 +1,6 @@
 using MLStyle
 using SimplePosets
+using NestedTuples
 
 expr(x) = :(identity($x))
 
@@ -211,12 +212,16 @@ function loadvals(argstype, datatype, parstype)
     for k in args
         push!(loader.args, :($k = _args.$k))
     end
-    for k in data
+    for k in setdiff(data, pars)
         push!(loader.args, :($k = _data.$k))
     end
 
-    for k in pars
+    for k in setdiff(pars, data)
         push!(loader.args, :($k = _pars.$k))
+    end
+
+    for k in pars ∩ data
+        push!(loader.args, :($k = LazyMerge(_data.$k, _pars.$k)))
     end
 
     src -> (@q begin

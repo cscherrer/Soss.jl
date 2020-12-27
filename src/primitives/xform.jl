@@ -10,7 +10,7 @@ using Distributions
 
 export xform
 
-xform(m::ConditionalModel{A, B}, _data) where {A,B} = xform(m | _data)
+xform(m::ConditionalModel{A, B}, _data::NamedTuple) where {A,B} = xform(m | _data)
 
 function xform(m::ConditionalModel{A, B}) where {A,B}
     return _xform(getmoduletypencoding(m), Model(m), argvals(m), obs(m))
@@ -45,20 +45,21 @@ function sourceXform(_data=NamedTuple())
             x = st.x
             xname = QuoteNode(x)
             rhs = st.rhs
-            if st.x ∈ _datakeys
-                return (@q begin
-                    $x = _data.$x
-                end)
-            else
-                return (@q begin
-                    $x = rand($rhs)
-                    _t = xform($rhs, NamedTuple())
-
-                    _result = merge(_result, ($x=_t,))
-                end)
-            end
             
+            thecode = @q begin 
+                _t = xform($rhs, get(_data, $xname, NamedTuple()))
+                if !isnothing(_t)
+                    _result = merge(_result, ($x=_t,))
+                end
+            end
+
+            # Non-leaves might be referenced later, so we need to be sure they
+            # have a value
+            isleaf(_m, st.x) || pushfirst!(thecode.args, :($x = rand($rhs)))
+
+            return thecode
         end
+
 
         wrap(kernel) = @q begin
             _result = NamedTuple()
@@ -71,7 +72,7 @@ function sourceXform(_data=NamedTuple())
     end
 end
 
-function xform(d, _data)
+function xform(d, _data::NamedTuple)
     if hasmethod(support, (typeof(d),))
         return asTransform(support(d)) 
     end
@@ -105,8 +106,7 @@ end
 # xform(::Beta)         = as𝕀
 # xform(::Uniform)      = as𝕀
 
-
-
+xform(d, _data) = nothing
 
 function xform(d::For{T,NTuple{N,Int}}, _data)  where {N,T}
     xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
@@ -115,7 +115,7 @@ function xform(d::For{T,NTuple{N,Int}}, _data)  where {N,T}
     # TODO: Implement case of unequal supports
 end
 
-function xform(d::For{T,NTuple{N,UnitRange{Int}}}, _data)  where {N,T}
+function xform(d::For{T,NTuple{N,UnitRange{Int}}}, _data::NamedTuple)  where {N,T}
     xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
     return as(Array, xf1, length.(d.θ)...)
     
@@ -123,8 +123,8 @@ function xform(d::For{T,NTuple{N,UnitRange{Int}}}, _data)  where {N,T}
 end
 
 
-function xform(d::iid, _data)
+function xform(d::iid, _data::NamedTuple)
     as(Array, xform(d.dist, _data), d.size...)
 end
 
-xform(d::MvNormal, _data=NamedTuple()) = as(Array, size(d))
+xform(d::MvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))

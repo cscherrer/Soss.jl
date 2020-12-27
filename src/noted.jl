@@ -1,5 +1,3 @@
-using StructArrays
-
 abstract type AbstractNote{X,I} end
 
 struct Noted{X,I}
@@ -23,11 +21,6 @@ value(other) = other
 export info
 info(n::Noted) = n.info
 info(other) = other
-
-value(s::StructArray{N}) where {N <: Noted} = s.value
-
-info(s::StructArray{N}) where {N <: Noted} = s.info
-
 
 
 # s = StructArray{Noted}((randn(10),Fill(5,(10,))))

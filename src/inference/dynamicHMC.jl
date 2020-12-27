@@ -72,13 +72,12 @@ function dynamicHMC(
     rng::AbstractRNG,
     m::ConditionalModel,
     N::Int = 1000;
-    method = logpdf,
+    # method = logpdf,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
-    _data = m.obs
-    ℓ(pars) = logpdf(m, merge(pars, _data), method)
+    ℓ(pars) = logpdf(m, pars)
     t = xform(m)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)

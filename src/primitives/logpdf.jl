@@ -1,20 +1,14 @@
 
 export logpdf
 
-function Distributions.logpdf(c::ConditionalModel{A,B,M}, x) where {A,B,M}
-    _logpdf(M, Model(c), argvals(c), merge(obs(c), x))
+function Distributions.logpdf(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
+    _logpdf(M, Model(c), argvals(c), obs(c), x)
 end
 
-function Distributions.logpdf(c::ConditionalModel{A,B,M}, x, ::typeof(logpdf)) where {A,B,M}
-    _logpdf(M, Model(c), argvals(c), merge(obs(c), x))
-end
-
-
-
-@gg M function _logpdf(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
+@gg M function _logpdf(_::Type{M}, _m::Model, _args, _data, _pars) where M <: TypeLevel{Module}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data))
+        type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data, _pars))
 end
 
 export sourceLogpdf

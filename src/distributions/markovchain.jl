@@ -52,7 +52,7 @@ Base.eltype(mc::MarkovChainRand{R,P,D}) where {R,P,D} = typeof(mc.dist.args.stat
 
 export next
 function next(mc::MarkovChain{P,D}, state) where {P,D}
-    @set mc.step.argvals.state = state
+    Setfield.@set mc.step.argvals.state = state
 end
 
 function Distributions.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where {P,D,X}
@@ -65,13 +65,13 @@ function Distributions.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where 
 end
 
 function Base.iterate(r::MarkovChainRand{R,P,D}) where {R,P,D}
-    state = rand(r.mc.step).next.state
+    state = rand(r.mc.step)
     return (state, state)
 end
 
-function Base.iterate(r::MarkovChainRand{R,P,D}, state::NamedTuple) where {R,P,D}
-    step = next(r.mc,state).step
-    newstate = rand(step).next.state
+function Base.iterate(r::MarkovChainRand{R,P,D}, state) where {R,P,D}
+    step = next(r.mc,state).step 
+    newstate = rand(step)
     return (newstate, newstate)
 end
 
