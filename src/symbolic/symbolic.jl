@@ -63,13 +63,13 @@ end
 
 
 struct SymDist
-    logpdf :: Function
+    logdensity :: Function
 end
 
-Distributions.logpdf(d::SymDist, x) = d.logpdf(sym(x))
+Distributions.logdensity(d::SymDist, x) = d.logdensity(sym(x))
 
 
-# julia> logpdf(SymPy.density(Soss.stats.Poisson(:Poisson,sym(:λ))), sym(:x))
+# julia> logdensity(SymPy.density(Soss.stats.Poisson(:Poisson,sym(:λ))), sym(:x))
 # x⋅log(λ) - λ - log(x!)
 
 SpecialFunctions.logfactorial(x::Sym) = sympy.loggamma(x+1)
@@ -79,7 +79,7 @@ Distributions.Bernoulli(p::Sym) = SymDist(y -> y * log(p) + (1-y) * log(1-p))
 
 for dist in [:Bernoulli, :Poisson]
     @eval begin
-        Distributions.logpdf(d::$dist, x::Sym) = logpdf($dist(sym.(Distributions.params(d))...), x)
+        Distributions.logdensity(d::$dist, x::Sym) = logdensity($dist(sym.(Distributions.params(d))...), x)
     end
 end
 
@@ -89,7 +89,7 @@ end
 for dist in [:Normal, :Cauchy]
     let half = Symbol(:Half, dist)
         @eval begin
-            Distributions.logpdf(d::$half, x::Sym) = 2 * logpdf($dist(0, sym.(d.σ)), x)
+            Distributions.logdensity(d::$half, x::Sym) = 2 * logdensity($dist(0, sym.(d.σ)), x)
         end
     end
 end
@@ -244,9 +244,9 @@ end
 export score
 score(ℓ::Sym, v) = diff(ℓ, sym(v))
 
-score(m::Model, v) = score(symlogpdf(m), v)
+score(m::Model, v) = score(symlogdensity(m), v)
 
-marginal(m::Model, v) = marginal(m |> symlogpdf, v)
+marginal(m::Model, v) = marginal(m |> symlogdensity, v)
 
 symvar(st) = :($sympy.IndexedBase($(st.x)))
 
@@ -255,10 +255,10 @@ function symvar(st::Sample)
     return :($sym($(st.x)))
 end
 
-sourceSymlogpdf(m::Model) = sourceSymlogpdf()(m)
+sourceSymlogdensity(m::Model) = sourceSymlogdensity()(m)
 
-export sourceSymlogpdf
-function sourceSymlogpdf()
+export sourceSymlogdensity
+function sourceSymlogdensity()
     function(_m::Model)
         function proc(_m, st :: Assign)
             x = st.x
@@ -267,7 +267,7 @@ function sourceSymlogpdf()
         end
 
         function proc(_m, st :: Sample)
-            s = :(_ℓ += symlogpdf($(st.rhs), $(symvar(st))))
+            s = :(_ℓ += symlogdensity($(st.rhs), $(symvar(st))))
             end
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
@@ -316,13 +316,13 @@ function For(f::F, θ::NTuple{N,Sym}) where {F, N}
 end
 
 
-# logpdf(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logpdf(d,sym.(x))
+# logdensity(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logdensity(d,sym.(x))
 
-export symlogpdf
-function symlogpdf(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
+export symlogdensity
+function symlogdensity(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
     js = symbols.(Symbol.(:_j,1:N), cls=sympy.Idx)
     x = sympy.IndexedBase(x)
-    result = symlogpdf(d.f(js...), x[js...])
+    result = symlogdensity(d.f(js...), x[js...])
 
     for k in N:-1:1
         result = sympy.Sum(result, (js[k], 1, d.θ[k]))
@@ -330,43 +330,43 @@ function symlogpdf(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}
     result
 end
 
-symlogpdf(d::iid, x::Sym) = symlogpdf(For(j -> d.dist, d.size), x)
+symlogdensity(d::iid, x::Sym) = symlogdensity(For(j -> d.dist, d.size), x)
 
-symlogpdf(d::For{F,T,D,X}, x::Symbol) where {F,T,D,X} = symlogpdf(d,sym(x))
+symlogdensity(d::For{F,T,D,X}, x::Symbol) where {F,T,D,X} = symlogdensity(d,sym(x))
 
-symlogpdf(d::Normal, x::Sym) = symlogpdf(Normal(sym(d.μ),sym(d.σ)), x)
+symlogdensity(d::Normal, x::Sym) = symlogdensity(Normal(sym(d.μ),sym(d.σ)), x)
 
-symlogpdf(d::Cauchy, x::Sym) = symlogpdf(Cauchy(sym(d.μ),sym(d.σ)), x)
+symlogdensity(d::Cauchy, x::Sym) = symlogdensity(Cauchy(sym(d.μ),sym(d.σ)), x)
 
 
-symlogpdf(d::Beta, x::Sym) = symlogpdf(Beta(sym(d.α),sym(d.β)), x)
+symlogdensity(d::Beta, x::Sym) = symlogdensity(Beta(sym(d.α),sym(d.β)), x)
 
-symlogpdf(d::Poisson, x::Sym) = symlogpdf(Poisson(sym(d.λ)), x)
+symlogdensity(d::Poisson, x::Sym) = symlogdensity(Poisson(sym(d.λ)), x)
 
-Distributions.logpdf(d::Sym, x::Sym) = symlogpdf(d,x)
+Distributions.logdensity(d::Sym, x::Sym) = symlogdensity(d,x)
 
-function symlogpdf(d::Sym, x::Sym)
+function symlogdensity(d::Sym, x::Sym)
     d.func
     result = d.pdf(x) |> log
     sympy.expand_log(result,force=true)
 end
 
-symlogpdf(d,x::Sym) = logpdf(d,x)
+symlogdensity(d,x::Sym) = logdensity(d,x)
 
-function symlogpdf(d::ConditionalModel, simplify=true)
-    symlogpdf(d.model)
+function symlogdensity(d::ConditionalModel, simplify=true)
+    symlogdensity(d.model)
 end
 
-function symlogpdf(m::Model, simplify=true)
-    s = _symlogpdf(getmoduletypencoding(m), m)
+function symlogdensity(m::Model, simplify=true)
+    s = _symlogdensity(getmoduletypencoding(m), m)
     simplify && return foldConstants(expandSums(s))
     return s
 end
 
-@gg M function _symlogpdf(_::Type{M}, _m::Model) where M <: TypeLevel{Module}
+@gg M function _symlogdensity(_::Type{M}, _m::Model) where M <: TypeLevel{Module}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> canonical |> sourceSymlogpdf())
+        type2model(_m) |> canonical |> sourceSymlogdensity())
 end
 
 

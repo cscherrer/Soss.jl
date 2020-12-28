@@ -53,7 +53,7 @@ end
     end
 end
 
-# function Distributions.logpdf(c::Chain, xs)
+# function Distributions.logdensity(c::Chain, xs)
 
 c = Chain(s0, step)
 

@@ -37,8 +37,7 @@ include("distributions/mix.jl")
 include("distributions/markovchain.jl")
 
 include("primitives/rand.jl")
-include("sample.jl")
-
+include("simulate.jl")
 include("primitives/logpdf.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")

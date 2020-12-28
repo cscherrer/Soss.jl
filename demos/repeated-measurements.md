@@ -66,7 +66,7 @@ end
 
 
 
-The `logpdf` for this model is surprisingly complex, requiring a summation of the following terms:
+The `logdensity` for this model is surprisingly complex, requiring a summation of the following terms:
 
 ````
 r                           
@@ -192,8 +192,8 @@ _j1 = 1 _j2 = 1
 
 <!--
 using BenchmarkTools
-@btime logpdf(m(),truth)
-@btime logpdf(m(),truth, codegen)
+@btime logdensity(m(),truth)
+@btime logdensity(m(),truth, codegen)
 
 f1 = Soss._codegen(m, true);
 f2 = Soss._codegen(m,false);
@@ -205,7 +205,7 @@ codegen(m(),truth)
 
 
 
-logpdf(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)), codegen)
+logdensity(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)), codegen)
 
 
 @time result = dynamicHMC(m(), (y=truth.y,), codegen) ;

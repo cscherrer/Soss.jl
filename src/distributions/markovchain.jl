@@ -55,7 +55,7 @@ function next(mc::MarkovChain{P,D}, state) where {P,D}
     Setfield.@set mc.step.argvals.state = state
 end
 
-function Distributions.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where {P,D,X}
+function Distributions.logdensity(mc::MarkovChain{P,D}, x::AbstractVector{X}) where {P,D,X}
     ℓ = 0.0
     for xj in x
         ℓ += logpdf(mc.step,xj)

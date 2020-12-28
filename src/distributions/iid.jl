@@ -1,5 +1,5 @@
 using Distributions
-import Distributions.logpdf
+import Distributions.logdensity
 
 using Random: GLOBAL_RNG
 
@@ -48,9 +48,9 @@ end
 
 Base.rand(d::iid) = rand(GLOBAL_RNG, d)
 
-function Distributions.logpdf(d::iid,x)
+function Distributions.logdensity(d::iid,x)
     s = zero(Float64)
-    Δs(xj) = logpdf(d.dist, xj)
+    Δs(xj) = logdensity(d.dist, xj)
 
     @inbounds @simd for j in eachindex(x)
         s += Δs(x[j])

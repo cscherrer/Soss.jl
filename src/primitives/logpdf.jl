@@ -1,23 +1,24 @@
 
-export logpdf
+export logdensity
 
-function Distributions.logpdf(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
-    _logpdf(M, Model(c), argvals(c), obs(c), x)
+function Distributions.logdensity(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
+    _logdensity(M, Model(c), argvals(c), obs(c), x)
 end
 
-@gg M function _logpdf(_::Type{M}, _m::Model, _args, _data, _pars) where M <: TypeLevel{Module}
+@gg M function _logdensity(_::Type{M}, _m::Model, _args, _data, _pars) where M <: TypeLevel{Module}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data, _pars))
+        type2model(_m) |> sourcelogdensity() |> loadvals(_args, _data, _pars))
 end
 
-export sourceLogpdf
+export sourcelogdensity
 
-sourceLogpdf(m::AbstractModel) = sourceLogpdf()(Model(m))
+sourcelogdensity(m::AbstractModel) = sourcelogdensity()(Model(m))
 
-function sourceLogpdf()
+function sourcelogdensity()
     function(_m::Model)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
+        proc(_m, st :: Sample)     = :(_ℓ += logdensity($(st.rhs), $(st.x)))
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
         function proc(_m, st :: Sample)

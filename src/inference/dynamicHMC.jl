@@ -15,7 +15,7 @@ export dynamicHMC
         m::ConditionalModel,
         _data,
         N::Int = 1000;
-        method = logpdf,
+        method = logdensity,
         ad_backend = Val(:ForwardDiff),
         reporter = DynamicHMC.NoProgressReport(),
         kwargs...)
@@ -33,7 +33,7 @@ This function is essentially a wrapper around `DynamicHMC.mcmc_with_warmup()`. A
 
 ## Keyword Arguments
 *  `N = 1000`: Number of samples to draw.
-*  `method = logpdf`: How to compute the log-density. Options are `logpdf` (delegates to `logpdf` of each component) or `codegen` (symbolic simplification and code generation).
+*  `method = logdensity`: How to compute the log-density. Options are `logdensity` (delegates to `logdensity` of each component) or `codegen` (symbolic simplification and code generation).
 *  `ad_backend = Val(:ForwardDiff)`: Automatic differentiation backend.
 *  `reporter = DynamicHMC.NoProgressReport()`: Specify logging during sampling. Default: do not log progress.
 *  `kwargs`: Additional keyword arguments passed to core sampling function `DynamicHMC.mcmc_with_warmup()`.
@@ -77,7 +77,7 @@ function dynamicHMC(
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
-    ℓ(pars) = logpdf(m, pars)
+    ℓ(pars) = logdensity(m, pars)
     t = xform(m)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)
@@ -97,13 +97,13 @@ function dynamicHMC(
     rng::AbstractRNG,
     m::ConditionalModel,
     ::Val{Inf};
-    method = logpdf,
+    method = logdensity,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
     _data = m.obs
-    ℓ(pars) = logpdf(m, merge(pars, _data), method)
+    ℓ(pars) = logdensity(m, merge(pars, _data), method)
     t = xform(m, _data)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)

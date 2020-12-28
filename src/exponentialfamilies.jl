@@ -20,7 +20,7 @@ end
 # This needs to be reworked, since many distributions are not from exponential families
 efam(d::ExpFamDist{P,X} where {P,X}) = d
 
-Distributions.logpdf(d::ExpFamDist{P,X}, x :: X) where {P,X} = d.fam.logh(x) + d.fam.logg(d.θ) + sum(d.fam.η(d.θ) .* d.fam.t(x))
+Distributions.logdensity(d::ExpFamDist{P,X}, x :: X) where {P,X} = d.fam.logh(x) + d.fam.logg(d.θ) + sum(d.fam.η(d.θ) .* d.fam.t(x))
 
 # Exponential families are closed under iid
 function iid(n::Integer, d::ExpFamDist{P,X} ) where {P,X}
@@ -64,9 +64,9 @@ binom = iid(1000,Bernoulli(0.2))
 
 using BenchmarkTools
 
-@btime logpdf(binom, repeat([true],1000))
+@btime logdensity(binom, repeat([true],1000))
 
-@btime sum(logpdf.(Bernoulli(0.2),repeat([true],1000)))
+@btime sum(logdensity.(Bernoulli(0.2),repeat([true],1000)))
 
 ################################
 # Normal example
@@ -88,9 +88,9 @@ end
 
 const xs = 3 .+ 4 .* randn(1000);
 
-@btime logpdf(iid(1000,Normal(3.1,4.3)), xs)
+@btime logdensity(iid(1000,Normal(3.1,4.3)), xs)
 
-@btime sum(logpdf.(Normal(3,4),xs))
+@btime sum(logdensity.(Normal(3,4),xs))
 
 
 
