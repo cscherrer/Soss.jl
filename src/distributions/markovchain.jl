@@ -65,14 +65,14 @@ function Distributions.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where 
 end
 
 function Base.iterate(r::MarkovChainRand{R,P,D}) where {R,P,D}
-    state = rand(r.mc.step)
-    return (state, state)
+    s = simulate(r.mc.step)
+    return (s.value, s.trace)
 end
 
 function Base.iterate(r::MarkovChainRand{R,P,D}, state) where {R,P,D}
     step = next(r.mc,state).step 
-    newstate = rand(step)
-    return (newstate, newstate)
+    s = simulate(step)
+    return (s.value, s.trace)
 end
 
 Base.rand(rng::AbstractRNG, mc::MarkovChain) = MarkovChainRand(rng, mc)
