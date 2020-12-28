@@ -1,4 +1,5 @@
 using StableRNGs
+using Test
 
 m = @model X begin
     β ~ Normal() |> iid(size(X,2))
@@ -10,7 +11,7 @@ end
 rng = StableRNG(42)
 X = randn(rng, 20,2)
 truth = rand(rng, m(X=X))
-post = dynamicHMC(rng, m(X=X), (y=truth.y,))
+post = dynamicHMC(rng, m(X=X) |  (y=truth.y,))
 pred = predictive(m,:β)
 
 @testset "dynamicHMC" begin

@@ -2,7 +2,13 @@ using Reexport
 
 using MLStyle
 using Distributions
+using NestedTuples
+import NestedTuples
+using TransformVariables
 
+function schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
+    schema(T)
+end
 
 # In Bijectors.jl,
 # logpdf_with_trans(dist, x, true) == logpdf(transformed(dist), link(dist, x))

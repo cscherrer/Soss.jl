@@ -86,6 +86,6 @@ function advancedHMC(m :: ConditionalModel{A,B}, _data, N = 1000;
     # Draw samples via simulating Hamiltonian dynamics
     # - `samples` will store the samples
     # - `stats` will store statistics for each sample
-    samples, stats = sample(hamiltonian, prop, initial_θ, N, adaptor, n_adapts; progress=false, verbose=false)
+    samples, stats = simulate(hamiltonian, prop, initial_θ, N, adaptor, n_adapts; progress=false, verbose=false)
 
 end
