@@ -20,7 +20,7 @@ end
 # This needs to be reworked, since many distributions are not from exponential families
 efam(d::ExpFamDist{P,X} where {P,X}) = d
 
-Distributions.logdensity(d::ExpFamDist{P,X}, x :: X) where {P,X} = d.fam.logh(x) + d.fam.logg(d.θ) + sum(d.fam.η(d.θ) .* d.fam.t(x))
+Distributions.logpdf(d::ExpFamDist{P,X}, x :: X) where {P,X} = d.fam.logh(x) + d.fam.logg(d.θ) + sum(d.fam.η(d.θ) .* d.fam.t(x))
 
 # Exponential families are closed under iid
 function iid(n::Integer, d::ExpFamDist{P,X} ) where {P,X}

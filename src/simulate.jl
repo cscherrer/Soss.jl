@@ -116,3 +116,7 @@ simulate(rng::AbstractRNG, d::iid{Int}) = [simulate(rng, d.dist) for j in 1:d.si
 
 trace(x::NamedTuple) = x.trace
 trace(x) = x
+
+using MeasureTheory: AbstractMeasure
+
+simulate(rng::AbstractRNG, μ::AbstractMeasure) = rand(rng, μ)

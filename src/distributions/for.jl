@@ -1,12 +1,11 @@
 using Distributions
-import Distributions.logdensity
+import Distributions.logpdf
 using Base.Cartesian
 using Base.Threads
 using FillArrays
 using Random: GLOBAL_RNG
 
 export logdensity
-export rand
 
 export For
 struct For{F,T,D,X}
@@ -52,7 +51,7 @@ function For(f::F, θ::T) where {F,N,J<:Integer,T<:NTuple{N,J}}
     return For{F,NTuple{N,J},D,X}(f, θ)
 end
 
-@inline function Distributions.logdensity(
+@inline function Distributions.logpdf(
     d::For{F,T,D,X1},
     xs::AbstractArray{X2,N},
 ) where {F,N,J<:Integer,T<:NTuple{N,J},D,X1,X2}
@@ -92,7 +91,7 @@ function For(f::F, θ::T) where {F,N,J<:AbstractRange,T<:NTuple{N,J}}
     return For{F,NTuple{N,J},D,X}(f, θ)
 end
 
-@inline function Distributions.logdensity(
+@inline function Distributions.logpdf(
     d::For{F,T,D,X1},
     xs::AbstractArray{X2,N},
 ) where {F,N,J<:AbstractRange,T<:NTuple{N,J},D,X1,X2}
@@ -132,7 +131,7 @@ function For(f::F, θ::T) where {F,T<:Base.Generator}
     return For{F,T,D,X}(f, θ)
 end
 
-@inline function Distributions.logdensity(d::For{F,T}, x) where {F,T<:Base.Generator}
+@inline function Distributions.logpdf(d::For{F,T}, x) where {F,T<:Base.Generator}
     s = 0.0
     for (θj, xj) in zip(d.θ, x)
         s += logdensity(d.f(θj), xj)
@@ -162,7 +161,7 @@ function For(f::F, θ::T) where {F,T<:AbstractArray}
     return For{F,T,D,X}(f, θ)
 end
 
-@inline function Distributions.logdensity(d::For{F,T}, x) where {F,T<:AbstractArray}
+@inline function Distributions.logpdf(d::For{F,T}, x) where {F,T<:AbstractArray}
     s = 0.0
     @inbounds @simd for j in eachindex(d.θ)
         s += logdensity(d.f(d.θ[j]), x[j])

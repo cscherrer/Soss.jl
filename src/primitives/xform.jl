@@ -134,3 +134,13 @@ function xform(d::iid, _data::NamedTuple)
 end
 
 xform(d::MvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
+
+xform(μ::AbstractMeasure,  _data::NamedTuple=NamedTuple()) = xform(representative(μ))
+
+using MeasureTheory
+
+xform(::Lebesgue{ℝ}) = asℝ
+
+xform(::Lebesgue{𝕀}) = as𝕀
+
+xform(::Lebesgue{ℝ₊}) = asℝ₊  

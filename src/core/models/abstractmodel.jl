@@ -1,7 +1,7 @@
-using Distributions: ValueSupport, VariateForm
+# using Distributions: ValueSupport, VariateForm
 
-struct MixedSupport <: ValueSupport end
-struct MixedVariate <: VariateForm end
+# struct MixedSupport <: ValueSupport end
+# struct MixedVariate <: VariateForm end
 
 """
     AbstractModel{A,B,M,Args,Obs}

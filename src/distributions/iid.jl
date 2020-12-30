@@ -1,5 +1,5 @@
 using Distributions
-import Distributions.logdensity
+import Distributions.logpdf
 
 using Random: GLOBAL_RNG
 
@@ -48,7 +48,7 @@ end
 
 Base.rand(d::iid) = rand(GLOBAL_RNG, d)
 
-function Distributions.logdensity(d::iid,x)
+function MeasureTheory.logdensity(d::iid,x)
     s = zero(Float64)
     Δs(xj) = logdensity(d.dist, xj)
 

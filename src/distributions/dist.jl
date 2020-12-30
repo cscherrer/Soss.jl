@@ -1,5 +1,7 @@
-export LogisticBinomial, HalfCauchy, HalfNormal, EqualMix, StudentT
-import Distributions.logdensity
+export LogisticBinomial, HalfCauchy, HalfNormal, EqualMix
+import Distributions.logpdf
+using Distributions: Distribution, Univariate, Continuous
+import Distributions
 
 struct HalfCauchy{T<:Real} <: Distribution{Univariate,Continuous}
     σ::T
@@ -9,7 +11,7 @@ HalfCauchy(σ::Integer = 1) = HalfCauchy(float(σ))
 
 Distributions.params(d::HalfCauchy) = (d.σ,)
 
-Distributions.logdensity(d::HalfCauchy, x::Real) = log(2) + logdensity(Cauchy(0, d.σ), x)
+Distributions.logpdf(d::HalfCauchy, x::Real) = log(2) + logdensity(Cauchy(0, d.σ), x)
 
 Distributions.pdf(d::HalfCauchy, x) = 2 * pdf(Cauchy(0, d.σ), x)
 
@@ -28,7 +30,7 @@ HalfNormal(σ::Integer = 1) = HalfNormal(float(σ))
 
 Distributions.params(d::HalfNormal) = (d.σ,)
 
-Distributions.logdensity(d::HalfNormal, x::Real) = log(2) + logdensity(Normal(0, d.σ), x)
+Distributions.logpdf(d::HalfNormal, x::Real) = log(2) + logdensity(Normal(0, d.σ), x)
 
 Distributions.pdf(d::HalfNormal, x) = 2 * pdf(Normal(0, d.σ), x)
 
@@ -47,7 +49,7 @@ struct EqualMix{T}
     components::Vector{T}
 end
 
-Distributions.logdensity(m::EqualMix, x) = logsumexp(map(d -> logdensity(d, x), m.components))
+Distributions.logpdf(m::EqualMix, x) = logsumexp(map(d -> logdensity(d, x), m.components))
 
 rand(m::EqualMix) = rand(GLOBAL_RNG, m)
 
@@ -56,7 +58,7 @@ Base.rand(rng::AbstractRNG, m::EqualMix) = rand(rng, rand(rng, m.components))
 xform(d::EqualMix, _data) = xform(d.components[1], _data)
 
 
-StudentT(ν, μ = 0.0, σ = 1.0) = LocationScale(μ, σ, TDist(ν))
+# StudentT(ν, μ = 0.0, σ = 1.0) = LocationScale(μ, σ, TDist(ν))
 
 
-xform(d::Dirichlet, _data) = UnitSimplex(length(d.alpha))
+xform(d::Distributions.Dirichlet, _data) = UnitSimplex(length(d.alpha))

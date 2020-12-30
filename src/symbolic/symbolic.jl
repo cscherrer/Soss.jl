@@ -66,7 +66,7 @@ struct SymDist
     logdensity :: Function
 end
 
-Distributions.logdensity(d::SymDist, x) = d.logdensity(sym(x))
+Distributions.logpdf(d::SymDist, x) = d.logdensity(sym(x))
 
 
 # julia> logdensity(SymPy.density(Soss.stats.Poisson(:Poisson,sym(:λ))), sym(:x))
@@ -79,7 +79,7 @@ Distributions.Bernoulli(p::Sym) = SymDist(y -> y * log(p) + (1-y) * log(1-p))
 
 for dist in [:Bernoulli, :Poisson]
     @eval begin
-        Distributions.logdensity(d::$dist, x::Sym) = logdensity($dist(sym.(Distributions.params(d))...), x)
+        Distributions.logpdf(d::$dist, x::Sym) = logdensity($dist(sym.(Distributions.params(d))...), x)
     end
 end
 
@@ -89,7 +89,7 @@ end
 for dist in [:Normal, :Cauchy]
     let half = Symbol(:Half, dist)
         @eval begin
-            Distributions.logdensity(d::$half, x::Sym) = 2 * logdensity($dist(0, sym.(d.σ)), x)
+            Distributions.logpdf(d::$half, x::Sym) = 2 * logdensity($dist(0, sym.(d.σ)), x)
         end
     end
 end
@@ -343,7 +343,7 @@ symlogdensity(d::Beta, x::Sym) = symlogdensity(Beta(sym(d.α),sym(d.β)), x)
 
 symlogdensity(d::Poisson, x::Sym) = symlogdensity(Poisson(sym(d.λ)), x)
 
-Distributions.logdensity(d::Sym, x::Sym) = symlogdensity(d,x)
+Distributions.logpdf(d::Sym, x::Sym) = symlogdensity(d,x)
 
 function symlogdensity(d::Sym, x::Sym)
     d.func

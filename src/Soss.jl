@@ -4,14 +4,15 @@ import Base.rand
 using Random
 using Reexport: @reexport
 
-@reexport using Distributions
 @reexport using StatsFuns
 using NamedTupleTools
 
+using MeasureTheory
 import MacroTools: prewalk, postwalk, @q, striplines, replace, @capture
 import MacroTools
 import MLStyle
-@reexport using MonteCarloMeasurements
+import MonteCarloMeasurements
+using MonteCarloMeasurements: Particles, StaticParticles, AbstractParticles
 
 using LazyArrays
 using FillArrays
@@ -52,11 +53,11 @@ include("transforms/utils.jl")
 include("transforms/basictransforms.jl")
 include("transforms/withdistributions.jl")
 
-include("symbolic/codegen.jl")
+# include("symbolic/codegen.jl")
 # include("symbolic/symbolic.jl") # TODO: move this to the SossSymPy.jl package
 # include("symbolic/codegen-sympy.jl") # TODO: move this to the SossSymPy.jl package
 
-include("particles.jl")
+# include("particles.jl")
 include("plots.jl")
 
 include("inference/rejection.jl")

@@ -1,7 +1,9 @@
 
 export logdensity
 
-function Distributions.logdensity(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
+import MeasureTheory
+
+function MeasureTheory.logdensity(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
     _logdensity(M, Model(c), argvals(c), obs(c), x)
 end
 
@@ -18,14 +20,14 @@ sourcelogdensity(m::AbstractModel) = sourcelogdensity()(Model(m))
 function sourcelogdensity()
     function(_m::Model)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
-        proc(_m, st :: Sample)     = :(_ℓ += logdensity($(st.rhs), $(st.x)))
+        # proc(_m, st :: Sample)     = :(_ℓ += logdensity($(st.rhs), $(st.x)))
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
         function proc(_m, st :: Sample)
             x = st.x
             rhs = st.rhs
             @q begin
-                _ℓ += logpdf($rhs, $x)
+                _ℓ += logdensity($rhs, $x)
                 $x = predict($rhs, $x)
             end
         end
@@ -40,4 +42,4 @@ function sourcelogdensity()
     end
 end
 
-Distributions.logpdf(d::Distribution, val, tr) = logpdf(d, val)
+MeasureTheory.logdensity(d::Distribution, val, tr) = logpdf(d, val)
