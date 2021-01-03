@@ -6,7 +6,7 @@ using NestedTuples
 import NestedTuples
 using TransformVariables
 
-function schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
+function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
     schema(T)
 end
 
