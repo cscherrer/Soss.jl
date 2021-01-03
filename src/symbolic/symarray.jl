@@ -1,6 +1,6 @@
 using SymbolicUtils
 using SymbolicUtils: Sym, Term, FnType, Symbolic
-
+using CanonicalTraits
 struct SymArray{T,N,I} <: Symbolic{AbstractArray{T,N}}
     f::Sym{FnType{NTuple{N, I},T}}
     dims::NTuple{N, I}
@@ -11,8 +11,28 @@ struct SymArray{T,N,I} <: Symbolic{AbstractArray{T,N}}
     end
 end
 
+@implement NGG.Typeable{Sym{T}} where {T} begin
+    function to_type(@nospecialize(s))
+        let args = Any[s.name] |> NGG.to_typelist
+            NGG.TApp{Sym{T}, Sym{T}, args}
+        end
+    end
+end
+
+@implement NGG.Typeable{SymArray{T,N,I}} where {T,N,I} begin
+    function to_type(@nospecialize(sa))
+        let args = Any[sa.f.name, sa.dims] |> NGG.to_typelist
+            NGG.TApp{SymArray{T,N,I}, SymArray{T}, args}
+        end
+    end
+end
+
 SymArray{T}(name::Symbol, dims...) where {T} = SymArray{T}(name, dims)
 
+function SymArray{T, N}(name::Symbol) where {T,N}
+    dims = Tuple((Sym{Int}(s) for s in Symbol.(name, :__, 1:N)))
+    SymArray{T}(name, dims...)
+end
 
 function Base.show(io::IO, ::MIME"text/plain", sa::SymArray{T,N,I}) where {T,N,I}
     join(io, sa.dims, "×")
@@ -30,12 +50,12 @@ Base.getindex(a::SymArray, inds...) = a.f(inds...)
 
 
 
-#############################
+# #############################
 
 @syms Sum(summand, ix, a, b)
 
-@syms x i
-Sum(x*2^i, i, 1, 4)
+# @syms x i
+# Sum(x*2^i, i, 1, 4)
 
 
 using Soss, MeasureTheory
@@ -57,14 +77,14 @@ function MeasureTheory.logdensity(d::For, x::Symbolic{A}) where A <: AbstractArr
     return result
 end
 
-μ = SymArray{Float64}(:μ, 5)
-σ = SymArray{Float64}(:σ, 3)
+# μ = SymArray{Float64}(:μ, 5)
+# σ = SymArray{Float64}(:σ, 3)
 
-# d = For(5,3) do i,j Normal(μ[i],σ[j]) end
-d = For(5) do i Normal(μ[i],1) end
-x = SymArray{Float64}(:x,5)
+# # d = For(5,3) do i,j Normal(μ[i],σ[j]) end
+# d = For(5) do i Normal(μ[i],1) end
+# x = SymArray{Float64}(:x,5)
 
-logdensity(d, x)
+# logdensity(d, x)
 
 
 
@@ -92,12 +112,12 @@ function _contains(s,v)
     return result
 end
 
-_contains(j^2,i)
+# _contains(j^2,i)
 
-isin(i*j)(i)
+# isin(i*j)(i)
 
 
-using Chain: @chain
+# using Chain: @chain
 
 using SymbolicUtils.Rewriters
 
@@ -139,7 +159,7 @@ function tryfactor(sumfactors,i,a,b)
     return result
 end
 
-using SymbolicUtils: isnotflat, needs_sorting, is_literal_number
+using SymbolicUtils: isnotflat, needs_sorting, is_literal_number, @ordered_acrule
 
 RULES = [
       @rule(~x::isnotflat(+) => flatten_term(+, ~x))
@@ -155,9 +175,9 @@ RULES = [
 ]
 
 
-r = Fixpoint(Prewalk(Chain(PassThrough.(RULES))))
+# r = Fixpoint(Prewalk(Chain(PassThrough.(RULES))))
 
 
-a =  logdensity(d, x) |> simplify
+# a =  logdensity(d, x) |> simplify
 
-r(a)
+# r(a)

@@ -9,8 +9,7 @@ using SymbolicUtils: Sym
 import SpecialFunctions
 using SpecialFunctions: logfactorial
 
-
-
+using NestedTuples: schema
 
 # @gg M function codegen(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
 #     f = _codegen(type2model(_m))
@@ -145,18 +144,17 @@ using SpecialFunctions: logfactorial
 # end
 
 
-sourceSymlogdensity(m::Model) = sourceSymlogdensity()(m)
+# sourceSymlogdensity(m::Model) = sourceSymlogdensity()(m)
 
 # Convert a type into the SymbolicUtils type we'll use to represent it
 sym(T::Type) = Sym{T}
 sym(::Type{A}) where {T, N, A <: AbstractArray{T,N}} = SymArray{T,N}
 
-sym(T::Type, s::Symbol) = sym(t)(s)
+sym(T::Type, s::Symbol) = sym(T)(s)
 
 export sourceSymlogdensity
 function sourceSymlogdensity(types)
-    symtypes = map(sym, schema(types))
-    sym(s::Symbol) = sym(getproperty(symtypes, s), s)
+    sym(s::Symbol) = Soss.sym(getproperty(types, s), s)
 
     function(_m::Model)
         function proc(_m, st :: Assign)
@@ -182,7 +180,7 @@ function sourceSymlogdensity(types)
 
             for x in arguments(_m)
                 xname = QuoteNode(x)
-                xsym = :($sympy.IndexedBase($xname))
+                xsym = sym(x)
                 push!(q.args, :($x = $xsym))
             end
 
@@ -192,10 +190,7 @@ function sourceSymlogdensity(types)
                 x = st.x
                 xname = QuoteNode(x)
                 rhs = st.rhs
-                xsym = ifelse(rhs.args[1] ∈ [:For, :iid]
-                    , :($sympy.IndexedBase($xname))
-                    , :($sym($xname))
-                )
+                xsym = sym(x)
                 push!(q.args, :($x = $xsym))
             end
 
@@ -238,20 +233,18 @@ symlogdensity(d,x::Sym) = logdensity(d,x)
 
 
 
-function symlogdensity(cm::ConditionalModel)
+function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
     trace = simulate(cm).trace
-    symlogdensity(cm, trace)
-end
-
-function symlogdensity(cm::ConditionalModel{A,B,M}, trace) where {A,B,M}
-    _symlogdensity(M, Model(cm), argvals(cm), trace)
+    vars = merge(trace, argvals(cm))
+    _symlogdensity(M, Model(cm), vars)
 end
 
 
-@gg M function _symlogdensity(_::Type{M}, _m::Model, _args, _trace) where M <: TypeLevel{Module}
+@gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
+    types = schema(_vars)
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourcelogdensity() |> loadvals(_args, _trace))
+        type2model(_m) |> sourceSymlogdensity(types))
 end
 
 
