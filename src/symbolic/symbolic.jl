@@ -12,11 +12,11 @@ using SpecialFunctions: logfactorial
 using NestedTuples: schema
 
 # Convert a type into the SymbolicUtils type we'll use to represent it
-sym(T::Type) = Sym{T}
+sym(T::Type) = :(Sym{$T})
 # sym(::Type{T}) where {T <: Number} = Sym{Number}
-sym(::Type{A}) where {T, N, A <: AbstractArray{T,N}} = SymArray{T,N}
+sym(::Type{A}) where {T, N, A <: AbstractArray{T,N}} = :(SymArray{$T,$N})
 
-sym(T::Type, s::Symbol) = sym(T)(s)
+sym(T::Type, s::Symbol) = :($(sym(T))($(QuoteNode(s))))
 
 export sourceSymlogdensity
 function sourceSymlogdensity(types)
@@ -106,7 +106,6 @@ end
         Expr(:(=), :M, from_type(M)),
         type2model(_m) |> sourceSymlogdensity(types))
 end
-
 
 
 # export tolatex

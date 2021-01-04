@@ -1,15 +1,34 @@
 using SymbolicUtils
 using SymbolicUtils: Sym, Term, FnType, Symbolic
 using CanonicalTraits
-struct SymArray{T,N,I} <: Symbolic{AbstractArray{T,N}}
-    f::Sym{FnType{NTuple{N, I},T}}
-    dims::NTuple{N, I}
+struct SymArray{T,N} <: Symbolic{AbstractArray{T,N}}
+    f::Sym{FnType{NTuple{N},T}}
+    dims::NTuple{N}
 
-    function SymArray{T}(name::Symbol, dims::NTuple{N, I}) where {T,N,I}
-        f = Sym{FnType{NTuple{N, I},T}}(name)
-        new{T,N,I}(f,dims)
+    function SymArray{T}(name::Symbol, dims::NTuple{N}) where {T,N}
+        f = Sym{FnType{NTuple{N},T}}(name)
+        new{T,N}(f,dims)
     end
 end
+
+
+function MeasureTheory.logdensity(d::iid,x::SymArray)
+    dims = d.size
+    N = length(dims)
+
+    inds = [Sym{Int}.(gensym.(Symbol.(:i,1:N)))]
+
+    s = logdensity(d.dist, x[inds...])
+
+    for (i,n) in zip(inds, dims)
+        s = Sum(s, i, 1, n)
+    end
+
+    return s
+end
+
+
+
 
 @implement NGG.Typeable{Sym{T}} where {T} begin
     function to_type(@nospecialize(s))
@@ -19,10 +38,10 @@ end
     end
 end
 
-@implement NGG.Typeable{SymArray{T,N,I}} where {T,N,I} begin
+@implement NGG.Typeable{SymArray{T,N}} where {T,N} begin
     function to_type(@nospecialize(sa))
         let args = Any[sa.f.name, sa.dims] |> NGG.to_typelist
-            NGG.TApp{SymArray{T,N,I}, SymArray{T}, args}
+            NGG.TApp{SymArray{T,N}, SymArray{T}, args}
         end
     end
 end
@@ -34,7 +53,7 @@ function SymArray{T, N}(name::Symbol) where {T,N}
     SymArray{T}(name, dims...)
 end
 
-function Base.show(io::IO, ::MIME"text/plain", sa::SymArray{T,N,I}) where {T,N,I}
+function Base.show(io::IO, ::MIME"text/plain", sa::SymArray{T,N}) where {T,N}
     join(io, sa.dims, "×")
     print(io, " ")
     print(io, typeof(sa))
@@ -139,18 +158,11 @@ function tryfactor(sumfactors,i,a,b)
     return result
 end
 
-using SymbolicUtils: isnotflat, needs_sorting, is_literal_number
-using SymbolicUtils: @ordered_acrule, flatten_term, sort_args
+
 const RW = Rewriters
 
 
 RULES = [
-    @rule(~x::isnotflat(+) => flatten_term(+, ~x))
-    @rule(~x::needs_sorting(+) => sort_args(+, ~x))
-    @ordered_acrule(~a::is_literal_number + ~b::is_literal_number => ~a + ~b)
-    @rule(~x::isnotflat(*) => flatten_term(*, ~x))
-    @rule(~x::needs_sorting(*) => sort_args(*, ~x))
-    @rule (~a + ~b)^2 => (~a) ^2 + 2 * (~a) * (~b) + (~b)^2
     @acrule (~a + ~b)*(~c) => (~a) * (~c) + (~b) * (~c)
     @rule Sum(+(~~x), ~i, ~a, ~b) => sum([Sum(t, ~i, ~a, ~b) for t in (~~x)])
     @rule Sum(*(~~x), ~i, ~a, ~b) => tryfactor(~~x, ~i, ~a, ~b) # ifelse(!_contains(~x,~i) || !_contains(~y,~i), Sum(~x, ~i, ~a, ~b) * Sum(~y, ~i, ~a, ~b), nothing)
