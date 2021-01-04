@@ -53,10 +53,10 @@ include("transforms/utils.jl")
 include("transforms/basictransforms.jl")
 include("transforms/withdistributions.jl")
 
-# include("symbolic/codegen.jl")
 include("symbolic/symarray.jl")
 include("symbolic/symbolic.jl")
-# include("symbolic/codegen-sympy.jl") # TODO: move this to the SossSymPy.jl package
+include("symbolic/codegen.jl")
+# include("symbolic/codegen-sympy.jl") 
 
 # include("particles.jl")
 include("plots.jl")
