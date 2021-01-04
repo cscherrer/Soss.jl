@@ -12,9 +12,9 @@ using SpecialFunctions: logfactorial
 using NestedTuples: schema
 
 # Convert a type into the SymbolicUtils type we'll use to represent it
-sym(T::Type) = :(Sym{$T})
+sym(T::Type) = :(Soss.Sym{$T})
 # sym(::Type{T}) where {T <: Number} = Sym{Number}
-sym(::Type{A}) where {T, N, A <: AbstractArray{T,N}} = :(SymArray{$T,$N})
+sym(::Type{A}) where {T, N, A <: AbstractArray{T,N}} = :(Soss.SymArray{$T,$N})
 
 sym(T::Type, s::Symbol) = :($(sym(T))($(QuoteNode(s))))
 
@@ -64,6 +64,33 @@ function sourceSymlogdensity(types)
     end
 end
 
+export symlogdensity
+
+symlogdensity(d,x::Sym) = logdensity(d,x)
+
+function sourceSymlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
+    trace = simulate(cm).trace
+    vars = merge(trace, argvals(cm))
+    return sourceSymlogdensity(schema(vars))(Model(cm))
+end
+
+function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
+    trace = simulate(cm).trace
+    vars = merge(trace, argvals(cm))
+    s = _symlogdensity(M, Model(cm), vars)
+    rewrite(s)
+end
+
+
+@gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
+    Sym = SymbolicUtils.Sym
+    types = schema(_vars)
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> sourceSymlogdensity(types))
+end
+
+
 
 
 # For(f, θ::Sym) = For(f, (θ,))
@@ -75,37 +102,17 @@ end
 
 # logdensity(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logdensity(d,sym.(x))
 
-export symlogdensity
-function symlogdensity(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
-    js = symbols.(Symbol.(:_j,1:N), cls=sympy.Idx)
-    x = sympy.IndexedBase(x)
-    result = symlogdensity(d.f(js...), x[js...])
+# export symlogdensity
+# function symlogdensity(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
+#     js = symbols.(Symbol.(:_j,1:N), cls=sympy.Idx)
+#     x = sympy.IndexedBase(x)
+#     result = symlogdensity(d.f(js...), x[js...])
 
-    for k in N:-1:1
-        result = sympy.Sum(result, (js[k], 1, d.θ[k]))
-    end
-    result
-end
-
-
-symlogdensity(d,x::Sym) = logdensity(d,x)
-
-
-
-function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
-    trace = simulate(cm).trace
-    vars = merge(trace, argvals(cm))
-    s = _symlogdensity(M, Model(cm), vars)
-    simplify(s; polynorm=true)
-end
-
-
-@gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
-    types = schema(_vars)
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSymlogdensity(types))
-end
+#     for k in N:-1:1
+#         result = sympy.Sum(result, (js[k], 1, d.θ[k]))
+#     end
+#     result
+# end
 
 
 # export tolatex

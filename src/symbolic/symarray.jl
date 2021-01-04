@@ -1,12 +1,15 @@
 using SymbolicUtils
 using SymbolicUtils: Sym, Term, FnType, Symbolic
 using CanonicalTraits
+
+const MaybeSym{T} = Union{T, Symbolic{T}}
+
 struct SymArray{T,N} <: Symbolic{AbstractArray{T,N}}
-    f::Sym{FnType{NTuple{N},T}}
-    dims::NTuple{N}
+    f::Sym{FnType{NTuple{N, Int},T}}
+    dims::NTuple{N, MaybeSym{Int}}
 
     function SymArray{T}(name::Symbol, dims::NTuple{N}) where {T,N}
-        f = Sym{FnType{NTuple{N},T}}(name)
+        f = Sym{FnType{NTuple{N, Int},T}}(name)
         new{T,N}(f,dims)
     end
 end
@@ -16,7 +19,7 @@ function MeasureTheory.logdensity(d::iid,x::SymArray)
     dims = d.size
     N = length(dims)
 
-    inds = [Sym{Int}.(gensym.(Symbol.(:i,1:N)))]
+    inds = Tuple(Sym{Int}.(gensym.(Symbol.(:i,1:N))))
 
     s = logdensity(d.dist, x[inds...])
 
@@ -166,12 +169,14 @@ RULES = [
     @acrule (~a + ~b)*(~c) => (~a) * (~c) + (~b) * (~c)
     @rule Sum(+(~~x), ~i, ~a, ~b) => sum([Sum(t, ~i, ~a, ~b) for t in (~~x)])
     @rule Sum(*(~~x), ~i, ~a, ~b) => tryfactor(~~x, ~i, ~a, ~b) # ifelse(!_contains(~x,~i) || !_contains(~y,~i), Sum(~x, ~i, ~a, ~b) * Sum(~y, ~i, ~a, ~b), nothing)
-    @rule Sum(~x, ~i, ~a, ~b) => ifelse(_contains(~x,~i), nothing, ((~b) - (~a) + 1) * (~x))
+    @rule Sum(~x, ~i, ~a, ~b) => ifelse(~i ∈ atoms(~x), nothing, ((~b) - (~a) + 1) * (~x))
 ]
 
 export rewrite
 
-rewrite = RW.Fixpoint(RW.Prewalk(RW.Chain(RULES)))
+function rewrite(s)
+    simplify(s; polynorm=true) |> RW.Fixpoint(RW.Prewalk(RW.Chain(RULES))) |> simplify
+end
 
 # rewrite(s) = SymbolicUtils.simplify(s; polynorm=true)
 
