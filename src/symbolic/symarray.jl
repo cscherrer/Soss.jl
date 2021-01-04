@@ -91,26 +91,6 @@ end
 
 
 
-using SymbolicUtils
-using SymbolicUtils: Sym, Term
-using SymbolicUtils.Rewriters
-using DataStructures
-
-newsym() = Sym{Number}(gensym("cse"))
-
-function cse(expr)
-    dict = OrderedDict()
-    r = @rule ~x::(x -> x isa Term) => haskey(dict, ~x) ? dict[~x] : dict[~x] = gensym()
-    final = Postwalk(Chain([r]))(expr)
-    [[var=>ex for (ex, var) in pairs(dict)]..., final]
-end
-
-function _contains(s,v)
-    result = false
-    r = @rule ~x::(x -> (x===v)) => (result = true)
-    Postwalk(PassThrough(r))(s)
-    return result
-end
 
 # _contains(j^2,i)
 
@@ -159,25 +139,46 @@ function tryfactor(sumfactors,i,a,b)
     return result
 end
 
-using SymbolicUtils: isnotflat, needs_sorting, is_literal_number, @ordered_acrule
+using SymbolicUtils: isnotflat, needs_sorting, is_literal_number
+using SymbolicUtils: @ordered_acrule, flatten_term, sort_args
+const RW = Rewriters
+
 
 RULES = [
-      @rule(~x::isnotflat(+) => flatten_term(+, ~x))
-    , @rule(~x::needs_sorting(+) => sort_args(+, ~x))
-    , @ordered_acrule(~a::is_literal_number + ~b::is_literal_number => ~a + ~b)
-    , @rule(~x::isnotflat(*) => flatten_term(*, ~x))
-    , @rule(~x::needs_sorting(*) => sort_args(*, ~x))
-    , @rule (~a + ~b)^2 => (~a) ^2 + 2 * (~a) * (~b) + (~b)^2
-    , @acrule (~a + ~b)*(~c) => (~a) * (~c) + (~b) * (~c)
-    , @rule Sum(+(~~x), ~i, ~a, ~b) => sum([Sum(t, ~i, ~a, ~b) for t in (~~x)])
-    , @rule Sum(*(~~x), ~i, ~a, ~b) => tryfactor(~~x, ~i, ~a, ~b) # ifelse(!_contains(~x,~i) || !_contains(~y,~i), Sum(~x, ~i, ~a, ~b) * Sum(~y, ~i, ~a, ~b), nothing)
-    , @rule Sum(~x, ~i, ~a, ~b) => ifelse(_contains(~x,~i), nothing, ((~b) - (~a) + 1) * (~x))
+    @rule(~x::isnotflat(+) => flatten_term(+, ~x))
+    @rule(~x::needs_sorting(+) => sort_args(+, ~x))
+    @ordered_acrule(~a::is_literal_number + ~b::is_literal_number => ~a + ~b)
+    @rule(~x::isnotflat(*) => flatten_term(*, ~x))
+    @rule(~x::needs_sorting(*) => sort_args(*, ~x))
+    @rule (~a + ~b)^2 => (~a) ^2 + 2 * (~a) * (~b) + (~b)^2
+    @acrule (~a + ~b)*(~c) => (~a) * (~c) + (~b) * (~c)
+    @rule Sum(+(~~x), ~i, ~a, ~b) => sum([Sum(t, ~i, ~a, ~b) for t in (~~x)])
+    @rule Sum(*(~~x), ~i, ~a, ~b) => tryfactor(~~x, ~i, ~a, ~b) # ifelse(!_contains(~x,~i) || !_contains(~y,~i), Sum(~x, ~i, ~a, ~b) * Sum(~y, ~i, ~a, ~b), nothing)
+    @rule Sum(~x, ~i, ~a, ~b) => ifelse(_contains(~x,~i), nothing, ((~b) - (~a) + 1) * (~x))
 ]
 
+export rewrite
 
-# r = Fixpoint(Prewalk(Chain(PassThrough.(RULES))))
+rewrite = RW.Fixpoint(RW.Prewalk(RW.Chain(RULES)))
 
+# rewrite(s) = SymbolicUtils.simplify(s; polynorm=true)
 
 # a =  logdensity(d, x) |> simplify
 
 # r(a)
+
+
+
+using SymbolicUtils
+using SymbolicUtils: Sym, Term
+using SymbolicUtils.Rewriters
+using DataStructures
+
+newsym() = Sym{Number}(gensym("cse"))
+
+function cse(expr)
+    dict = OrderedDict()
+    r = @rule ~x::(x -> x isa Term) => haskey(dict, ~x) ? dict[~x] : dict[~x] = gensym()
+    final = Postwalk(RW.Chain([r]))(expr)
+    [[var=>ex for (ex, var) in pairs(dict)]..., final]
+end

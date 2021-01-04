@@ -11,6 +11,127 @@ using SpecialFunctions: logfactorial
 
 using NestedTuples: schema
 
+# Convert a type into the SymbolicUtils type we'll use to represent it
+sym(T::Type) = Sym{T}
+# sym(::Type{T}) where {T <: Number} = Sym{Number}
+sym(::Type{A}) where {T, N, A <: AbstractArray{T,N}} = SymArray{T,N}
+
+sym(T::Type, s::Symbol) = sym(T)(s)
+
+export sourceSymlogdensity
+function sourceSymlogdensity(types)
+    sym(s::Symbol) = Soss.sym(getproperty(types, s), s)
+
+    function(_m::Model)
+        function proc(_m, st :: Assign)
+            x = st.x
+            xname = QuoteNode(x)
+            xsym = sym(x)
+            return :($x = $xsym)
+        end
+
+        function proc(_m, st :: Sample)
+            x = st.x
+            xname = QuoteNode(x)
+            xsym = sym(x)
+            s = @q begin
+                $x = $xsym
+                _ℓ += logdensity($(st.rhs), $x)
+            end
+        end
+        proc(_m, st :: Return)     = nothing
+        proc(_m, st :: LineNumber) = nothing
+
+        function wrap(kernel)
+            q = @q begin
+                _ℓ = 0.0
+            end
+
+            for x in arguments(_m)
+                xname = QuoteNode(x)
+                xsym = sym(x)
+                push!(q.args, :($x = $xsym))
+            end
+
+            @q begin
+                $q
+                $kernel
+                return _ℓ
+            end
+        end
+
+        buildSource(_m, proc, wrap) |> MacroTools.flatten
+    end
+end
+
+
+
+# For(f, θ::Sym) = For(f, (θ,))
+
+# function For(f::F, θ::NTuple{N,Sym}) where {F, N}
+#     For{F,NTuple{N,Sym},Sym,Sym}(f,θ)
+# end
+
+
+# logdensity(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logdensity(d,sym.(x))
+
+export symlogdensity
+function symlogdensity(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
+    js = symbols.(Symbol.(:_j,1:N), cls=sympy.Idx)
+    x = sympy.IndexedBase(x)
+    result = symlogdensity(d.f(js...), x[js...])
+
+    for k in N:-1:1
+        result = sympy.Sum(result, (js[k], 1, d.θ[k]))
+    end
+    result
+end
+
+
+symlogdensity(d,x::Sym) = logdensity(d,x)
+
+
+
+function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
+    trace = simulate(cm).trace
+    vars = merge(trace, argvals(cm))
+    s = _symlogdensity(M, Model(cm), vars)
+    simplify(s; polynorm=true)
+end
+
+
+@gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
+    types = schema(_vars)
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> sourceSymlogdensity(types))
+end
+
+
+
+# export tolatex
+# function tolatex(ℓ::SymPy.Sym)
+#     r = r"Idx\\left\(_j(?<num>\d+)\\right\)"
+#     s = s"j_\g<num>"
+#     x = Base.replace(sympy.latex(ℓ), r => s)
+# end
+
+
+# export foldConstants
+# function foldConstants(s::Sym)
+#     s.func ==sympy.Integer && return s
+#     isempty(free_symbols(s)) && return Float64(SymPy.N(s))
+#     s.func == sympy.Sum && return sympy.Sum(foldConstants(s.args[1]), s.args[2:end]...)
+#     s.func == sympy.Indexed && return s
+#     s.func == sympy.IndexedBase && return s
+#     s.func == sympy.Symbol && return s
+#     newargs = foldConstants.(s.args)
+#     return s.func(newargs...)
+# end
+
+
+
+
 # @gg M function codegen(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
 #     f = _codegen(type2model(_m))
 #     Expr(:let,
@@ -145,126 +266,3 @@ using NestedTuples: schema
 
 
 # sourceSymlogdensity(m::Model) = sourceSymlogdensity()(m)
-
-# Convert a type into the SymbolicUtils type we'll use to represent it
-sym(T::Type) = Sym{T}
-sym(::Type{A}) where {T, N, A <: AbstractArray{T,N}} = SymArray{T,N}
-
-sym(T::Type, s::Symbol) = sym(T)(s)
-
-export sourceSymlogdensity
-function sourceSymlogdensity(types)
-    sym(s::Symbol) = Soss.sym(getproperty(types, s), s)
-
-    function(_m::Model)
-        function proc(_m, st :: Assign)
-            x = st.x
-            xname = QuoteNode(x)
-            xsym = sym(x)
-            return :($x = $xsym)
-        end
-
-        function proc(_m, st :: Sample)
-            x = st.x
-            xname = QuoteNode(x)
-            xsym = sym(x)
-            s = :(_ℓ += logdensity($(st.rhs), $xsym))
-            end
-        proc(_m, st :: Return)     = nothing
-        proc(_m, st :: LineNumber) = nothing
-
-        function wrap(kernel)
-            q = @q begin
-                _ℓ = 0.0
-            end
-
-            for x in arguments(_m)
-                xname = QuoteNode(x)
-                xsym = sym(x)
-                push!(q.args, :($x = $xsym))
-            end
-
-            for st in map(v -> findStatement(_m,v), toposort(_m))
-
-                typeof(st) == Sample || continue
-                x = st.x
-                xname = QuoteNode(x)
-                rhs = st.rhs
-                xsym = sym(x)
-                push!(q.args, :($x = $xsym))
-            end
-
-            @q begin
-                $q
-                $kernel
-                return _ℓ
-            end
-        end
-
-        buildSource(_m, proc, wrap) |> MacroTools.flatten
-    end
-end
-
-
-
-# For(f, θ::Sym) = For(f, (θ,))
-
-# function For(f::F, θ::NTuple{N,Sym}) where {F, N}
-#     For{F,NTuple{N,Sym},Sym,Sym}(f,θ)
-# end
-
-
-# logdensity(d::For{F,N,T}, x::Array{Symbol, N}) where {F,N,T} = logdensity(d,sym.(x))
-
-export symlogdensity
-function symlogdensity(d::For{F,T,D,X}, x::Sym) where {F, N, J <: Union{Sym,Integer}, T <: NTuple{N,J}, D,  X}
-    js = symbols.(Symbol.(:_j,1:N), cls=sympy.Idx)
-    x = sympy.IndexedBase(x)
-    result = symlogdensity(d.f(js...), x[js...])
-
-    for k in N:-1:1
-        result = sympy.Sum(result, (js[k], 1, d.θ[k]))
-    end
-    result
-end
-
-
-symlogdensity(d,x::Sym) = logdensity(d,x)
-
-
-
-function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
-    trace = simulate(cm).trace
-    vars = merge(trace, argvals(cm))
-    _symlogdensity(M, Model(cm), vars)
-end
-
-
-@gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
-    types = schema(_vars)
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSymlogdensity(types))
-end
-
-
-
-# export tolatex
-# function tolatex(ℓ::SymPy.Sym)
-#     r = r"Idx\\left\(_j(?<num>\d+)\\right\)"
-#     s = s"j_\g<num>"
-#     x = Base.replace(sympy.latex(ℓ), r => s)
-# end
-
-
-# export foldConstants
-# function foldConstants(s::Sym)
-#     s.func ==sympy.Integer && return s
-#     isempty(free_symbols(s)) && return Float64(SymPy.N(s))
-#     s.func == sympy.Sum && return sympy.Sum(foldConstants(s.args[1]), s.args[2:end]...)
-#     s.func == sympy.Indexed && return s
-#     s.func == sympy.IndexedBase && return s
-#     s.func == sympy.Symbol && return s
-#     newargs = foldConstants.(s.args)
-#     return s.func(newargs...)
-# end

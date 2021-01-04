@@ -1,6 +1,6 @@
 function codegen(s::Sym)
     r = codegen
-    s.func == sympy.Add && begin
+    s.f == + && begin
         @gensym add
         ex = @q begin
             $add = 0.0
