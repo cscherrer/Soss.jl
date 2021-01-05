@@ -4,18 +4,7 @@ using CanonicalTraits
 
 const MaybeSym{T} = Union{T, Symbolic{T}}
 
-struct SymArray{T,N} <: Symbolic{AbstractArray{T,N}}
-    f::Sym{FnType{NTuple{N, Int},T}}
-    dims::NTuple{N, MaybeSym{Int}}
-
-    function SymArray{T}(name::Symbol, dims::NTuple{N}) where {T,N}
-        f = Sym{FnType{NTuple{N, Int},T}}(name)
-        new{T,N}(f,dims)
-    end
-end
-
-
-function MeasureTheory.logdensity(d::iid,x::SymArray)
+function MeasureTheory.logdensity(d::iid,x::Sym{A}) where {A <: AbstractArray}
     dims = d.size
     N = length(dims)
 
@@ -33,6 +22,7 @@ end
 
 
 
+
 @implement NGG.Typeable{Sym{T}} where {T} begin
     function to_type(@nospecialize(s))
         let args = Any[s.name] |> NGG.to_typelist
@@ -41,38 +31,16 @@ end
     end
 end
 
-@implement NGG.Typeable{SymArray{T,N}} where {T,N} begin
-    function to_type(@nospecialize(sa))
-        let args = Any[sa.f.name, sa.dims] |> NGG.to_typelist
-            NGG.TApp{SymArray{T,N}, SymArray{T}, args}
-        end
-    end
-end
-
-SymArray{T}(name::Symbol, dims...) where {T} = SymArray{T}(name, dims)
-
-function SymArray{T, N}(name::Symbol) where {T,N}
-    dims = Tuple((Sym{Int}(s) for s in Symbol.(name, :__, 1:N)))
-    SymArray{T}(name, dims...)
-end
-
-function Base.show(io::IO, ::MIME"text/plain", sa::SymArray{T,N}) where {T,N}
-    join(io, sa.dims, "×")
-    print(io, " ")
-    print(io, typeof(sa))
-    print(io, "(", QuoteNode(sa.f.name), ", ")
-    join(io, sa.dims, ", ")
-    print(io, ")")
-end
-
-Base.size(a::SymArray) = a.dims
-
-Base.getindex(a::SymArray, inds...) = a.f(inds...)
-
-
 
 
 # #############################
+
+struct Summation{F,T}
+    f::F
+    x::T 
+end
+
+
 
 @syms Sum(summand, ix, a, b)
 
@@ -109,6 +77,7 @@ end
 # logdensity(d, x)
 
 
+Base.getindex(a::Sym{A}, inds...) where {T, A <: AbstractArray{T}} = term(getindex, [a, inds...]; type=T)
 
 
 
@@ -136,7 +105,6 @@ function atoms(t::Term)
         return union(atoms(t.f), union(atoms.(t.arguments)...))
     end
 end 
-atoms(a::SymArray) = Set{Sym}([a])
 atoms(s::Sym) = Set{Sym}([s])
 
 atoms(x) = Set{Sym}()
@@ -167,7 +135,7 @@ const RW = Rewriters
 
 RULES = [
     @acrule (~a + ~b)*(~c) => (~a) * (~c) + (~b) * (~c)
-    @rule Sum(+(~~x), ~i, ~a, ~b) => sum([Sum(t, ~i, ~a, ~b) for t in (~~x)])
+    @rule Sum(+(~~x), ~i, ~a, ~b) => sum([Sum(t, Sym{Int}(gensym(:i)), ~a, ~b) for t in (~~x)])
     @rule Sum(*(~~x), ~i, ~a, ~b) => tryfactor(~~x, ~i, ~a, ~b) # ifelse(!_contains(~x,~i) || !_contains(~y,~i), Sum(~x, ~i, ~a, ~b) * Sum(~y, ~i, ~a, ~b), nothing)
     @rule Sum(~x, ~i, ~a, ~b) => ifelse(~i ∈ atoms(~x), nothing, ((~b) - (~a) + 1) * (~x))
 ]

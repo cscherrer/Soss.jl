@@ -32,9 +32,18 @@ function _codegen(cm :: ConditionalModel)
 
     code = MacroTools.flatten(code)
 
-    # f = mk_function(:((_args, _data) -> $code))
+    f = mk_function(:((_args, _data) -> $code))
 
-    return code
+    return f
+end
+
+codegen(a::AbstractArray) = a
+
+function codegen(::Type{T}, f::Function, args::Array{Sym}) where {T}
+    ts = codegen.(args)
+    @q begin
+        $f($(ts...))
+    end
 end
 
 codegen(s::T) where T <: Number = s

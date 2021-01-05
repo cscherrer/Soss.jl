@@ -14,7 +14,6 @@ using NestedTuples: schema
 # Convert a type into the SymbolicUtils type we'll use to represent it
 sym(T::Type) = :(Soss.Sym{$T})
 # sym(::Type{T}) where {T <: Number} = Sym{Number}
-sym(::Type{A}) where {T, N, A <: AbstractArray{T,N}} = :(Soss.SymArray{$T,$N})
 
 sym(T::Type, s::Symbol) = :($(sym(T))($(QuoteNode(s))))
 
