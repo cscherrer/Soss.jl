@@ -65,20 +65,20 @@ simulate(m::Model) = simulate(GLOBAL_RNG, m)
 @gg M function _simulate(_::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSample() |> loadvals(_args, NamedTuple()))
+        type2model(_m) |> sourceSimulate() |> loadvals(_args, NamedTuple()))
 end
 
 @gg M function _simulate(_::Type{M}, _m::Model, _args::NamedTuple{()}) where M <: TypeLevel{Module}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSample())
+        type2model(_m) |> sourceSimulate())
 end
 
-sourceSample(m::Model) = sourceSample()(m)
-sourceSample(jd::ConditionalModel) = sourceSample(jd.model)
+sourceSimulate(m::Model) = sourceSimulate()(m)
+sourceSimulate(jd::ConditionalModel) = sourceSimulate(jd.model)
 
-export sourceSample
-function sourceSample() 
+export sourceSimulate
+function sourceSimulate() 
     function(m::Model)
         _m = canonical(m)
         pars = sort(sampled(_m))
