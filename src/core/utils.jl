@@ -283,5 +283,5 @@ function isleaf(m, v::Symbol)
 end
 
 
-unVal(::Type{Val{T}}) where {T} = T
+unVal(::Type{V}) where {T, V <: Val{T}} = T
 unVal(::Val{T}) where {T} = T

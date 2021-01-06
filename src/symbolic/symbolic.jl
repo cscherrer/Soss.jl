@@ -12,8 +12,14 @@ using SpecialFunctions: logfactorial
 using NestedTuples: schema
 
 # Convert a type into the SymbolicUtils type we'll use to represent it
+# for example,
+#     julia> Soss.sym(Int)
+#     :(Soss.Sym{Int64})
+#     
+#     julia> Soss.sym(Int, :n)
+#     :(Soss.Sym{Int64}(:n))
+#
 sym(T::Type) = :(Soss.Sym{$T})
-# sym(::Type{T}) where {T <: Number} = Sym{Number}
 
 sym(T::Type, s::Symbol) = :($(sym(T))($(QuoteNode(s))))
 
@@ -68,13 +74,13 @@ export symlogdensity
 symlogdensity(d,x::Sym) = logdensity(d,x)
 
 function sourceSymlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
-    trace = simulate(cm).trace
+    trace = simulate(cm; trace_assignments=true).trace
     vars = merge(trace, argvals(cm))
     return sourceSymlogdensity(schema(vars))(Model(cm))
 end
 
 function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
-    trace = simulate(cm).trace
+    trace = simulate(cm; trace_assignments=true).trace
     vars = merge(trace, argvals(cm))
     s = _symlogdensity(M, Model(cm), vars)
     s = rewrite(s)
