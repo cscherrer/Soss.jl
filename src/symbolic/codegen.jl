@@ -74,7 +74,7 @@ function codegen(::Type{T},::typeof(*), args...) where {T <: Number}
     end
     for arg in args
         t = codegen(arg)
-        push!(ex.args, :($mul += $t))
+        push!(ex.args, :($mul *= $t))
     end
     push!(ex.args, mul)
     return ex
@@ -93,7 +93,7 @@ function codegen(::Type{T},::typeof(+), args...) where {T <: Number}
     return ex
 end
 
-function codegen(::Type{T},s::SymbolicUtils.Sym{SymbolicUtils.FnType{NTuple{4,A},X}}, args...) where {T<:Number,A<:Number,X<:Number}
+function codegen(::Type{T},s::SymbolicUtils.Sym{SymbolicUtils.FnType{Tuple{E,Int64,Int64,Int64},X}}, args...) where {T, E<: Number, X <: Number}
     @assert s.name == :Sum
 
     @gensym sum
@@ -197,3 +197,17 @@ end
 
 
 # function codegen(T::Type, ::Sym{FnType{Tuple{Int64},Float64}}, ::Sym{Int64})
+
+function csecodegen(cm :: ConditionalModel)
+    assignments = cse(symlogdensity(cm))
+
+    q = @q begin end
+
+    for a in assignments
+        x = a[1]
+        rhs = codegen(a[2])
+        push!(q.args, @q begin $x = $rhs end)
+    end
+
+    MacroTools.flatten(q)
+end

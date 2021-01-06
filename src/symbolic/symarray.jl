@@ -19,8 +19,14 @@ function MeasureTheory.logdensity(d::iid,x::Sym{A}) where {A <: AbstractArray}
     return s
 end
 
+@syms Sum(t::Number, i::Int, a::Int, b::Int)::Number
 
-
+# get it?
+function gensum(t,i,a,b)
+    new_i = Sym{Int}(gensym(:i))
+    new_t = substitute(t, Dict(i => new_i))
+    return Sum(new_t, new_i, a, b)
+end
 
 
 @implement NGG.Typeable{Sym{T}} where {T} begin
@@ -35,14 +41,10 @@ end
 
 # #############################
 
-struct Summation{F,T}
-    f::F
-    x::T 
-end
-
-
-
-@syms Sum(summand, ix, a, b)
+# struct Sum{F,T}
+#     f::F
+#     x::T 
+# end
 
 # @syms x i
 # Sum(x*2^i, i, 1, 4)
@@ -62,7 +64,7 @@ function MeasureTheory.logdensity(d::For, x::Symbolic{A}) where A <: AbstractArr
     obs = x[inds...]
     result = logdensity(dist, obs)
     for n in 1:N
-        result = Sum(result, inds[n], 1, d.θ[n])
+        result = genum(result, inds[n], 1, d.θ[n])
     end
     return result
 end
@@ -77,7 +79,7 @@ end
 # logdensity(d, x)
 
 
-Base.getindex(a::Sym{A}, inds...) where {T, A <: AbstractArray{T}} = term(getindex, [a, inds...]; type=T)
+Base.getindex(a::Sym{A}, inds...) where {T, A <: AbstractArray{T}} = term(getindex, a, inds...; type=T)
 
 
 
@@ -109,6 +111,8 @@ atoms(s::Sym) = Set{Sym}([s])
 
 atoms(x) = Set{Sym}()
 
+
+
 function tryfactor(sumfactors,i,a,b)
     d = Dict([t => i ∈ atoms(t) for t in sumfactors])
     # Which factors are independent of the index?
@@ -116,15 +120,15 @@ function tryfactor(sumfactors,i,a,b)
     isempty(indep) && return nothing
 
     # Start by factoring out the independent factors
-    result = prod((Sum(t, i, a, b) for t in indep))
+    result = prod(indep)
 
     # Which factors depend on the index?
     dep = filter(t -> d[t], sumfactors)
     # Maybe none do, so we're already done
-    isempty(dep) && return result
+    isempty(dep) && return result * (b - a + 1)
 
     # Otherwise, multiply those to the result
-    result *= Sum(prod(dep), i, a, b)
+    result *= gensum(prod(dep), i, a, b)
 
     return result
 end
@@ -135,7 +139,7 @@ const RW = Rewriters
 
 RULES = [
     @acrule (~a + ~b)*(~c) => (~a) * (~c) + (~b) * (~c)
-    @rule Sum(+(~~x), ~i, ~a, ~b) => sum([Sum(t, Sym{Int}(gensym(:i)), ~a, ~b) for t in (~~x)])
+    @rule Sum(+(~~x), ~i, ~a, ~b) => sum([gensum(t, ~i, ~a, ~b) for t in (~~x)])
     @rule Sum(*(~~x), ~i, ~a, ~b) => tryfactor(~~x, ~i, ~a, ~b) # ifelse(!_contains(~x,~i) || !_contains(~y,~i), Sum(~x, ~i, ~a, ~b) * Sum(~y, ~i, ~a, ~b), nothing)
     @rule Sum(~x, ~i, ~a, ~b) => ifelse(~i ∈ atoms(~x), nothing, ((~b) - (~a) + 1) * (~x))
 ]
@@ -159,11 +163,23 @@ using SymbolicUtils: Sym, Term
 using SymbolicUtils.Rewriters
 using DataStructures
 
-newsym() = Sym{Number}(gensym("cse"))
+newsym(x) = Sym{Number}(gensym(x))
+
+function csestep(x, vars, dict)
+    # Avoid breaking local variables out of their scope
+    isempty(setdiff(atoms(x), vars)) || return x
+
+    if !haskey(dict, x) 
+        dict[x] = gensym()
+    end
+
+    return dict[x]
+end
 
 function cse(expr)
+    vars = atoms(expr)
     dict = OrderedDict()
-    r = @rule ~x::(x -> x isa Term) => haskey(dict, ~x) ? dict[~x] : dict[~x] = gensym()
+    r = @rule ~x::(x -> x isa Term) => csestep(~x, vars, dict) 
     final = Postwalk(RW.Chain([r]))(expr)
-    [[var=>ex for (ex, var) in pairs(dict)]..., final]
+    [[var=>ex for (ex, var) in pairs(dict)]...] #, final]
 end
