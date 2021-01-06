@@ -32,70 +32,81 @@ using NestedTuples
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 export simulate
 
-function simulate(rng::AbstractRNG, d::ConditionalModel, N::Int)
+function simulate(rng::AbstractRNG, d::ConditionalModel, N::Int; trace_assignments=false)
     x = simulate(rng, d)
     T = typeof(x)
     ta = TupleArray{T, 1}(undef, N)
     @inbounds ta[1] = x
 
     for j in 2:N
-        @inbounds ta[j] = simulate(rng, d)
+        @inbounds ta[j] = simulate(rng, d; trace_assignments)
     end
 
     return ta
 end
 
-simulate(d::ConditionalModel, N::Int) = simulate(GLOBAL_RNG, d, N)
+simulate(d::ConditionalModel, N::Int; trace_assignments=false) = simulate(GLOBAL_RNG, d, N; trace_assignments)
 
-@inline function simulate(rng::AbstractRNG, c::ConditionalModel)
+@inline function simulate(rng::AbstractRNG, c::ConditionalModel; trace_assignments=false)
     m = Model(c)
-    return _simulate(getmoduletypencoding(m), m, argvals(c))(rng)
+    return _simulate(getmoduletypencoding(m), m, argvals(c), Val(trace_assignments))(rng)
 end
 
-@inline function simulate(m::ConditionalModel) 
-    simulate(GLOBAL_RNG, m)
+@inline function simulate(m::ConditionalModel; trace_assignments=false) 
+    simulate(GLOBAL_RNG, m; trace_assignments)
 end
 
-@inline function simulate(rng::AbstractRNG, m::Model)
+@inline function simulate(rng::AbstractRNG, m::Model; trace_assignments=false)
     return _simulate(getmoduletypencoding(m), m, NamedTuple())(rng)
 end
 
-simulate(m::Model) = simulate(GLOBAL_RNG, m)
+simulate(m::Model; trace_assignments=false) = simulate(GLOBAL_RNG, m; trace_assignments)
 
-@gg M function _simulate(_::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
+@gg M function _simulate(_::Type{M}, _m::Model, _args, trace_assignments::Val{V}) where {V, M <: TypeLevel{Module}}
+    trace_assignments = V
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSimulate() |> loadvals(_args, NamedTuple()))
+        type2model(_m) |> sourceSimulate(trace_assignments) |> loadvals(_args, NamedTuple()))
 end
 
-@gg M function _simulate(_::Type{M}, _m::Model, _args::NamedTuple{()}) where M <: TypeLevel{Module}
+@gg M function _simulate(_::Type{M}, _m::Model, _args::NamedTuple{()}, trace_assignments) where M <: TypeLevel{Module}
+    trace_assignments = unVal(trace_assignments)
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSimulate())
+        type2model(_m) |> sourceSimulate(trace_assignments))
 end
 
-sourceSimulate(m::Model) = sourceSimulate()(m)
-sourceSimulate(jd::ConditionalModel) = sourceSimulate(jd.model)
+sourceSimulate(m::Model; trace_assignments=false) = sourceSimulate(trace_assignments)(m)
+sourceSimulate(jd::ConditionalModel; trace_assignments=false) = sourceSimulate(jd.model; trace_assignments)
 
 export sourceSimulate
-function sourceSimulate() 
+function sourceSimulate(trace_assignments=false) 
+    ta = trace_assignments
     function(m::Model)
         _m = canonical(m)
         pars = sort(sampled(_m))
         
-        _traceName = Dict((k => Symbol(:_trace_, k) for k in pars))
+        tracekeys = sort(trace_assignments ? parameters(_m) : sampled(_m))
+        _traceName = Dict((k => Symbol(:_trace_, k) for k in tracekeys))
 
-        proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
+        function proc(_m, st::Assign)
+            q = @q begin $(st.x) = $(st.rhs) end
+            if trace_assignments
+                _traceName[st.x] = Symbol(:_trace_, st.x)
+                push!(q.args, :($(_traceName[st.x]) = $(st.x)))
+            end
+            q
+        end
         
         proc(_m, st::Sample)  = @q begin
-            $(_traceName[st.x]) = simulate(_rng, $(st.rhs))
+            $(_traceName[st.x]) = simulate(_rng, $(st.rhs); trace_assignments=$ta)
             $(st.x) = value($(_traceName[st.x]))
         end
 
         proc(_m, st::Return)  = :(_value = $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
-        _traces = map(x -> Expr(:(=), x,_traceName[x]), pars) 
+        _traces = map(x -> Expr(:(=), x,_traceName[x]), tracekeys) 
 
         wrap(kernel) = @q begin
             _rng -> begin
@@ -110,13 +121,13 @@ function sourceSimulate()
     end
 end
 
-simulate(rng::AbstractRNG, d::Distribution) = rand(rng, d)
+simulate(rng::AbstractRNG, d::Distribution; trace_assignments=false) = rand(rng, d)
 
-simulate(rng::AbstractRNG, d::iid{Int}) = [simulate(rng, d.dist) for j in 1:d.size]
+simulate(rng::AbstractRNG, d::iid{Int}; trace_assignments=false) = [simulate(rng, d.dist; trace_assignments) for j in 1:d.size]
 
 trace(x::NamedTuple) = x.trace
 trace(x) = x
 
 using MeasureTheory: AbstractMeasure
 
-simulate(rng::AbstractRNG, μ::AbstractMeasure) = rand(rng, μ)
+simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(rng, μ)
