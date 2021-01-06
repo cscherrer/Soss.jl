@@ -3,7 +3,7 @@ using GeneralizedGenerated
 using MLStyle
 
 using SymbolicUtils
-using SymbolicUtils: Sym
+using SymbolicUtils: Sym, symtype
 
 
 import SpecialFunctions
@@ -77,9 +77,26 @@ function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
     trace = simulate(cm).trace
     vars = merge(trace, argvals(cm))
     s = _symlogdensity(M, Model(cm), vars)
-    rewrite(s)
+    s = rewrite(s)
+
+    dict = symdict(cm)
+    known = Set(keys(dict))
+    
+    p(x) = (symtype(x) <: Number) && (atoms(x) ⊆ known)
+
+    r = @rule ~x::p => toconst(substitute(~x, dict))
+
+    RW.Postwalk(RW.PassThrough(r))(s) |> simplify
 end
 
+function toconst(x) 
+    r = @rule Sum(~x, ~i, ~a, ~b) => sum(makefunction(~i,~x), (~a):(~b))
+    RW.PassThrough(r)(x)
+end
+
+function makefunction(i::Sym, x)
+    mk_function(:($(codegen(i)) -> $(codegen(x))))
+end
 
 @gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
     Sym = SymbolicUtils.Sym
@@ -89,7 +106,9 @@ end
         type2model(_m) |> sourceSymlogdensity(types))
 end
 
-
+# Convert a named tuple to a dictionary for symbolic substitution
+symdict(nt::NamedTuple) = Dict((Sym{typeof(v)}(k) => v for (k,v) in pairs(nt)))
+symdict(cm::ConditionalModel) = symdict(merge(cm.argvals, cm.obs))
 
 # For(f, θ::Sym) = For(f, (θ,))
 

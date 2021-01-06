@@ -94,12 +94,6 @@ Base.getindex(a::Sym{A}, inds...) where {T, A <: AbstractArray{T}} = term(getind
 
 using SymbolicUtils.Rewriters
 
-
-
-
-
-
-
 function atoms(t::Term)
     if hasproperty(t.f, :name) && t.f.name == :Sum
         return setdiff(atoms(t.arguments[1]), [t.arguments[2]])

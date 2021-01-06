@@ -4,13 +4,30 @@ using MacroTools: @q
 
 # export codegen
 
-# moved to __init__
-# @gg function codegen(_m::Model, _args, _data)
-#     f = _codegen(type2model(_m))
-#     :($f(_args, _data))
-# end
+function makeℓ(cm::ConditionalModel{A,B,M}) where {A,B,M}
+    
+    s = symlogdensity(cm)
+    
+end
 
-function _codegen(cm :: ConditionalModel)
+
+
+# function substitute_constants(s, known)
+
+
+
+
+
+
+
+
+# moved to __init__
+@gg function codegen(_m::Model, _args, _data)
+    f = csecodegen(type2model(_m))
+    :($f(_args, _data))
+end
+
+function sourceCodegen(cm :: ConditionalModel)
     s = symlogdensity(cm)
 
     code = codegen(s)

@@ -17,6 +17,11 @@ argvals(c::ConditionalModel) = c.argvals
 export obs
 obs(c::ConditionalModel) = c.obs
 
+export observed
+function observed(cm::ConditionalModel{A,B,M,Argvals,Obs}) where {A,B,M,Argvals,Obs}
+    keys(schema(Obs))
+end
+
 Model(c::ConditionalModel) = c.model
 
 ConditionalModel(m::Model) = ConditionalModel(m,NamedTuple(), NamedTuple())
