@@ -92,20 +92,8 @@ function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
 
     r = @rule ~x::p => toconst(substitute(~x, dict))
 
-    # r = @rule ~x::p => substitute(~x, dict)
-
-    RW.Postwalk(RW.PassThrough(r))(s) |> simplify
+    RW.Prewalk(RW.PassThrough(r))(s) |> simplify
     # (r,s)
-end
-
-
-function subst(expr, old, new; fold=true)
-    rs = RW.Postwalk(RW.PassThrough(@rule ~x::(x -> x===old) => new))
-    if fold
-        rs(SymbolicUtils.to_symbolic(expr)) |> SymbolicUtils.fold
-    else
-        rs(SymbolicUtils.to_symbolic(expr))
-    end
 end
 
 function toconst(x) 
@@ -114,8 +102,23 @@ function toconst(x)
 end
 
 function evalsum(x,i,a,b)
-    sum(j -> subst(x, i, j), a:b)
+    sum(j -> subst(x, i, j; fold=true), a:b)
 end
+
+# Like `substitute`, but with only one substitution
+# Faster because it avoids Dictionary overhead
+function subst(expr, old, new; fold=true)
+    r = RW.Postwalk(RW.PassThrough(@rule ~x::(x -> x===old) => new))
+    if fold
+        r(SymbolicUtils.to_symbolic(expr)) |> SymbolicUtils.fold
+    else
+        r(SymbolicUtils.to_symbolic(expr))
+    end
+end
+
+
+
+
 
 @gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
     Sym = SymbolicUtils.Sym
