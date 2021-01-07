@@ -64,7 +64,7 @@ function MeasureTheory.logdensity(d::For, x::Symbolic{A}) where A <: AbstractArr
     obs = x[inds...]
     result = logdensity(dist, obs)
     for n in 1:N
-        result = genum(result, inds[n], 1, d.θ[n])
+        result = gensum(result, inds[n], 1, d.θ[n])
     end
     return result
 end
