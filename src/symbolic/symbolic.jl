@@ -97,23 +97,15 @@ function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
 end
 
 function toconst(x) 
-    r = @rule Sum(~x, ~i, ~a, ~b) => evalsum(~x, ~i, ~a, ~b)
-    RW.PassThrough(r)(x)
-end
-
-function evalsum(x,i,a,b)
-    sum(j -> subst(x, i, j; fold=true), a:b)
+    r = @rule Sum(~x, ~i, ~a, ~b) => sum(j -> subst(~x, ~i, j), (~a):(~b)) 
+    RW.PassThrough(r)(x) |> SymbolicUtils.fold
 end
 
 # Like `substitute`, but with only one substitution
 # Faster because it avoids Dictionary overhead
-function subst(expr, old, new; fold=true)
+function subst(expr, old, new)
     r = RW.Postwalk(RW.PassThrough(@rule ~x::(x -> x===old) => new))
-    if fold
-        r(SymbolicUtils.to_symbolic(expr)) |> SymbolicUtils.fold
-    else
-        r(SymbolicUtils.to_symbolic(expr))
-    end
+    r(SymbolicUtils.to_symbolic(expr))
 end
 
 
