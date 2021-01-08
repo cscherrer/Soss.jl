@@ -215,7 +215,8 @@ end
 
 # function codegen(T::Type, ::Sym{FnType{Tuple{Int64},Float64}}, ::Sym{Int64})
 
-function csecodegen(cm :: ConditionalModel)
+export codegen
+function codegen(cm :: ConditionalModel)
     assignments = cse(symlogdensity(cm))
 
     q = @q begin end
