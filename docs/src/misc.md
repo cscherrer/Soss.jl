@@ -14,7 +14,7 @@ To easily find all available inference primitives, enter `Soss.source<TAB>` at a
 
 ```julia
 julia> Soss.source
-sourcelogdensity         sourceRand            sourceXform
+sourceLogdensity         sourceRand            sourceXform
 sourceParticles      sourceWeightedSample
 ```
 

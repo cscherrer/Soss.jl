@@ -3,7 +3,6 @@ using TransformVariables,
       DynamicHMC,
       Distributions,
       Statistics,
-      StatsFuns,
       ForwardDiff
 import LogDensityProblems: ADgradient
 

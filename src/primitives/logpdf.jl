@@ -7,11 +7,11 @@ function MeasureTheory.logdensity(c::ConditionalModel{A,B,M}, x=NamedTuple()) wh
     _logdensity(M, Model(c), argvals(c), obs(c), x)
 end
 
-export sourcelogdensity
+export sourceLogdensity
 
-sourcelogdensity(m::AbstractModel) = sourcelogdensity()(Model(m))
+sourceLogdensity(m::AbstractModel) = sourceLogdensity()(Model(m))
 
-function sourcelogdensity()
+function sourceLogdensity()
     function(_m::Model)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
         # proc(_m, st :: Sample)     = :(_ℓ += logdensity($(st.rhs), $(st.x)))
@@ -42,5 +42,5 @@ MeasureTheory.logdensity(d::Distribution, val, tr) = logpdf(d, val)
 @gg M function _logdensity(_::Type{M}, _m::Model, _args, _data, _pars) where M <: TypeLevel{Module}
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourcelogdensity() |> loadvals(_args, _data, _pars))
+        type2model(_m) |> sourceLogdensity() |> loadvals(_args, _data, _pars))
 end
