@@ -22,12 +22,6 @@ function xform(m::ConditionalModel{A, B}) where {A,B}
     return _xform(getmoduletypencoding(m), Model(m), argvals(m), obs(m))
 end
 
-@gg M function _xform(_::Type{M}, _m::Model{Asub,B}, _args::A, _data) where {M <: TypeLevel{Module}, Asub, A,B}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data))
-end
-
 # function xform(m::Model{EmptyNTtype, B}) where {B}
 #     return xform(m,NamedTuple())    
 # end
@@ -144,3 +138,10 @@ xform(::Lebesgue{ℝ}) = asℝ
 xform(::Lebesgue{𝕀}) = as𝕀
 
 xform(::Lebesgue{ℝ₊}) = asℝ₊  
+
+
+@gg M function _xform(_::Type{M}, _m::Model{Asub,B}, _args::A, _data) where {M <: TypeLevel{Module}, Asub, A,B}
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data))
+end

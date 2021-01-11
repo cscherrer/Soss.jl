@@ -1,5 +1,6 @@
 
 using GeneralizedGenerated: runtime_eval
+using SymbolicCodegen
 using MacroTools: @q
 
 # export codegen
@@ -19,13 +20,21 @@ end
 
 
 
+export codegen
+function codegen(cm :: ConditionalModel)
+    assignments = cse(symlogdensity(cm))
 
+    q = @q begin end
 
-# moved to __init__
-@gg function codegen(_m::Model, _args, _data)
-    f = csecodegen(type2model(_m))
-    :($f(_args, _data))
+    for a in assignments
+        x = a[1]
+        rhs = codegen(a[2])
+        push!(q.args, @q begin $x = $rhs end)
+    end
+
+    MacroTools.flatten(q)
 end
+
 
 function sourceCodegen(cm :: ConditionalModel)
     s = symlogdensity(cm)
@@ -84,65 +93,65 @@ function codegen(::Type{T}, f::Function, args...) where {T}
     end
 end
 
-function codegen(::Type{T},::typeof(*), args...) where {T <: Number}
-    @gensym mul
-    ex = @q begin
-        $mul = 1.0
-    end
-    for arg in args
-        t = codegen(arg)
-        push!(ex.args, :($mul *= $t))
-    end
-    push!(ex.args, mul)
-    return ex
-end
+# function codegen(::Type{T},::typeof(*), args...) where {T <: Number}
+#     @gensym mul
+#     ex = @q begin
+#         $mul = 1.0
+#     end
+#     for arg in args
+#         t = codegen(arg)
+#         push!(ex.args, :($mul *= $t))
+#     end
+#     push!(ex.args, mul)
+#     return ex
+# end
 
-function codegen(::Type{T},::typeof(+), args...) where {T <: Number}
-    @gensym add
-    ex = @q begin
-        $add = 0.0
-    end
-    for arg in args
-        t = codegen(arg)
-        push!(ex.args, :($add += $t))
-    end
-    push!(ex.args, add)
-    return ex
-end
+# function codegen(::Type{T},::typeof(+), args...) where {T <: Number}
+#     @gensym add
+#     ex = @q begin
+#         $add = 0.0
+#     end
+#     for arg in args
+#         t = codegen(arg)
+#         push!(ex.args, :($add += $t))
+#     end
+#     push!(ex.args, add)
+#     return ex
+# end
 
-function codegen(::Type{T},s::SymbolicUtils.Sym{SymbolicUtils.FnType{Tuple{E,Int64,Int64,Int64},X}}, args...) where {T, E<: Number, X <: Number}
-    @assert s.name == :Sum
+# function codegen(::Type{T},s::SymbolicUtils.Sym{SymbolicUtils.FnType{Tuple{E,Int64,Int64,Int64},X}}, args...) where {T, E<: Number, X <: Number}
+#     @assert s.name == :Sum
 
-    @gensym sum
-    @gensym Δsum
-    @gensym lo
-    @gensym hi
+#     @gensym sum
+#     @gensym Δsum
+#     @gensym lo
+#     @gensym hi
         
-    (summand, ix, ixlo, ixhi) = codegen.(args)
+#     (summand, ix, ixlo, ixhi) = codegen.(args)
 
 
-    ex = @q begin
-        $Δsum = $summand
-        $sum += $Δsum
-    end
+#     ex = @q begin
+#         $Δsum = $summand
+#         $sum += $Δsum
+#     end
 
-    # Originally this part was in a `for` loop to allow for nested sums
-    ex = @q begin
-        $lo = $(ixlo)
-        $hi = $(ixhi)
-        @inbounds @fastmath for $(ix) in $lo:$hi
-            $ex
-        end
-    end
+#     # Originally this part was in a `for` loop to allow for nested sums
+#     ex = @q begin
+#         $lo = $(ixlo)
+#         $hi = $(ixhi)
+#         @inbounds @fastmath for $(ix) in $lo:$hi
+#             $ex
+#         end
+#     end
 
-    ex = @q begin
-        $sum = 0.0
-        $ex
-        $sum
-    end
+#     ex = @q begin
+#         $sum = 0.0
+#         $ex
+#         $sum
+#     end
 
-    return ex
-end
+#     return ex
+# end
 
 
 
@@ -215,17 +224,8 @@ end
 
 # function codegen(T::Type, ::Sym{FnType{Tuple{Int64},Float64}}, ::Sym{Int64})
 
-export codegen
-function codegen(cm :: ConditionalModel)
-    assignments = cse(symlogdensity(cm))
 
-    q = @q begin end
-
-    for a in assignments
-        x = a[1]
-        rhs = codegen(a[2])
-        push!(q.args, @q begin $x = $rhs end)
-    end
-
-    MacroTools.flatten(q)
+@gg function codegen(_m::Model, _args, _data)
+    f = csecodegen(type2model(_m))
+    :($f(_args, _data))
 end

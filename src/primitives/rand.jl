@@ -23,17 +23,7 @@ end
 
 rand(m::Model) = rand(GLOBAL_RNG, m)
 
-@gg M function _rand(_::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple()))
-end
 
-@gg M function _rand(_::Type{M}, _m::Model, _args::NamedTuple{()}) where M <: TypeLevel{Module}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceRand())
-end
 
 sourceRand(m::Model) = sourceRand()(m)
 sourceRand(jd::ConditionalModel) = sourceRand(jd.model)
@@ -59,4 +49,16 @@ function sourceRand()
 
         buildSource(_m, proc, wrap) |> MacroTools.flatten
     end
+end
+
+@gg M function _rand(_::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple()))
+end
+
+@gg M function _rand(_::Type{M}, _m::Model, _args::NamedTuple{()}) where M <: TypeLevel{Module}
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> sourceRand())
 end

@@ -62,19 +62,6 @@ end
 
 simulate(m::Model; trace_assignments=false) = simulate(GLOBAL_RNG, m; trace_assignments)
 
-@gg M function _simulate(_::Type{M}, _m::Model, _args, trace_assignments::Val{V}) where {V, M <: TypeLevel{Module}}
-    trace_assignments = V
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSimulate(trace_assignments) |> loadvals(_args, NamedTuple()))
-end
-
-@gg M function _simulate(_::Type{M}, _m::Model, _args::NamedTuple{()}, trace_assignments) where M <: TypeLevel{Module}
-    trace_assignments = unVal(trace_assignments)
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSimulate(trace_assignments))
-end
 
 sourceSimulate(m::Model; trace_assignments=false) = sourceSimulate(trace_assignments)(m)
 sourceSimulate(jd::ConditionalModel; trace_assignments=false) = sourceSimulate(jd.model; trace_assignments)
@@ -131,3 +118,18 @@ trace(x) = x
 using MeasureTheory: AbstractMeasure
 
 simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(rng, μ)
+
+
+@gg M function _simulate(_::Type{M}, _m::Model, _args, trace_assignments::Val{V}) where {V, M <: TypeLevel{Module}}
+    trace_assignments = V
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> sourceSimulate(trace_assignments) |> loadvals(_args, NamedTuple()))
+end
+
+@gg M function _simulate(_::Type{M}, _m::Model, _args::NamedTuple{()}, trace_assignments) where M <: TypeLevel{Module}
+    trace_assignments = unVal(trace_assignments)
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> sourceSimulate(trace_assignments))
+end

@@ -112,14 +112,6 @@ end
 
 
 
-@gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
-    Sym = SymbolicUtils.Sym
-    types = schema(_vars)
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSymlogdensity(types))
-end
-
 # Convert a named tuple to a dictionary for symbolic substitution
 symdict(nt::NamedTuple) = Dict((Sym{typeof(v)}(k) => v for (k,v) in pairs(nt)))
 symdict(cm::ConditionalModel) = symdict(merge(cm.argvals, cm.obs))
@@ -303,3 +295,12 @@ symdict(cm::ConditionalModel) = symdict(merge(cm.argvals, cm.obs))
 
 
 # sourceSymlogdensity(m::Model) = sourceSymlogdensity()(m)
+
+
+@gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
+    Sym = SymbolicUtils.Sym
+    types = schema(_vars)
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        type2model(_m) |> sourceSymlogdensity(types))
+end

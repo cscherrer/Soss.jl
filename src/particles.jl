@@ -85,18 +85,6 @@ parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(fill(d.dist, d.size))
     return _particles(getmoduletypencoding(m.model), m.model, m.args, Val(N))
 end
 
-@gg M function _particles(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceParticles()(type2model(_m), _n) |> loadvals(_args, NamedTuple()))
-end
-
-@gg M function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceParticles()(type2model(_m), _n))
-end
-
 sourceParticles(m::Model, N::Int) = sourceParticles()(m, Val(N))
 
 export sourceParticles
@@ -156,3 +144,16 @@ end
 
 
 # Base.to_indices(A, ::Particles) = i.particles
+
+
+@gg M function _particles(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        sourceParticles()(type2model(_m), _n) |> loadvals(_args, NamedTuple()))
+end
+
+@gg M function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        sourceParticles()(type2model(_m), _n))
+end

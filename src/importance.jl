@@ -30,17 +30,6 @@ export importanceSample
     return _importanceSample(getmoduletypencoding(p.model), p.model, p.args, q.model, q.args, _data)
 end
 
-@gg M function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
-    p = type2model(p)
-    q = type2model(q)
-        
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceImportanceSample(_data)(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()) |> merge_pqargs)
-
-
-end
-
 sourceImportanceSample(p::Model,q::Model,_data) = sourceImportanceSample(_data)(p::Model,q::Model)
 
 export sourceImportanceSample
@@ -175,4 +164,14 @@ function merge_pqargs(src)
         _args = merge(_pargs, _qargs)
         $src
     end |> MacroTools.flatten
+end
+
+
+@gg M function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
+    p = type2model(p)
+    q = type2model(q)
+        
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        sourceImportanceSample(_data)(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()) |> merge_pqargs)
 end

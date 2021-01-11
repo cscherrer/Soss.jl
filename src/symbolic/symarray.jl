@@ -94,16 +94,16 @@ Base.getindex(a::Sym{A}, inds...) where {T, A <: AbstractArray{T}} = term(getind
 
 using SymbolicUtils.Rewriters
 
-function atoms(t::Term)
-    if hasproperty(t.f, :name) && t.f.name == :Sum
-        return setdiff(atoms(t.arguments[1]), [t.arguments[2]])
-    else
-        return union(atoms(t.f), union(atoms.(t.arguments)...))
-    end
-end 
-atoms(s::Sym) = Set{Sym}([s])
+# function atoms(t::Term)
+#     if hasproperty(t.f, :name) && t.f.name == :Sum
+#         return setdiff(atoms(t.arguments[1]), [t.arguments[2]])
+#     else
+#         return union(atoms(t.f), union(atoms.(t.arguments)...))
+#     end
+# end 
+# atoms(s::Sym) = Set{Sym}([s])
 
-atoms(x) = Set{Sym}()
+# atoms(x) = Set{Sym}()
 
 
 
@@ -174,6 +174,6 @@ function cse(expr)
     vars = atoms(expr)
     dict = OrderedDict()
     r = @rule ~x::(x -> x isa Term) => csestep(~x, vars, dict) 
-    final = Postwalk(RW.Chain([r]))(expr)
+    final = RW.Postwalk(RW.Chain([r]))(expr)
     [[var=>ex for (ex, var) in pairs(dict)]...] #, final]
 end
