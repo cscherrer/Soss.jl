@@ -43,6 +43,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
+SymbolicCodegen = "fc9b0551-4f1b-42e1-8440-e8a535f5a551"
 SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 
