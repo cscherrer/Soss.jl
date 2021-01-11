@@ -29,6 +29,7 @@ function gensum(t,i,a,b)
 end
 
 
+# type-level stuff for GeneralizedGenerated
 @implement NGG.Typeable{Sym{T}} where {T} begin
     function to_type(@nospecialize(s))
         let args = Any[s.name] |> NGG.to_typelist
@@ -38,19 +39,7 @@ end
 end
 
 
-
-# #############################
-
-# struct Sum{F,T}
-#     f::F
-#     x::T 
-# end
-
-# @syms x i
-# Sum(x*2^i, i, 1, 4)
-
-
-using Soss, MeasureTheory
+using MeasureTheory
 
 
 
@@ -78,54 +67,10 @@ end
 
 # logdensity(d, x)
 
-
 Base.getindex(a::Sym{A}, inds...) where {T, A <: AbstractArray{T}} = term(getindex, a, inds...; type=T)
 
 
-
-
-
-# _contains(j^2,i)
-
-# isin(i*j)(i)
-
-
-# using Chain: @chain
-
 using SymbolicUtils.Rewriters
-
-# function atoms(t::Term)
-#     if hasproperty(t.f, :name) && t.f.name == :Sum
-#         return setdiff(atoms(t.arguments[1]), [t.arguments[2]])
-#     else
-#         return union(atoms(t.f), union(atoms.(t.arguments)...))
-#     end
-# end 
-# atoms(s::Sym) = Set{Sym}([s])
-
-# atoms(x) = Set{Sym}()
-
-
-
-function tryfactor(sumfactors,i,a,b)
-    d = Dict([t => i ∈ atoms(t) for t in sumfactors])
-    # Which factors are independent of the index?
-    indep = filter(t -> !d[t], sumfactors) 
-    isempty(indep) && return nothing
-
-    # Start by factoring out the independent factors
-    result = prod(indep)
-
-    # Which factors depend on the index?
-    dep = filter(t -> d[t], sumfactors)
-    # Maybe none do, so we're already done
-    isempty(dep) && return result * (b - a + 1)
-
-    # Otherwise, multiply those to the result
-    result *= gensum(prod(dep), i, a, b)
-
-    return result
-end
 
 
 const RW = Rewriters
@@ -134,7 +79,7 @@ const RW = Rewriters
 RULES = [
     @acrule (~a + ~b)*(~c) => (~a) * (~c) + (~b) * (~c)
     @rule Sum(+(~~x), ~i, ~a, ~b) => sum([gensum(t, ~i, ~a, ~b) for t in (~~x)])
-    @rule Sum(*(~~x), ~i, ~a, ~b) => tryfactor(~~x, ~i, ~a, ~b) # ifelse(!_contains(~x,~i) || !_contains(~y,~i), Sum(~x, ~i, ~a, ~b) * Sum(~y, ~i, ~a, ~b), nothing)
+    @rule Sum(*(~~x), ~i, ~a, ~b) => SymbolicCodegen.tryfactor(~~x, ~i, ~a, ~b) # ifelse(!_contains(~x,~i) || !_contains(~y,~i), Sum(~x, ~i, ~a, ~b) * Sum(~y, ~i, ~a, ~b), nothing)
     @rule Sum(~x, ~i, ~a, ~b) => ifelse(~i ∈ atoms(~x), nothing, ((~b) - (~a) + 1) * (~x))
 ]
 
@@ -144,36 +89,9 @@ function rewrite(s)
     simplify(s; polynorm=true) |> RW.Fixpoint(RW.Prewalk(RW.Chain(RULES))) |> simplify
 end
 
-# rewrite(s) = SymbolicUtils.simplify(s; polynorm=true)
-
-# a =  logdensity(d, x) |> simplify
-
-# r(a)
-
 
 
 using SymbolicUtils
 using SymbolicUtils: Sym, Term
 using SymbolicUtils.Rewriters
 using DataStructures
-
-newsym(x) = Sym{Number}(gensym(x))
-
-function csestep(x, vars, dict)
-    # Avoid breaking local variables out of their scope
-    isempty(setdiff(atoms(x), vars)) || return x
-
-    if !haskey(dict, x) 
-        dict[x] = gensym()
-    end
-
-    return dict[x]
-end
-
-function cse(expr)
-    vars = atoms(expr)
-    dict = OrderedDict()
-    r = @rule ~x::(x -> x isa Term) => csestep(~x, vars, dict) 
-    final = RW.Postwalk(RW.Chain([r]))(expr)
-    [[var=>ex for (ex, var) in pairs(dict)]...] #, final]
-end

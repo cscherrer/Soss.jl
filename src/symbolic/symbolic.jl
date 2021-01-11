@@ -93,7 +93,6 @@ function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
     r = @rule ~x::p => toconst(substitute(~x, dict))
 
     RW.Prewalk(RW.PassThrough(r))(s) |> simplify
-    # (r,s)
 end
 
 function toconst(x) 
