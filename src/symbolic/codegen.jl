@@ -22,12 +22,17 @@ function SymbolicCodegen.codegen(cm :: ConditionalModel)
         pushfirst!(code.args, :($v = getproperty(_args, $vname)))
     end
 
-    for v in sampled(m)
+    for v in observed(cm)
         vname = QuoteNode(v)
         pushfirst!(code.args, :($v = getproperty(_data, $vname)))
     end
 
-    code = MacroTools.flatten(:((_args, _data) -> $code))
+    for v in setdiff(sampled(m), observed(cm))
+        vname = QuoteNode(v)
+        pushfirst!(code.args, :($v = getproperty(_pars, $vname)))
+    end
+
+    code = MacroTools.flatten(:((_args, _data, _pars) -> $code))
 
     f = mk_function(code)
 
