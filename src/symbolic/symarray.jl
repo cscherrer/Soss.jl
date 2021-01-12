@@ -86,7 +86,9 @@ RULES = [
 export rewrite
 
 function rewrite(s)
-    simplify(s; polynorm=true) |> RW.Fixpoint(RW.Prewalk(RW.Chain(RULES))) |> simplify
+    s = simplify(s; polynorm=true)
+    s = RW.Prewalk(RW.Chain(RULES))(s)
+    s = simplify(s)
 end
 
 

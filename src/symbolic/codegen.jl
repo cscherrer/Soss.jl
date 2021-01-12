@@ -32,25 +32,15 @@ function SymbolicCodegen.codegen(cm :: ConditionalModel)
         pushfirst!(code.args, :($v = getproperty(_pars, $vname)))
     end
 
-    code = MacroTools.flatten(:((_args, _data, _pars) -> $code))
 
-    f = mk_function(code)
+    f = mk_function(getmodule(cm), (:_args, :_data, :_pars), (), code)
 
-    return f
+    result = function(cm, x) f(cm.argvals, cm.obs, x) end
+    return result
 end
 
 export sourceCodegen
 
 function sourceCodegen(cm :: ConditionalModel)
-    assignments = cse(symlogdensity(cm))
-
-    q = @q begin end
-
-    for a in assignments
-        x = a[1]
-        rhs = codegen(a[2])
-        push!(q.args, @q begin $x = $rhs end)
-    end
-
-    MacroTools.flatten(q)
+    codegen(symlogdensity(cm))
 end

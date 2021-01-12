@@ -18,6 +18,9 @@ using LazyArrays
 using FillArrays
 using Requires
 
+using RuntimeGeneratedFunctions
+RuntimeGeneratedFunctions.init(@__MODULE__)
+
 include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/statement.jl")

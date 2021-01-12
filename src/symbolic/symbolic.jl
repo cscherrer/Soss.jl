@@ -86,33 +86,59 @@ function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
     s = rewrite(s)
 
     dict = symdict(cm)
-    known = Set(keys(dict))
+    known = Set([Sym{typeof(v)}(k) for (k,v) in pairs(dict)])
     
     p(x) = (symtype(x) <: Number) && (atoms(x) ⊆ known)
 
-    r = @rule ~x::p => toconst(substitute(~x, dict))
+    r = @rule ~x::p => toconst(~x, dict)
 
     RW.Prewalk(RW.PassThrough(r))(s) |> simplify
 end
 
-function toconst(x) 
-    r = @rule Sum(~x, ~i, ~a, ~b) => sum(j -> subst(~x, ~i, j), (~a):(~b)) 
-    RW.PassThrough(r)(x) |> SymbolicUtils.fold
+toconst(s::Number, dict) = s
+
+function toconst(s::Symbolic, dict)
+    # First, here's the main body of the code
+    f_expr = @q begin $(codegen(s)) end
+
+    # Now prepend the variable assignments we'll need
+    for v in atoms(s)
+        v = v.name
+        vname = QuoteNode(v)
+        pushfirst!(f_expr.args, :($v = __dict[$vname]))
+    end
+
+    # Make it a function
+    f_expr = @q begin function f(__dict) $f_expr end end
+        
+    # Tidy up the blocks
+    f_expr = MacroTools.flatten(f_expr)
+        
+    # ...and generate!
+    f = @RuntimeGeneratedFunction f_expr
+    
+    f(dict)
 end
 
-# Like `substitute`, but with only one substitution
-# Faster because it avoids Dictionary overhead
-function subst(expr, old, new)
-    r = RW.Postwalk(RW.PassThrough(@rule ~x::(x -> x===old) => new))
-    r(SymbolicUtils.to_symbolic(expr))
-end
+
+# function toconst(x) 
+#     r = @rule Sum(~x, ~i, ~a, ~b) => sum(j -> subst(~x, ~i, j), (~a):(~b)) 
+#     RW.PassThrough(r)(x) |> SymbolicUtils.fold
+# end
+
+# # Like `substitute`, but with only one substitution
+# # Faster because it avoids Dictionary overhead
+# function subst(expr, old, new)
+#     r = RW.Postwalk(RW.PassThrough(@rule ~x::(x -> x===old) => new))
+#     r(SymbolicUtils.to_symbolic(expr))
+# end
 
 
 
 
 
 # Convert a named tuple to a dictionary for symbolic substitution
-symdict(nt::NamedTuple) = Dict((Sym{typeof(v)}(k) => v for (k,v) in pairs(nt)))
+symdict(nt::NamedTuple) = Dict((k => v for (k,v) in pairs(nt)))
 symdict(cm::ConditionalModel) = symdict(merge(cm.argvals, cm.obs))
 
 # For(f, θ::Sym) = For(f, (θ,))
