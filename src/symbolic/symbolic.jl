@@ -10,82 +10,29 @@ import SpecialFunctions
 using SpecialFunctions: logfactorial
 
 using NestedTuples: schema
+import NestedTuples
 
-# Convert a type into the SymbolicUtils type we'll use to represent it
-# for example,
-#     julia> Soss.sym(Int)
-#     :(Soss.Sym{Int64})
-#     
-#     julia> Soss.sym(Int, :n)
-#     :(Soss.Sym{Int64}(:n))
-#
-sym(T::Type) = :(Soss.Sym{$T})
-
-sym(T::Type, s::Symbol) = :($(sym(T))($(QuoteNode(s))))
-
-export sourceSymlogdensity
-function sourceSymlogdensity(types)
-    sym(s::Symbol) = Soss.sym(getproperty(types, s), s)
-
-    function(_m::Model)
-        function proc(_m, st :: Assign)
-            x = st.x
-            xname = QuoteNode(x)
-            xsym = sym(x)
-            return :($x = $xsym)
-        end
-
-        function proc(_m, st :: Sample)
-            x = st.x
-            xname = QuoteNode(x)
-            xsym = sym(x)
-            s = @q begin
-                $x = $xsym
-                _ℓ += logdensity($(st.rhs), $x)
-            end
-        end
-        proc(_m, st :: Return)     = nothing
-        proc(_m, st :: LineNumber) = nothing
-
-        function wrap(kernel)
-            q = @q begin
-                _ℓ = 0.0
-            end
-
-            for x in arguments(_m)
-                xname = QuoteNode(x)
-                xsym = sym(x)
-                push!(q.args, :($x = $xsym))
-            end
-
-            @q begin
-                $q
-                $kernel
-                return _ℓ
-            end
-        end
-
-        buildSource(_m, proc, wrap) |> MacroTools.flatten
-    end
-end
+export schema
 
 export symlogdensity
 
 symlogdensity(d,x::Sym) = logdensity(d,x)
 
-function sourceSymlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
+function NestedTuples.schema(cm::ConditionalModel) 
     trace = simulate(cm; trace_assignments=true).trace
-    vars = merge(trace, argvals(cm))
-    return sourceSymlogdensity(schema(vars))(Model(cm))
+    types = schema(merge(trace, argvals(cm)))
+    return types
 end
 
 function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
-    trace = simulate(cm; trace_assignments=true).trace
-    vars = merge(trace, argvals(cm))
-    s = _symlogdensity(M, Model(cm), vars)
+    types = schema(cm)
+    symlogdensity(cm.model, types, symdict(cm))
+end
+
+function symlogdensity(m::Model{A,B,M}, types, dict=Dict()) where {A,B,M}
+    s = _symlogdensity(M, m, to_type(types))
     s = rewrite(s)
 
-    dict = symdict(cm)
     known = Set([Sym{typeof(v)}(k) for (k,v) in pairs(dict)])
     
     p(x) = (symtype(x) <: Number) && (atoms(x) ⊆ known)
@@ -159,9 +106,73 @@ symdict(cm::ConditionalModel) = symdict(merge(cm.argvals, cm.obs))
 # sourceSymlogdensity(m::Model) = sourceSymlogdensity()(m)
 
 
-@gg M function _symlogdensity(_::Type{M}, _m::Model, _vars) where M <: TypeLevel{Module}
+# Convert a type into the SymbolicUtils type we'll use to represent it
+# for example,
+#     julia> Soss.sym(Int)
+#     :(Soss.Sym{Int64})
+#     
+#     julia> Soss.sym(Int, :n)
+#     :(Soss.Sym{Int64}(:n))
+#
+sym(T::Type) = :(Soss.Sym{$T})
+
+sym(T::Type, s::Symbol) = :($(sym(T))($(QuoteNode(s))))
+
+function sourceSymlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
+    types = schema(cm)
+    return sourceSymlogdensity(types)(Model(cm))
+end
+
+export sourceSymlogdensity
+function sourceSymlogdensity(types)
+    sym(s::Symbol) = Soss.sym(getproperty(types, s), s)
+
+    function(_m::Model)
+        function proc(_m, st :: Assign)
+            x = st.x
+            xname = QuoteNode(x)
+            xsym = sym(x)
+            return :($x = $xsym)
+        end
+
+        function proc(_m, st :: Sample)
+            x = st.x
+            xname = QuoteNode(x)
+            xsym = sym(x)
+            s = @q begin
+                $x = $xsym
+                _ℓ += logdensity($(st.rhs), $x)
+            end
+        end
+        proc(_m, st :: Return)     = nothing
+        proc(_m, st :: LineNumber) = nothing
+
+        function wrap(kernel)
+            q = @q begin
+                _ℓ = 0.0
+            end
+
+            for x in arguments(_m)
+                xname = QuoteNode(x)
+                xsym = sym(x)
+                push!(q.args, :($x = $xsym))
+            end
+
+            @q begin
+                $q
+                $kernel
+                return _ℓ
+            end
+        end
+
+        buildSource(_m, proc, wrap) |> MacroTools.flatten
+    end
+end
+
+
+@gg M function _symlogdensity(_::Type{M}, _m::Model, ::Type{T}) where {T, M <: TypeLevel{Module}}
+    types = GeneralizedGenerated.from_type(T)
     Sym = SymbolicUtils.Sym
-    types = schema(_vars)
     Expr(:let,
         Expr(:(=), :M, from_type(M)),
         type2model(_m) |> sourceSymlogdensity(types))
