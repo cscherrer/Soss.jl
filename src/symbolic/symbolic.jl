@@ -32,40 +32,10 @@ end
 function symlogdensity(m::Model{A,B,M}, types, dict=Dict()) where {A,B,M}
     s = _symlogdensity(M, m, to_type(types))
     s = rewrite(s)
-
-    known = Set([Sym{typeof(v)}(k) for (k,v) in pairs(dict)])
-    
-    p(x) = (symtype(x) <: Number) && (atoms(x) ⊆ known)
-
-    r = @rule ~x::p => toconst(~x, dict)
-
-    RW.Prewalk(RW.PassThrough(r))(s) |> simplify
+    return SymbolicCodegen.foldconstants(s, dict)
 end
 
-toconst(s::Number, dict) = s
 
-function toconst(s::Symbolic, dict)
-    # First, here's the main body of the code
-    f_expr = @q begin $(codegen(s)) end
-
-    # Now prepend the variable assignments we'll need
-    for v in atoms(s)
-        v = v.name
-        vname = QuoteNode(v)
-        pushfirst!(f_expr.args, :($v = __dict[$vname]))
-    end
-
-    # Make it a function
-    f_expr = @q begin function f(__dict) $f_expr end end
-        
-    # Tidy up the blocks
-    f_expr = MacroTools.flatten(f_expr)
-        
-    # ...and generate!
-    f = @RuntimeGeneratedFunction f_expr
-    
-    f(dict)
-end
 
 # Convert a named tuple to a dictionary for symbolic substitution
 symdict(nt::NamedTuple) = Dict((k => v for (k,v) in pairs(nt)))

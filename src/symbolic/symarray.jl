@@ -1,5 +1,6 @@
 using SymbolicUtils
 using SymbolicUtils: Sym, Term, FnType, Symbolic
+using SymbolicCodegen: Sum
 using CanonicalTraits
 
 const MaybeSym{T} = Union{T, Symbolic{T}}
@@ -18,8 +19,6 @@ function MeasureTheory.logdensity(d::iid,x::Sym{A}) where {A <: AbstractArray}
 
     return s
 end
-
-@syms Sum(t::Number, i::Int, a::Int, b::Int)::Number
 
 # get it?
 function gensum(t,i,a,b)
