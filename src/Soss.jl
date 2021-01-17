@@ -7,6 +7,7 @@ using Reexport: @reexport
 @reexport using StatsFuns
 using NamedTupleTools
 
+using SymbolicCodegen
 using MeasureTheory
 import MacroTools: prewalk, postwalk, @q, striplines, replace, @capture
 import MacroTools

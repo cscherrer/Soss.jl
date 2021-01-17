@@ -3,9 +3,10 @@ using GeneralizedGenerated
 using MLStyle
 
 using SymbolicUtils
-using SymbolicUtils: Sym, symtype
+using SymbolicUtils: Sym, Symbolic, symtype
 
 
+using MappedArrays
 import SpecialFunctions
 using SpecialFunctions: logfactorial
 
@@ -16,7 +17,25 @@ export schema
 
 export symlogdensity
 
-symlogdensity(d,x::Sym) = logdensity(d,x)
+symlogdensity(d,x::Symbolic) = logdensity(d,x)
+
+function symlogdensity(d::ProductMeasure{<:AbstractMappedArray}, x::Symbolic{A}) where {A <: AbstractArray}
+    dims = size(d.data)
+
+    iters = Sym{Int}.(gensym.(Symbol.(:i, 1:length(dims))))
+
+    # from the type, d wraps a mapped array
+    marr = d.data
+
+    T = eltype(marr.data)
+    result = symlogdensity(marr.f(term(getindex, marr.data, iters...; type=T)), x[iters...])
+
+    for i in 1:length(dims)
+        result = Sum(result, iters[i], 1, dims[i])
+    end
+    
+    return result
+end
 
 function NestedTuples.schema(cm::ConditionalModel) 
     trace = simulate(cm; trace_assignments=true).trace
@@ -84,14 +103,25 @@ symdict(cm::ConditionalModel) = symdict(merge(cm.argvals, cm.obs))
 #     julia> Soss.sym(Int, :n)
 #     :(Soss.Sym{Int64}(:n))
 #
-sym(T::Type) = :(Soss.Sym{$T})
 
-sym(T::Type, s::Symbol) = :($(sym(T))($(QuoteNode(s))))
 
 function sourceSymlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
     types = schema(cm)
     return sourceSymlogdensity(types)(Model(cm))
 end
+
+# Convert a type into the SymbolicUtils type we'll use to represent it
+# for example,
+#     julia> SymbolicCodegen.sym(Int)
+#     :(SymbolicCodegen.Sym{Int64})
+#     
+#     julia> SymbolicCodegen.sym(Int, :n)
+#     :(SymbolicCodegen.Sym{Int64}(:n))
+#
+
+sym(T::Type) = :(Soss.Sym{$T})
+
+sym(T::Type, s::Symbol) = :($(sym(T))($(QuoteNode(s))))
 
 export sourceSymlogdensity
 function sourceSymlogdensity(types)
@@ -111,7 +141,7 @@ function sourceSymlogdensity(types)
             xsym = sym(x)
             s = @q begin
                 $x = $xsym
-                _ℓ += logdensity($(st.rhs), $x)
+                _ℓ += symlogdensity($(st.rhs), $x)
             end
         end
         proc(_m, st :: Return)     = nothing

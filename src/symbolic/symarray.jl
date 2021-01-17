@@ -66,7 +66,6 @@ end
 
 # logdensity(d, x)
 
-Base.getindex(a::Sym{A}, inds...) where {T, A <: AbstractArray{T}} = term(getindex, a, inds...; type=T)
 
 
 using SymbolicUtils.Rewriters
@@ -85,7 +84,10 @@ RULES = [
 export rewrite
 
 function rewrite(s)
-    s = simplify(s; polynorm=true)
+    # TODO: Put this back once this issue is fixed:
+    # https://github.com/JuliaSymbolics/SymbolicUtils.jl/issues/175
+
+    s = simplify(s) #; polynorm=true)
     s = RW.Prewalk(RW.Chain(RULES))(s)
     s = simplify(s)
 end
