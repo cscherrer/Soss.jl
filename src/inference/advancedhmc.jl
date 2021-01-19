@@ -1,5 +1,4 @@
 ### Define the target distribution and its gradient
-using Distributions: logpdf, MvNormal
 using DiffResults: GradientResult, value, gradient
 import DiffResults
 using ForwardDiff: gradient!

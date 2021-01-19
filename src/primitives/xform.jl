@@ -1,7 +1,6 @@
 using Reexport
 
 using MLStyle
-using Distributions
 using NestedTuples
 import NestedTuples
 using TransformVariables
@@ -82,7 +81,7 @@ end
 
 using TransformVariables: ShiftedExp, ScaledShiftedLogistic
 
-function asTransform(supp:: RealInterval) 
+function asTransform(supp:: Dists.RealInterval) 
     (lb, ub) = (supp.lb, supp.ub)
 
     (lb, ub) == (-Inf, Inf) && (return asℝ)
@@ -108,26 +107,28 @@ end
 
 xform(d, _data) = nothing
 
-function xform(d::For{T,NTuple{N,Int}}, _data)  where {N,T}
-    xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
-    return as(Array, xf1, d.θ...)
+# TODO: Convert this to use `ProductMeasure`
+# function xform(d::For{T,NTuple{N,Int}}, _data)  where {N,T}
+#     xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
+#     return as(Array, xf1, d.θ...)
     
-    # TODO: Implement case of unequal supports
-end
+#     # TODO: Implement case of unequal supports
+# end
 
-function xform(d::For{T,NTuple{N,UnitRange{Int}}}, _data::NamedTuple)  where {N,T}
-    xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
-    return as(Array, xf1, length.(d.θ)...)
+# TODO: Convert this to use `ProductMeasure`
+# function xform(d::For{T,NTuple{N,UnitRange{Int}}}, _data::NamedTuple)  where {N,T}
+#     xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
+#     return as(Array, xf1, length.(d.θ)...)
     
-    # TODO: Implement case of unequal supports
-end
+#     # TODO: Implement case of unequal supports
+# end
 
+# TODO: Convert this to use `ProductMeasure`
+# function xform(d::iid, _data::NamedTuple)
+#     as(Array, xform(d.dist, _data), d.size...)
+# end
 
-function xform(d::iid, _data::NamedTuple)
-    as(Array, xform(d.dist, _data), d.size...)
-end
-
-xform(d::MvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
+# xform(d::MvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 
 xform(μ::AbstractMeasure,  _data::NamedTuple=NamedTuple()) = xform(representative(μ))
 

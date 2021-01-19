@@ -48,8 +48,9 @@ function sourceEntropy()
     end
 end
 
-StatsBase.entropy(d::iid) = prod(d.size) * entropy(d.dist)
-StatsBase.entropy(d::For) = sum(entropy ∘ d.f, d.θ)
+# TODO: Get entropy going again
+# StatsBase.entropy(d::iid) = prod(d.size) * entropy(d.dist)
+# StatsBase.entropy(d::For) = sum(entropy ∘ d.f, d.θ)
 
 
 @gg M function _entropy(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}

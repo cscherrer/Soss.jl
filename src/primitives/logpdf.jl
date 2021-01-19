@@ -36,7 +36,7 @@ function sourceLogdensity()
     end
 end
 
-MeasureTheory.logdensity(d::Distribution, val, tr) = logpdf(d, val)
+# MeasureTheory.logdensity(d::Distribution, val, tr) = logpdf(d, val)
 
 
 @gg M function _logdensity(_::Type{M}, _m::Model, _args, _data, _pars) where M <: TypeLevel{Module}

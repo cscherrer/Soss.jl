@@ -5,20 +5,21 @@ using CanonicalTraits
 
 const MaybeSym{T} = Union{T, Symbolic{T}}
 
-function MeasureTheory.logdensity(d::iid,x::Sym{A}) where {A <: AbstractArray}
-    dims = d.size
-    N = length(dims)
+# TODO: Convert this to use `ProductMeasure`
+# function MeasureTheory.logdensity(d::iid,x::Sym{A}) where {A <: AbstractArray}
+#     dims = d.size
+#     N = length(dims)
 
-    inds = Tuple(Sym{Int}.(gensym.(Symbol.(:i,1:N))))
+#     inds = Tuple(Sym{Int}.(gensym.(Symbol.(:i,1:N))))
 
-    s = logdensity(d.dist, x[inds...])
+#     s = logdensity(d.dist, x[inds...])
 
-    for (i,n) in zip(inds, dims)
-        s = Sum(s, i, 1, n)
-    end
+#     for (i,n) in zip(inds, dims)
+#         s = Sum(s, i, 1, n)
+#     end
 
-    return s
-end
+#     return s
+# end
 
 # get it?
 function gensum(t,i,a,b)
@@ -43,19 +44,19 @@ using MeasureTheory
 
 
 
-
-function MeasureTheory.logdensity(d::For, x::Symbolic{A}) where A <: AbstractArray
-    N = length(d.θ)
-    # inds = Tuple(@. Sym{Int}(gensym(Symbol(:i_, 1:N))))
-    inds = Tuple(@. Sym{Int}(Symbol(:i_, 1:N)))
-    dist = d.f(inds...)
-    obs = x[inds...]
-    result = logdensity(dist, obs)
-    for n in 1:N
-        result = gensum(result, inds[n], 1, d.θ[n])
-    end
-    return result
-end
+# TODO: Convert this to use `ProductMeasure`
+# function MeasureTheory.logdensity(d::For, x::Symbolic{A}) where A <: AbstractArray
+#     N = length(d.θ)
+#     # inds = Tuple(@. Sym{Int}(gensym(Symbol(:i_, 1:N))))
+#     inds = Tuple(@. Sym{Int}(Symbol(:i_, 1:N)))
+#     dist = d.f(inds...)
+#     obs = x[inds...]
+#     result = logdensity(dist, obs)
+#     for n in 1:N
+#         result = gensum(result, inds[n], 1, d.θ[n])
+#     end
+#     return result
+# end
 
 # μ = SymArray{Float64}(:μ, 5)
 # σ = SymArray{Float64}(:σ, 3)

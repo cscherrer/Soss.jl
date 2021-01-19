@@ -4,16 +4,19 @@ import Base.rand
 using Random
 using Reexport: @reexport
 
+
+
 @reexport using StatsFuns
+@reexport using MeasureTheory
+
 using NamedTupleTools
 
 using SymbolicCodegen
-using MeasureTheory
 import MacroTools: prewalk, postwalk, @q, striplines, replace, @capture
 import MacroTools
 import MLStyle
-import MonteCarloMeasurements
-using MonteCarloMeasurements: Particles, StaticParticles, AbstractParticles
+# import MonteCarloMeasurements
+# using MonteCarloMeasurements: Particles, StaticParticles, AbstractParticles
 
 using LazyArrays
 using FillArrays
@@ -34,21 +37,21 @@ include("core/weighted.jl")
 include("core/utils.jl")
 include("core/models/conditional.jl")
 
-include("distributions/dist.jl")
-include("distributions/for.jl")
-include("distributions/iid.jl")
-include("distributions/mix.jl")
+# include("distributions/dist.jl")
+# include("distributions/for.jl")
+# include("distributions/iid.jl")
+# include("distributions/mix.jl")
 # include("distributions/flat.jl")
-include("distributions/markovchain.jl")
+# include("distributions/markovchain.jl")
 
 include("primitives/rand.jl")
 include("simulate.jl")
 include("primitives/logpdf.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")
-@init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
-    include("primitives/bijectors.jl")
-end
+# @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
+#     include("primitives/bijectors.jl")
+# end
 include("primitives/entropy.jl")
 
 include("transforms/predict.jl")

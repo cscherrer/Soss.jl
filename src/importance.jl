@@ -1,5 +1,4 @@
-using Distributions
-using MonteCarloMeasurements
+# using MonteCarloMeasurements
 
 """
     importanceSample(p(p_args), q(q_args), observed_data)

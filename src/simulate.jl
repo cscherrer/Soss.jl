@@ -108,9 +108,9 @@ function sourceSimulate(trace_assignments=false)
     end
 end
 
-simulate(rng::AbstractRNG, d::Distribution; trace_assignments=false) = rand(rng, d)
+# simulate(rng::AbstractRNG, d::Distribution; trace_assignments=false) = rand(rng, d)
 
-simulate(rng::AbstractRNG, d::iid{Int}; trace_assignments=false) = [simulate(rng, d.dist; trace_assignments) for j in 1:d.size]
+# simulate(rng::AbstractRNG, d::iid{Int}; trace_assignments=false) = [simulate(rng, d.dist; trace_assignments) for j in 1:d.size]
 
 trace(x::NamedTuple) = x.trace
 trace(x) = x
