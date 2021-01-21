@@ -3,7 +3,6 @@ using SymbolicUtils: Sym, Term, FnType, Symbolic
 using SymbolicCodegen: Sum
 using CanonicalTraits
 
-const MaybeSym{T} = Union{T, Symbolic{T}}
 
 # TODO: Convert this to use `ProductMeasure`
 # function MeasureTheory.logdensity(d::iid,x::Sym{A}) where {A <: AbstractArray}
@@ -74,8 +73,12 @@ using SymbolicUtils.Rewriters
 
 const RW = Rewriters
 
+POSTRULES = [
+    @rule getindex(UnitRange(~a,~b), ~i) => ~i - ~a + 1
+    @rule (+(~~x))^2 => sum(a*b for a in (~~x) for b in (~~x))
+]
 
-RULES = [
+PRERULES = [
     @acrule (~a + ~b)*(~c) => (~a) * (~c) + (~b) * (~c)
     @rule Sum(+(~~x), ~i, ~a, ~b) => sum([gensum(t, ~i, ~a, ~b) for t in (~~x)])
     @rule Sum(*(~~x), ~i, ~a, ~b) => SymbolicCodegen.tryfactor(~~x, ~i, ~a, ~b) # ifelse(!_contains(~x,~i) || !_contains(~y,~i), Sum(~x, ~i, ~a, ~b) * Sum(~y, ~i, ~a, ~b), nothing)
@@ -88,8 +91,9 @@ function rewrite(s)
     # TODO: Put this back once this issue is fixed:
     # https://github.com/JuliaSymbolics/SymbolicUtils.jl/issues/175
 
-    s = simplify(s) #; polynorm=true)
-    s = RW.Prewalk(RW.Chain(RULES))(s)
+    s = symify(s) #; polynorm=true)
+    s = RW.Postwalk(RW.Fixpoint(RW.Chain(POSTRULES)))(s)
+    s = RW.Prewalk(RW.Fixpoint(RW.Chain(PRERULES)))(s)
     s = simplify(s)
 end
 
