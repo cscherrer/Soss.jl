@@ -3,7 +3,7 @@ using GeneralizedGenerated
 using MLStyle
 
 using SymbolicUtils
-using SymbolicUtils: Sym, Symbolic, symtype
+using SymbolicUtils: Sym, Symbolic, symtype, term
 
 
 using MappedArrays
@@ -45,7 +45,9 @@ end
 
 function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
     types = schema(cm)
-    symlogdensity(cm.model, types, symdict(cm))
+    # m = symify(cm.model)
+    m = cm.model
+    symlogdensity(m, types, symdict(cm))
 end
 
 function symlogdensity(m::Model{A,B,M}, types, dict=Dict()) where {A,B,M}
@@ -53,8 +55,6 @@ function symlogdensity(m::Model{A,B,M}, types, dict=Dict()) where {A,B,M}
     s = rewrite(s)
     return SymbolicCodegen.foldconstants(s, dict)
 end
-
-
 
 # Convert a named tuple to a dictionary for symbolic substitution
 symdict(nt::NamedTuple) = Dict((k => v for (k,v) in pairs(nt)))
