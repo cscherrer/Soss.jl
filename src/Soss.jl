@@ -12,6 +12,13 @@ using Reexport: @reexport
 using NamedTupleTools
 
 using SymbolicCodegen
+
+using SymbolicUtils: Symbolic
+const MaybeSym{T} = Union{T, Symbolic{T}}
+
+# MeasureTheory.For(f, dims::MaybeSym{<: Integer}...) = ProductMeasure(mappedarray(i -> f(Tuple(i)...), CartesianIndices(dims))) 
+# MeasureTheory.For(f, dims::MaybeSym{<: AbstractUnitRange}...) = ProductMeasure(mappedarray(i -> f(Tuple(i)...), CartesianIndices(dims))) 
+
 import MacroTools: prewalk, postwalk, @q, striplines, replace, @capture
 import MacroTools
 import MLStyle
@@ -60,6 +67,7 @@ include("transforms/utils.jl")
 include("transforms/basictransforms.jl")
 include("transforms/withdistributions.jl")
 
+include("symbolic/symify.jl")
 include("symbolic/symarray.jl")
 include("symbolic/symbolic.jl")
 include("symbolic/codegen.jl")
