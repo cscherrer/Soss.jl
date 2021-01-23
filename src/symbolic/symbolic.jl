@@ -17,24 +17,33 @@ export schema
 
 export symlogdensity
 
-symlogdensity(d,x::Symbolic) = logdensity(d,x)
+symlogdensity(d, x::Symbolic) = logdensity(d,x)
 
-function symlogdensity(d::ProductMeasure{<:AbstractMappedArray}, x::Symbolic{A}) where {A <: AbstractArray}
-    dims = size(d.data)
+function symlogdensity(d::ProductMeasure{<:AbstractArray}, x::Symbolic{A}) where {A <: AbstractArray}
+    dims = size(d)
 
     iters = Sym{Int}.(gensym.(Symbol.(:i, 1:length(dims))))
 
-    # from the type, d wraps a mapped array
-    marr = d.data
+    marginals = d.data
 
-    T = eltype(marr.data)
-    result = symlogdensity(marr.f(term(getindex, marr.data, iters...; type=T)), x[iters...])
-
+    # To begin, the result is just the summand
+    result = getsummand(marginals, x, iters)
+        
+    # Then we wrap in a summation index for each dimension
     for i in 1:length(dims)
         result = Sum(result, iters[i], 1, dims[i])
     end
     
     return result
+end
+
+function getsummand(marginals::AbstractMappedArray, x::Symbolic, iters)
+    T = eltype(marginals.data)
+    symlogdensity(marr.f(term(getindex, marr.data, iters...; type=T)), x[iters...])
+end
+
+function getsummand(marginals::Fill, x::Symbolic, iters)
+    symlogdensity(marginals.value, x[iters...])
 end
 
 function NestedTuples.schema(cm::ConditionalModel) 
@@ -43,11 +52,11 @@ function NestedTuples.schema(cm::ConditionalModel)
     return types
 end
 
-function symlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
+function symlogdensity(cm::ConditionalModel{A,B,M}; noinline=()) where {A,B,M}
     types = schema(cm)
     # m = symify(cm.model)
     m = cm.model
-    symlogdensity(m, types, symdict(cm))
+    symlogdensity(m, types, symdict(cm; noinline=noinline))
 end
 
 function symlogdensity(m::Model{A,B,M}, types, dict=Dict()) where {A,B,M}
@@ -57,8 +66,8 @@ function symlogdensity(m::Model{A,B,M}, types, dict=Dict()) where {A,B,M}
 end
 
 # Convert a named tuple to a dictionary for symbolic substitution
-symdict(nt::NamedTuple) = Dict((k => v for (k,v) in pairs(nt)))
-symdict(cm::ConditionalModel) = symdict(merge(cm.argvals, cm.obs))
+symdict(nt::NamedTuple; noinline=()) = Dict((k => v for (k,v) in pairs(nt) if k ∉ noinline))
+symdict(cm::ConditionalModel; noinline=()) = symdict(merge(cm.argvals, cm.obs); noinline=noinline)
 
 # For(f, θ::Sym) = For(f, (θ,))
 
