@@ -119,7 +119,7 @@ using MeasureTheory: AbstractMeasure
 
 simulate(μ::AbstractMeasure; trace_assignments=false) = simulate(Random.GLOBAL_RNG, μ; trace_assignments)
 
-simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(rng, μ)
+simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(rng, sampletype(μ),  μ)
 
 @gg M function _simulate(_::Type{M}, _m::Model, _args, trace_assignments::Val{V}) where {V, M <: TypeLevel{Module}}
     trace_assignments = V

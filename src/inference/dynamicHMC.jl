@@ -75,17 +75,29 @@ function dynamicHMC(
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
-    ℓ(pars) = logdensity(m, pars)
+
+    M = getmoduletypencoding(m)
+
+    ℓ = if haskey(kwargs, :ℓ)
+        codegen(m; ℓ = kwargs[:ℓ])
+    else 
+        (a, o, pars) -> _logdensity(M, Model(m), a, o, pars)
+    end
+
+    _argvals = argvals(m)
+    _obs = obs(m)
+
+    logp(pars) = ℓ(_argvals, _obs, pars)
+
     t = xform(m)
-    P = LogDensityProblems.TransformedLogDensity(t, ℓ)
+    P = LogDensityProblems.TransformedLogDensity(t, logp)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)
 
     results = DynamicHMC.mcmc_with_warmup(
         rng,
         ∇P,
         N;
-        reporter = reporter,
-        kwargs...,
+        reporter = reporter
     )
     samples = TransformVariables.transform.(t, results.chain)
     return samples

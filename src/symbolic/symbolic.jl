@@ -39,7 +39,7 @@ end
 
 function getsummand(marginals::AbstractMappedArray, x::Symbolic, iters)
     T = eltype(marginals.data)
-    symlogdensity(marr.f(term(getindex, marr.data, iters...; type=T)), x[iters...])
+    symlogdensity(marginals.f(term(getindex, marginals.data, iters...; type=T)), x[iters...])
 end
 
 function getsummand(marginals::Fill, x::Symbolic, iters)
@@ -56,7 +56,8 @@ function symlogdensity(cm::ConditionalModel{A,B,M}; noinline=()) where {A,B,M}
     types = schema(cm)
     # m = symify(cm.model)
     m = cm.model
-    symlogdensity(m, types, symdict(cm; noinline=noinline))
+    dict = symdict(cm; noinline=noinline)
+    symlogdensity(m, types, dict)
 end
 
 function symlogdensity(m::Model{A,B,M}, types, dict=Dict()) where {A,B,M}

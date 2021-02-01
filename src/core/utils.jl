@@ -220,9 +220,9 @@ function loadvals(argstype, datatype, parstype)
         push!(loader.args, :($k = _pars.$k))
     end
 
-    for k in pars ∩ data
-        push!(loader.args, :($k = LazyMerge(_data.$k, _pars.$k)))
-    end
+    # for k in pars ∩ data
+    #     push!(loader.args, :($k = Soss.NestedTuples.LazyMerge(_data.$k, _pars.$k)))
+    # end
 
     src -> (@q begin
         $loader

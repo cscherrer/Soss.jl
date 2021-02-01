@@ -8,8 +8,9 @@ import SymbolicCodegen
 
 export codegen
 
-function SymbolicCodegen.codegen(cm :: ConditionalModel)
-    code = sourceCodegen(cm)
+function SymbolicCodegen.codegen(cm :: ConditionalModel; kwargs...)
+
+    code = codegen(get(kwargs, :ℓ, symlogdensity(cm)))
 
     m = Model(cm)
     for (v, rhs) in pairs(m.vals)
@@ -32,11 +33,11 @@ function SymbolicCodegen.codegen(cm :: ConditionalModel)
     end
 
 
-    f = mk_function(getmodule(cm), (:_args, :_data, :_pars), (), code)
+    return mk_function(getmodule(cm), (:_args, :_data, :_pars), (), code)
 
-    result = function(cm, x) f(cm.argvals, cm.obs, x) end
-    return result
 end
+
+
 
 export sourceCodegen
 

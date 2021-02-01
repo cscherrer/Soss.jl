@@ -1,4 +1,4 @@
-# using Distributions: ValueSupport, VariateForm
+# using Dists: ValueSupport, VariateForm
 
 # struct MixedSupport <: ValueSupport end
 # struct MixedVariate <: VariateForm end
