@@ -216,7 +216,7 @@ function loadvals(argstype, datatype, parstype)
         push!(loader.args, :($k = _data.$k))
     end
 
-    for k in setdiff(pars, data)
+    for k in pars # setdiff(pars, data)
         push!(loader.args, :($k = _pars.$k))
     end
 
