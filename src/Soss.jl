@@ -52,7 +52,7 @@ include("core/models/conditional.jl")
 
 include("primitives/rand.jl")
 include("simulate.jl")
-include("primitives/logpdf.jl")
+include("primitives/logdensity.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")
 # @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
