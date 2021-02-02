@@ -4,8 +4,6 @@ import Base.rand
 using Random
 using Reexport: @reexport
 
-
-
 @reexport using StatsFuns
 @reexport using MeasureTheory
 
@@ -28,6 +26,7 @@ import MLStyle
 using LazyArrays
 using FillArrays
 using Requires
+using ArrayInterface: StaticInt
 
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
@@ -68,10 +67,9 @@ include("transforms/basictransforms.jl")
 include("transforms/withdistributions.jl")
 
 include("symbolic/symify.jl")
-include("symbolic/symarray.jl")
+include("symbolic/rules.jl")
 include("symbolic/symbolic.jl")
 include("symbolic/codegen.jl")
-# include("symbolic/codegen-sympy.jl") 
 
 # include("particles.jl")
 include("plots.jl")
