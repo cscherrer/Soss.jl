@@ -3,23 +3,6 @@ using SymbolicUtils: Sym, Term, FnType, Symbolic
 using SymbolicCodegen: Sum
 using CanonicalTraits
 
-
-# TODO: Convert this to use `ProductMeasure`
-# function MeasureTheory.logdensity(d::iid,x::Sym{A}) where {A <: AbstractArray}
-#     dims = d.size
-#     N = length(dims)
-
-#     inds = Tuple(Sym{Int}.(gensym.(Symbol.(:i,1:N))))
-
-#     s = logdensity(d.dist, x[inds...])
-
-#     for (i,n) in zip(inds, dims)
-#         s = Sum(s, i, 1, n)
-#     end
-
-#     return s
-# end
-
 # get it?
 function gensum(t,i,a,b)
     new_i = Sym{Int}(gensym(:i))
@@ -38,39 +21,7 @@ end
 end
 
 
-using MeasureTheory
-
-
-
-
-# TODO: Convert this to use `ProductMeasure`
-# function MeasureTheory.logdensity(d::For, x::Symbolic{A}) where A <: AbstractArray
-#     N = length(d.θ)
-#     # inds = Tuple(@. Sym{Int}(gensym(Symbol(:i_, 1:N))))
-#     inds = Tuple(@. Sym{Int}(Symbol(:i_, 1:N)))
-#     dist = d.f(inds...)
-#     obs = x[inds...]
-#     result = logdensity(dist, obs)
-#     for n in 1:N
-#         result = gensum(result, inds[n], 1, d.θ[n])
-#     end
-#     return result
-# end
-
-# μ = SymArray{Float64}(:μ, 5)
-# σ = SymArray{Float64}(:σ, 3)
-
-# # d = For(5,3) do i,j Normal(μ[i],σ[j]) end
-# d = For(5) do i Normal(μ[i],1) end
-# x = SymArray{Float64}(:x,5)
-
-# logdensity(d, x)
-
-
-
 using SymbolicUtils.Rewriters
-
-
 const RW = Rewriters
 
 POSTRULES = [
@@ -96,10 +47,3 @@ function rewrite(s)
     s = RW.Prewalk(RW.Fixpoint(RW.Chain(PRERULES)))(s)
     s = simplify(s)
 end
-
-
-
-using SymbolicUtils
-using SymbolicUtils: Sym, Term
-using SymbolicUtils.Rewriters
-using DataStructures
