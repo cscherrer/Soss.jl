@@ -46,7 +46,7 @@ function rewrite(s)
     # s=  simplify(s ; polynorm=true)
     r1 = RW.Postwalk(RW.Fixpoint(RW.Chain(POSTRULES)))
     r2 = RW.Prewalk(RW.Fixpoint(RW.Chain(PRERULES)))
-    s = RW.Fixpoint(RW.Chain([r1, r2]))(s)
+    s = RW.Chain([r1, r2])(s)
 
     s = simplify(s)
 end

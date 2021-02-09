@@ -64,6 +64,7 @@ include("transforms/utils.jl")
 include("transforms/basictransforms.jl")
 include("transforms/withdistributions.jl")
 
+include("symbolic/symcall.jl")
 include("symbolic/symify.jl")
 include("symbolic/rules.jl")
 include("symbolic/symbolic.jl")

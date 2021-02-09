@@ -55,15 +55,16 @@ function NestedTuples.schema(cm::ConditionalModel)
 end
 
 function symlogdensity(cm::ConditionalModel{A,B,M}; noinline=()) where {A,B,M}
-    types = schema(cm)
+    trace = simulate(cm; trace_assignments=true).trace
+    types = schema(merge(trace, argvals(cm)))
     # m = symify(cm.model)
     m = cm.model
     dict = symdict(cm; noinline=noinline)
-    symlogdensity(m, types, dict)
+    symlogdensity(m, types, dict, trace)
 end
 
-function symlogdensity(m::Model{A,B,M}, types, dict=Dict()) where {A,B,M}
-    s = _symlogdensity(M, m, to_type(types))
+function symlogdensity(m::Model{A,B,M}, types, dict, trace) where {A,B,M}
+    s = SymCall(convert(Dict,trace))(_symlogdensity,M, m, to_type(types))
     s = rewrite(s)
     return SymbolicCodegen.foldconstants(s, dict)
 end
