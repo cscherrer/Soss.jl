@@ -13,6 +13,8 @@ using SpecialFunctions: logfactorial
 using NestedTuples: schema
 import NestedTuples
 
+using FillArrays
+
 export schema
 
 export symlogdensity
@@ -143,6 +145,8 @@ function sourceSymlogdensity(types)
             xname = QuoteNode(x)
             xsym = sym(x)
             return :($x = $xsym)
+            # rhs = st.rhs
+            # return :($x = $rhs)
         end
 
         function proc(_m, st :: Sample)
