@@ -23,8 +23,6 @@ import MLStyle
 # import MonteCarloMeasurements
 # using MonteCarloMeasurements: Particles, StaticParticles, AbstractParticles
 
-using LazyArrays
-using FillArrays
 using Requires
 using ArrayInterface: StaticInt
 
