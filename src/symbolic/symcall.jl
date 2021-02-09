@@ -1,6 +1,6 @@
 using IRTools
 using SymbolicUtils: term
-using MacroTools
+using MacroTools: isexpr
 using SymbolicUtils
 using SymbolicCodegen
 
