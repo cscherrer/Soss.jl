@@ -72,51 +72,6 @@ end
 symdict(nt::NamedTuple; noinline=()) = Dict((k => v for (k,v) in pairs(nt) if k ∉ noinline))
 symdict(cm::ConditionalModel; noinline=()) = symdict(merge(cm.argvals, cm.obs); noinline=noinline)
 
-# For(f, θ::Sym) = For(f, (θ,))
-
-# function For(f::F, θ::NTuple{N,Sym}) where {F, N}
-#     For{F,NTuple{N,Sym},Sym,Sym}(f,θ)
-# end
-
-
-
-# # # integrate(exp(ℓ), (sym(:μ), -oo, oo), (sym(:logσ),-oo,oo))
-# export marginal
-# function marginal(ℓ,v)
-#     f = ℓ.func
-#     f == sympy.Add || return ℓ
-#     newargs = filter(t -> sym(v) in atoms(t), collect(ℓ.args))
-#     foldl(+,newargs)
-# end
-
-# export score
-# score(ℓ::Sym, v) = diff(ℓ, sym(v))
-
-# score(m::Model, v) = score(symlogdensity(m), v)
-
-# marginal(m::Model, v) = marginal(m |> symlogdensity, v)
-
-# symvar(st) = :($sympy.IndexedBase($(st.x)))
-
-# function symvar(st::Sample)
-#     st.rhs.args[1] ∈ [:For, :iid] && return :($sympy.IndexedBase($(st.x)))
-#     return :($sym($(st.x)))
-# end
-
-
-# sourceSymlogdensity(m::Model) = sourceSymlogdensity()(m)
-
-
-# Convert a type into the SymbolicUtils type we'll use to represent it
-# for example,
-#     julia> Soss.sym(Int)
-#     :(Soss.Sym{Int64})
-#     
-#     julia> Soss.sym(Int, :n)
-#     :(Soss.Sym{Int64}(:n))
-#
-
-
 function sourceSymlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
     types = schema(cm)
     return sourceSymlogdensity(types)(Model(cm))
