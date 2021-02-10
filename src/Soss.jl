@@ -43,7 +43,7 @@ include("core/models/conditional.jl")
 
 # include("distributions/dist.jl")
 # include("distributions/for.jl")
-# include("distributions/iid.jl")
+include("distributions/iid.jl")
 # include("distributions/mix.jl")
 # include("distributions/flat.jl")
 # include("distributions/markovchain.jl")
