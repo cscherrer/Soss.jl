@@ -4,7 +4,7 @@ export logdensity
 import MeasureTheory
 
 function MeasureTheory.logdensity(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
-    _logdensity(M, Model(c), argvals(c), obs(c), x)
+    _logdensity(M, Model(c), argvals(c), observations(c), x)
 end
 
 export sourceLogdensity

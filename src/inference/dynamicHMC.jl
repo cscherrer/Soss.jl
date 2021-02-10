@@ -85,7 +85,7 @@ function dynamicHMC(
     end
 
     _argvals = argvals(m)
-    _obs = obs(m)
+    _obs = observations(m)
 
     logp(pars) = ℓ(_argvals, _obs, pars)
 

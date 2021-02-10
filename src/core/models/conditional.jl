@@ -7,7 +7,7 @@ end
 function Base.show(io::IO, cm::ConditionalModel)
     println(io, "ConditionalModel given")
     println(io, "    arguments    ", keys(argvals(cm)))
-    println(io, "    observations ", keys(obs(cm)))
+    println(io, "    observations ", keys(observations(cm)))
     println(io, Model(cm))
 end
 
@@ -15,7 +15,7 @@ export argvals
 argvals(c::ConditionalModel) = c.argvals
 
 export obs
-obs(c::ConditionalModel) = c.obs
+observations(c::ConditionalModel) = c.obs
 
 export observed
 function observed(cm::ConditionalModel{A,B,M,Argvals,Obs}) where {A,B,M,Argvals,Obs}

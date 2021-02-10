@@ -18,7 +18,7 @@ export xform
 xform(m::ConditionalModel{A, B}, _data::NamedTuple) where {A,B} = xform(m | _data)
 
 function xform(m::ConditionalModel{A, B}) where {A,B}
-    return _xform(getmoduletypencoding(m), Model(m), argvals(m), obs(m))
+    return _xform(getmoduletypencoding(m), Model(m), argvals(m), observations(m))
 end
 
 # function xform(m::Model{EmptyNTtype, B}) where {B}
