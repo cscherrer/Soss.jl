@@ -14,7 +14,7 @@ end
 export argvals
 argvals(c::ConditionalModel) = c.argvals
 
-export obs
+export observations
 observations(c::ConditionalModel) = c.obs
 
 export observed
