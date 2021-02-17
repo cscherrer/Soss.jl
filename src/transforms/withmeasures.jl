@@ -3,7 +3,7 @@ using Soss
 get_distname(x::Symbol) = Symbol(:_, x, :_dist)
 
 """
-    withdistributions(m::Model) -> Model
+    withmeasures(m::Model) -> Model
 
 julia> m = @model begin
     σ ~ HalfNormal()
@@ -12,7 +12,7 @@ julia> m = @model begin
     end
 end;
 
-julia> m_dists = Soss.withdistributions(m)
+julia> m_dists = Soss.withmeasures(m)
 @model begin
         _σ_dist = HalfNormal()
         σ ~ _σ_dist
@@ -42,7 +42,7 @@ julia> rand(ydist)
  -0.020502677724193594
   0.04612690097957398
 """
-function withdistributions(m::Model)
+function withmeasures(m::Model)
     theModule = getmodule(m)
     m_init = Model(theModule, m.args, NamedTuple(), NamedTuple(), nothing)
 
