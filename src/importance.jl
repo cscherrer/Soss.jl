@@ -34,8 +34,6 @@ sourceImportanceSample(p::Model,q::Model,_data) = sourceImportanceSample(_data)(
 export sourceImportanceSample
 function sourceImportanceSample(_data)
     function(p::Model,q::Model)
-        p = canonical(p)
-        q = canonical(q)
         m = merge(p,q)
 
         _datakeys = getntkeys(_data)

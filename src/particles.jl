@@ -90,8 +90,7 @@ sourceParticles(m::Model, N::Int) = sourceParticles()(m, Val(N))
 export sourceParticles
 function sourceParticles() 
         
-    function(m::Model, ::Type{Val{_N}}) where {_N}
-        _m = canonical(m)
+    function(_m::Model, ::Type{Val{_N}}) where {_N}
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs), $_N))
         proc(_m, st::Return)  = :(return $(st.rhs))

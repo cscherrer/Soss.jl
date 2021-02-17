@@ -30,9 +30,7 @@ sourceRand(jd::ConditionalModel) = sourceRand(jd.model)
 
 export sourceRand
 function sourceRand() 
-    function(m::Model)
-        
-        _m = canonical(m)
+    function(_m::Model)
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         proc(_m, st::Sample)  = :($(st.x) = rand(_rng, $(st.rhs)))
         proc(_m, st::Return)  = :(return $(st.rhs))

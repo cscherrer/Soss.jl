@@ -3,7 +3,7 @@ using Reexport
 using MLStyle
 using NestedTuples
 import NestedTuples
-using TransformVariables
+import TransformVariables
 
 function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
     schema(T)
@@ -32,8 +32,6 @@ sourceXform(m::Model) = sourceXform()(m)
 
 function sourceXform(_data=NamedTuple())
     function(_m::Model)
-
-        _m = canonical(_m)
 
         _datakeys = getntkeys(_data)
         proc(_m, st::Assign)        = :($(st.x) = $(st.rhs))

@@ -69,8 +69,7 @@ sourceSimulate(jd::ConditionalModel; trace_assignments=false) = sourceSimulate(j
 export sourceSimulate
 function sourceSimulate(trace_assignments=false) 
     ta = trace_assignments
-    function(m::Model)
-        _m = canonical(m)
+    function(_m::Model)
         pars = sort(sampled(_m))
         
         tracekeys = sort(trace_assignments ? parameters(_m) : sampled(_m))
