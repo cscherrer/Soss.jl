@@ -190,7 +190,5 @@ end
 function statements(am::AbstractModel)
     m = Model(am)
     s = Statement[Soss.findStatement(m, v) for v in variables(m)]
-    retn = findStatement(m, :return)
-    isnothing(retn) || push!(s, retn)
     return s
 end
