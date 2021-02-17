@@ -1,5 +1,5 @@
 ### Define the target distribution and its gradient
-using DiffResults: GradientResult, value, gradient
+using DiffResults: GradientResult
 import DiffResults
 using ForwardDiff: gradient!
 
