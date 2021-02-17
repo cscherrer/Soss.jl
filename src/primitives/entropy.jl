@@ -14,8 +14,7 @@ export sourceEntropy
     
 function sourceEntropy() 
         
-    function(m::Model, ::Val{_N}) where {_N}
-        _m = canonical(m)
+    function(_m::Model, ::Val{_N}) where {_N}
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         
         function proc(_m, st::Sample) 
