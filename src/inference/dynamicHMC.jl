@@ -99,8 +99,17 @@ function dynamicHMC(
         N;
         reporter = reporter
     )
-    samples = TransformVariables.transform.(t, results.chain)
-    return samples
+    T = typeof(t(zeros(t.dimension)))
+
+    x = TupleArray{T,1}(undef, N)
+
+    for j in 1:N
+        @inbounds x[j] = TransformVariables.transform(t, results.chain[j])
+    end
+
+    return x
+    # samples = TransformVariables.transform.(t, results.chain)
+    # return samples
 end
 
 function dynamicHMC(
