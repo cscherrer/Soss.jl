@@ -1,15 +1,9 @@
-
-
 using Soss
-using NestedTuples
-
-using TransformVariables,
-      LogDensityProblems,
-      DynamicHMC,
-      Statistics,
-      ForwardDiff
-import LogDensityProblems: ADgradient
+using SampleChains
+using SampleChainsDynamicHMC
+using Statistics
 using LinearAlgebra
+using Random
 
 function loglik(X,y) 
     (N,k) = size(X)
@@ -40,45 +34,27 @@ function bayeslm(
     rng::AbstractRNG,
     X,
     y,
-    pr, 
-    N::Int = 1000;
+    pr;
+    N::Int = 1000,
     ad_backend = Val(:ForwardDiff),
-    reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
-    logp = makelogp(X, y, pr)
+    ℓ = makelogp(X, y, pr)
     t = xform(pr(k=size(X,2)))
-    P = LogDensityProblems.TransformedLogDensity(t, logp)
-    ∇P = LogDensityProblems.ADgradient(ad_backend, P)
-
-    results = DynamicHMC.mcmc_with_warmup(
-        rng,
-        ∇P,
-        N;
-        reporter = reporter
-    )
-    T = typeof(t(zeros(t.dimension)))
-
-    # x = TupleArray{T,1}(undef, N)
-
-    # for j in 1:N
-    #     @inbounds x[j] = TransformVariables.transform(t, results.chain[j])
-    # end
-
-    # return x
 
 
-    samples = TransformVariables.transform.(t, results.chain)
-    return samples
+    chain = initialize!(DynamicHMCChain, ℓ, t)
+
+    drawsamples!(chain,N)
 end
 
-using Random
+
 rng = Random.GLOBAL_RNG
 
 
 # One million data points, 5 parameters + intercept
-N = 1000000;
-k = 5;
+N = 1000;
+k = 20;
 X = randn(N,k);
 α = 10.0;
 β = randn(k);
@@ -95,4 +71,4 @@ pr = @model k begin
 end;
 
 # Sample from the posterior
-@time post = bayeslm(rng, X, y, pr);
+@time chain = bayeslm(rng, X, y, pr; N=100)
