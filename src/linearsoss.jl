@@ -54,7 +54,7 @@ rng = Random.GLOBAL_RNG
 
 
 # One million data points, 4 parameters + intercept
-N = 1000;
+N = 1000000;
 k = 4;
 X = randn(N,k);
 α = 10.0;
