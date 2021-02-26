@@ -4,22 +4,23 @@ using SampleChainsDynamicHMC
 using Statistics
 using LinearAlgebra
 using Random
+using Tullio
 
 function loglik(X,y) 
     (N,k) = size(X)
     yᵗy = y' * y
-    yᵗX = y' * X
+    yᵗX = vec(y' * X)
     XᵗX = X' * X
-    ∑X = sum(X; dims=1)
+    ∑X = vec(sum(X; dims=1))
     ∑y = sum(y)
 
     function f(α, β, σ)
         # If α==0 this would be
         # -N * log(σ) - 0.5/σ^2 * (yᵗy - 2 * yᵗX * β + β' * XᵗX * β)
-        linear = α * ∑y + dot(yᵗX, β)
-        quadratic = N * α^2 .+ (2α * dot(∑X, β) + β' * XᵗX * β)
-
-        -N * log(σ) - 0.5/σ^2 * (yᵗy - 2 * linear + quadratic)
+        t0 = yᵗy - α * (2∑y - N * α)
+        @tullio t1 = 2β[i] * (α * ∑X[i] - yᵗX[i])
+        @tullio t2 = β[i] * XᵗX[i,j] * β[j]
+        -N * log(σ) - 0.5/σ^2 * (t0 + t1 + t2)
     end 
     return f
 end
@@ -52,9 +53,9 @@ end
 rng = Random.GLOBAL_RNG
 
 
-# One million data points, 5 parameters + intercept
+# One million data points, 4 parameters + intercept
 N = 1000;
-k = 20;
+k = 4;
 X = randn(N,k);
 α = 10.0;
 β = randn(k);
@@ -71,4 +72,4 @@ pr = @model k begin
 end;
 
 # Sample from the posterior
-@time chain = bayeslm(rng, X, y, pr; N=100)
+@time chain = bayeslm(rng, X, y, pr; N=1000)
