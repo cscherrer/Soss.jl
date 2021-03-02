@@ -25,10 +25,10 @@ function loglik(X,y)
     return f
 end
 
-function makelogp(X, y, pr)
+function makeℓ(X, y, pr)
     k = size(X,2)
     ll = loglik(X,y)
-    logp(pars) = ll(pars.α, pars.β, pars.σ) + logdensity(pr(k=k), pars)
+    ℓ(pars) = ll(pars.α, pars.β, pars.σ) + logdensity(pr(k=k), pars)
 end
 
 function bayeslm(
@@ -40,13 +40,13 @@ function bayeslm(
     ad_backend = Val(:ForwardDiff),
     kwargs...,
 )
-    ℓ = makelogp(X, y, pr)
+    ℓ = makeℓ(X, y, pr)
     t = xform(pr(k=size(X,2)))
 
 
     chain = initialize!(DynamicHMCChain, ℓ, t)
 
-    drawsamples!(chain,N)
+    drawsamples!(chain,N-1)
 end
 
 
