@@ -15,7 +15,7 @@ N gives the Names of arguments (each a Symbol)
 B gives the Body, as an Expr
 M gives the Module where the model is defined
 """
-abstract type AbstractModel{A,B,M,Args,Obs} end
+abstract type AbstractModel{A,B,M,Args,Obs} <: AbstractMeasure end
 
 argstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = AT
 argstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = AT
