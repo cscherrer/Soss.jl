@@ -8,7 +8,7 @@ using Reexport: @reexport
 @reexport using MeasureTheory
 
 using NamedTupleTools
-
+using SampleChains
 using SymbolicCodegen
 
 using SymbolicUtils: Symbolic
@@ -28,6 +28,8 @@ using ArrayInterface: StaticInt
 
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
+
+const ∞ = MeasureTheory.∞
 
 include("noted.jl")
 include("core/models/abstractmodel.jl")
@@ -70,13 +72,14 @@ include("symbolic/rules.jl")
 include("symbolic/symbolic.jl")
 include("symbolic/codegen.jl")
 
-# include("particles.jl")
+include("particles.jl")
 include("plots.jl")
 
 include("inference/rejection.jl")
-include("inference/dynamicHMC.jl")
+# include("inference/dynamicHMC.jl")
 include("inference/advancedhmc.jl")
 include("inference/power-posterior.jl")
+include("inference/Δlogdensity.jl")
 
 #
 # # include("graph.jl")
