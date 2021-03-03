@@ -28,6 +28,7 @@ import StatsBase
 using GeneralizedGenerated
 using Random: GLOBAL_RNG
 using NestedTuples
+using SampleChains
 
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 export simulate
@@ -35,7 +36,7 @@ export simulate
 function simulate(rng::AbstractRNG, d::ConditionalModel, N::Int; trace_assignments=false)
     x = simulate(rng, d)
     T = typeof(x)
-    ta = TupleArray{T, 1}(undef, N)
+    ta = TupleVector(undef, x, N)
     @inbounds ta[1] = x
 
     for j in 2:N
