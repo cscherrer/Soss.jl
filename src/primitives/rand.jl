@@ -4,7 +4,7 @@ using Random: GLOBAL_RNG
 export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-Base.rand(rng::AbstractRNG, d::ConditionalModel, N::Int) = [rand(rng, d) for n in 1:N]
+Base.rand(rng::AbstractRNG, d::ConditionalModel, N::Int) = TupleVector([rand(rng, d) for n in 1:N])
 
 Base.rand(d::ConditionalModel, N::Int) = rand(GLOBAL_RNG, d, N)
 
