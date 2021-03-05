@@ -86,6 +86,13 @@ include("inference/Δlogdensity.jl")
 # # # include("optim.jl")
 include("importance.jl")
 #
+
+
+# function __init__()
+    # @require SampleChainsDynamicHMC = "6d9fd711-e8b2-4778-9c70-c1dfb499d4c4" 
+    include("samplechains/dynamichmc.jl")
+# end
+
 # # # include("sobols.jl")
 # # # include("fromcube.jl")
 # # # include("tocube.jl")
