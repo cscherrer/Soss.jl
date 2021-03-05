@@ -1,4 +1,5 @@
 using StableRNGs
+using Test
 
 m = @model X begin
     β ~ Normal() |> iid(size(X,2))
@@ -10,7 +11,7 @@ end
 rng = StableRNG(42)
 X = randn(rng, 20,2)
 truth = rand(rng, m(X=X))
-post = dynamicHMC(rng, m(X=X), (y=truth.y,))
+post = dynamicHMC(rng, m(X=X) |  (y=truth.y,))
 pred = predictive(m,:β)
 
 @testset "dynamicHMC" begin
@@ -31,8 +32,8 @@ end;
 
 jointdist = m2(X=X)
 
-@testset "logpdf, symlogpdf" begin
-    # @test_nowarn symlogpdf(m2).evalf(3)
-    @test logpdf(jointdist, truth) ≈ -28.551921801470908
-    # @test logpdf(jointdist, truth, codegen) ≈ -28.551921801470904
+@testset "logdensity, symlogdensity" begin
+    # @test_nowarn symlogdensity(m2).evalf(3)
+    @test logdensity(jointdist, truth) ≈ -28.551921801470908
+    # @test logdensity(jointdist, truth, codegen) ≈ -28.551921801470904
 end

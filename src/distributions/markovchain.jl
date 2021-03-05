@@ -52,27 +52,27 @@ Base.eltype(mc::MarkovChainRand{R,P,D}) where {R,P,D} = typeof(mc.dist.args.stat
 
 export next
 function next(mc::MarkovChain{P,D}, state) where {P,D}
-    @set mc.step.args.state = state
+    Setfield.@set mc.step.argvals.state = state
 end
 
-function Distributions.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where {P,D,X}
+function Dists.logpdf(mc::MarkovChain{P,D}, x::AbstractVector{X}) where {P,D,X}
     ℓ = 0.0
     for xj in x
         ℓ += logpdf(mc.step,xj)
-        @set! mc.step.args.state = xj
+        @set! mc.step.argvals.state = xj
     end
     return ℓ
 end
 
 function Base.iterate(r::MarkovChainRand{R,P,D}) where {R,P,D}
-    state = rand(r.mc.step).next.state
-    return (state, state)
+    s = simulate(r.mc.step)
+    return (s.value, s.trace)
 end
 
-function Base.iterate(r::MarkovChainRand{R,P,D}, state::NamedTuple) where {R,P,D}
-    step = next(r.mc,state).step
-    newstate = rand(step).next.state
-    return (newstate, newstate)
+function Base.iterate(r::MarkovChainRand{R,P,D}, state) where {R,P,D}
+    step = next(r.mc,state).step 
+    s = simulate(step)
+    return (s.value, s.trace)
 end
 
 Base.rand(rng::AbstractRNG, mc::MarkovChain) = MarkovChainRand(rng, mc)

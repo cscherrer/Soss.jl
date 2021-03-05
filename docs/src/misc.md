@@ -1,4 +1,4 @@
-# `Model`s and `JointDistribution`s
+# `Model`s and `ConditionalModel`s
 
 A `Model` in Soss
 
@@ -14,7 +14,7 @@ To easily find all available inference primitives, enter `Soss.source<TAB>` at a
 
 ```julia
 julia> Soss.source
-sourceLogpdf         sourceRand            sourceXform
+sourceLogdensity         sourceRand            sourceXform
 sourceParticles      sourceWeightedSample
 ```
 
@@ -24,15 +24,15 @@ For more details on inference primitives, see the *Internals* section.
 
 ## Inference Functions
 
-An *inference function* is a function that takes a `JointDistribution` as an argument, and calls at least one inference primitive (not necessarily directly). The wrapper around each primitive is a special case of this, but most inference functions work at a higher level of abstraction.
+An *inference function* is a function that takes a `ConditionalModel` as an argument, and calls at least one inference primitive (not necessarily directly). The wrapper around each primitive is a special case of this, but most inference functions work at a higher level of abstraction.
 
 There's some variability , but is often of the form
 
 ```julia
-foo(d::JointDistribution, data::NamedTuple)
+foo(d::ConditionalModel, data::NamedTuple)
 ```
 
-For example, `advancedHMC` uses [`TuringLang/AdvancedHMC.jl`](https://github.com/TuringLang/AdvancedHMC.jl) , which needs a `logpdf` and its gradient.
+For example, `advancedHMC` uses [`TuringLang/AdvancedHMC.jl`](https://github.com/TuringLang/AdvancedHMC.jl) , which needs a `logdensity` and its gradient.
 
 Most inference algorithms can be expressed in terms of inference primitives.
 
@@ -65,7 +65,7 @@ function sourceWeightedSample(_data)
         proc(_m, st :: LineNumber) = nothing
 
         function proc(_m, st :: Sample)
-            st.x ∈ _datakeys && return :(_ℓ += logpdf($(st.rhs), $(st.x)))
+            st.x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $(st.x)))
             return :($(st.x) = rand($(st.rhs)))
         end
 

@@ -60,6 +60,15 @@ function assemblefrom(m::Model, params, args)
     return m
 end
 
+getReturn(am::AbstractModel) = Model(am).retn
+
+function setReturn(m::Model, x)
+    theModule = getmodule(m)
+    m0 = assemblefrom(m, parameters(m), arguments(m))
+    isnothing(x) && return m0
+    return merge(m0, Model(theModule, Return(x)))
+end 
+
 function trim_args!(args, m, params)
     g = digraph(m)
     intersect!(args, setdiff(vcat((parents(g, p) for p in params)...), params))
@@ -110,7 +119,7 @@ function after(m::Model, xs...; strict = false)
     args = arguments(m) ∪ xs # Will trim later.
     parms = setdiff(parms, args)
     trim_args!(args, m, parms)
-    return assemblefrom(m, parms, args)
+    return setReturn(assemblefrom(m, parms, args), getReturn(m))
 end
 
 """

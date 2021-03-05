@@ -34,15 +34,15 @@ include("examples-list.jl")
         for indices in [3, 1:3, (j for j in 1:3), [1,2,3], rand(2,3)]
             d = For(i -> Normal(0.0, i), indices)
 
-            x = logpdf(d, rand(d))
-            y = logpdf(d, rand.(collect(d)))
+            x = logdensity(d, rand(d))
+            y = logdensity(d, rand.(collect(d)))
         end
     
         for indices in [(2,3), (1:2,1:3)]
             d = For((i,j) -> Normal(i,j), indices)
     
-            x = logpdf(d, rand(d))
-            y = logpdf(d, rand.(collect(d)))
+            x = logdensity(d, rand(d))
+            y = logdensity(d, rand.(collect(d)))
         end    
     end
 

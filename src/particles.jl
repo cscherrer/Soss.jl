@@ -81,20 +81,8 @@ parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(fill(d.dist, d.size))
 # promote_rule(::Type{B}, ::Type{A}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
 
 
-@inline function particles(m::JointDistribution, N::Int=DEFAULT_SAMPLE_SIZE)
+@inline function particles(m::ConditionalModel, N::Int=DEFAULT_SAMPLE_SIZE)
     return _particles(getmoduletypencoding(m.model), m.model, m.args, Val(N))
-end
-
-@gg M function _particles(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceParticles()(type2model(_m), _n) |> loadvals(_args, NamedTuple()))
-end
-
-@gg M function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceParticles()(type2model(_m), _n))
 end
 
 sourceParticles(m::Model, N::Int) = sourceParticles()(m, Val(N))
@@ -102,8 +90,7 @@ sourceParticles(m::Model, N::Int) = sourceParticles()(m, Val(N))
 export sourceParticles
 function sourceParticles() 
         
-    function(m::Model, ::Type{Val{_N}}) where {_N}
-        _m = canonical(m)
+    function(_m::Model, ::Type{Val{_N}}) where {_N}
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs), $_N))
         proc(_m, st::Return)  = :(return $(st.rhs))
@@ -116,7 +103,7 @@ function sourceParticles()
             $(Expr(:tuple, vals...))
         end
 
-        buildSource(_m, proc, wrap) |> flatten
+        buildSource(_m, proc, wrap) |> MacroTools.flatten
     end
 end
 
@@ -156,3 +143,16 @@ end
 
 
 # Base.to_indices(A, ::Particles) = i.particles
+
+
+@gg M function _particles(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        sourceParticles()(type2model(_m), _n) |> loadvals(_args, NamedTuple()))
+end
+
+@gg M function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        sourceParticles()(type2model(_m), _n))
+end

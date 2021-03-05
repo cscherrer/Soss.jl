@@ -6,24 +6,15 @@ using MacroTools: @q, striplines
 using SimplePosets
 using GeneralizedGenerated
 
-struct Model{A,B,M}
+struct Model{A,B,M} <: AbstractModel{A,B,M,Nothing,Nothing}
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
     retn  :: Union{Nothing, Symbol, Expr}
 end
 
-argstype(::Model{A,B,M}) where {A,B,M} = A
-bodytype(::Model{A,B,M}) where {A,B,M} = B
 
-argstype(::Type{Model{A,B,M}}) where {A,B,M} = A
-bodytype(::Type{Model{A,B,M}}) where {A,B,M} = B
 
-getmodule(::Type{Model{A,B,M}}) where {A,B,M} = from_type(M)
-getmodule(::Model{A,B,M}) where {A,B,M} = from_type(M)
-
-getmoduletypencoding(::Type{Model{A,B,M}}) where {A, B, M} = M
-getmoduletypencoding(::Model{A,B,M}) where {A,B,M} = M
 
 function Model(theModule::Module, args, vals, dists, retn)
     M = to_type(theModule)
@@ -103,6 +94,7 @@ function Model(theModule::Module, args::Vector{Symbol}, expr::Expr)
     merge(m1, m2)
 end
 
+Model(m::Model) = m
 
 Expr(m::Model,v) = convert(Expr,findStatement(m,v) )
 
@@ -185,13 +177,18 @@ Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
 # observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
 # observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
 
-function findStatement(m::Model, x::Symbol)
+function findStatement(am::AbstractModel, x::Symbol)
+    m = Model(am)
+    x == :return && return Return(m.retn)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
     x ∈ keys(m.dists) && return Sample(x,m.dists[x])
     x ∈ arguments(m) && return Arg(x)
     error("statement not found")
 end
 
-function statements(m::Model)
-    Statement[Soss.findStatement(m, v) for v in variables(m)]
+
+function statements(am::AbstractModel)
+    m = Model(am)
+    s = Statement[Soss.findStatement(m, v) for v in variables(m)]
+    return s
 end

@@ -117,7 +117,12 @@ predictive(m, :θ)
 ```
 
 """
-predictive(m::Model, xs...) = after(m, xs..., strict = true)
+predictive(m::Model, xs...) = _predictive(m, namedtuple(xs)(xs))
+# predictive(m::Model, xs...) = after(m, xs..., strict = true)
+
+@generated function _predictive(m::Model, xs)
+    return after(type2model(m), getntkeys(xs)...; strict=true)
+end
 
 export Do
 """

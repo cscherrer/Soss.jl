@@ -1,24 +1,18 @@
 
-using GeneralizedGenerated: runtime_eval
+using SymbolicCodegen
 using MacroTools: @q
+
+
+using SymbolicCodegen
+import SymbolicCodegen
 
 export codegen
 
-# moved to __init__
-# @gg function codegen(_m::Model, _args, _data)
-#     f = _codegen(type2model(_m))
-#     :($f(_args, _data))
-# end
+function SymbolicCodegen.codegen(cm :: ConditionalModel; kwargs...)
 
-function _codegen(m :: Model, expand_sums=true)
-    s = symlogpdf(m)
+    code = codegen(get(kwargs, :ℓ, symlogdensity(cm)))
 
-    if expand_sums
-        s = expandSums(s) |> foldConstants
-    end
-
-    code = codegen(s)
-
+    m = Model(cm)
     for (v, rhs) in pairs(m.vals)
         pushfirst!(code.args, :($v = $rhs))
     end
@@ -28,39 +22,25 @@ function _codegen(m :: Model, expand_sums=true)
         pushfirst!(code.args, :($v = getproperty(_args, $vname)))
     end
 
-    for v in sampled(m)
+    for v in observed(cm)
         vname = QuoteNode(v)
         pushfirst!(code.args, :($v = getproperty(_data, $vname)))
     end
 
+    for v in setdiff(sampled(m), observed(cm))
+        vname = QuoteNode(v)
+        pushfirst!(code.args, :($v = getproperty(_pars, $vname)))
+    end
 
-    f = mk_function(:((_args, _data) -> $code))
 
-    return f
+    return mk_function(getmodule(cm), (:_args, :_data, :_pars), (), code)
+
 end
 
-# @generated function _codegen(_m::Model, _args, _data)
-#     type2model(_m) |> sourceCodegen() |> loadvals(_args, _data)
-# end
 
-# export sourceCodegen
-# function sourceCodegen()
-#     function(_m::Model)
-#         body = @q begin end
 
-#         for (x, rhs) in pairs(_m.vals)
-#             push!(body.args, :($x = $rhs))
-#         end
+export sourceCodegen
 
-#         push!(body.args, eval(:(codegen(symlogpdf($_m)))))
-#         return body
-#     end
-# end
-
-export codegen
-
-function codegen end
-
-function Distributions.logpdf(m::JointDistribution{A0,A,B,M},x,::typeof(codegen)) where {A0,A,B,M}
-    codegen(M, m.model, m.args, x)
+function sourceCodegen(cm :: ConditionalModel)
+    codegen(symlogdensity(cm))
 end

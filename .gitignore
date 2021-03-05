@@ -11,3 +11,4 @@ cache/
 example-*.md
 tracefile*.info
 .history
+.vscode/settings.json

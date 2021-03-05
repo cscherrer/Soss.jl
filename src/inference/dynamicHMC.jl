@@ -1,9 +1,7 @@
 using TransformVariables,
       LogDensityProblems,
       DynamicHMC,
-      Distributions,
       Statistics,
-      StatsFuns,
       ForwardDiff
 import LogDensityProblems: ADgradient
 
@@ -12,10 +10,10 @@ export dynamicHMC
 """
     dynamicHMC(
         rng::AbstractRNG,
-        m::JointDistribution,
+        m::ConditionalModel,
         _data,
         N::Int = 1000;
-        method = logpdf,
+        method = logdensity,
         ad_backend = Val(:ForwardDiff),
         reporter = DynamicHMC.NoProgressReport(),
         kwargs...)
@@ -33,7 +31,7 @@ This function is essentially a wrapper around `DynamicHMC.mcmc_with_warmup()`. A
 
 ## Keyword Arguments
 *  `N = 1000`: Number of samples to draw.
-*  `method = logpdf`: How to compute the log-density. Options are `logpdf` (delegates to `logpdf` of each component) or `codegen` (symbolic simplification and code generation).
+*  `method = logdensity`: How to compute the log-density. Options are `logdensity` (delegates to `logdensity` of each component) or `codegen` (symbolic simplification and code generation).
 *  `ad_backend = Val(:ForwardDiff)`: Automatic differentiation backend.
 *  `reporter = DynamicHMC.NoProgressReport()`: Specify logging during sampling. Default: do not log progress.
 *  `kwargs`: Additional keyword arguments passed to core sampling function `DynamicHMC.mcmc_with_warmup()`.
@@ -70,41 +68,61 @@ Posterior mean β: 0.25
 """
 function dynamicHMC(
     rng::AbstractRNG,
-    m::JointDistribution,
-    _data,
+    m::ConditionalModel,
     N::Int = 1000;
-    method = logpdf,
+    # method = logpdf,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
-    ℓ(pars) = logpdf(m, merge(pars, _data), method)
-    t = xform(m, _data)
-    P = LogDensityProblems.TransformedLogDensity(t, ℓ)
+
+    M = getmoduletypencoding(m)
+
+    ℓ = if haskey(kwargs, :ℓ)
+        codegen(m; ℓ = kwargs[:ℓ])
+    else 
+        (a, o, pars) -> _logdensity(M, Model(m), a, o, pars)
+    end
+
+    _argvals = argvals(m)
+    _obs = observations(m)
+
+    logp(pars) = ℓ(_argvals, _obs, pars)
+
+    t = xform(m)
+    P = LogDensityProblems.TransformedLogDensity(t, logp)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)
 
     results = DynamicHMC.mcmc_with_warmup(
         rng,
         ∇P,
         N;
-        reporter = reporter,
-        kwargs...,
+        reporter = reporter
     )
-    samples = TransformVariables.transform.(t, results.chain)
-    return samples
+    T = typeof(t(zeros(t.dimension)))
+
+    x = TupleArray{T,1}(undef, N)
+
+    for j in 1:N
+        @inbounds x[j] = TransformVariables.transform(t, results.chain[j])
+    end
+
+    return x
+    # samples = TransformVariables.transform.(t, results.chain)
+    # return samples
 end
 
 function dynamicHMC(
     rng::AbstractRNG,
-    m::JointDistribution,
-    _data,
+    m::ConditionalModel,
     ::Val{Inf};
-    method = logpdf,
+    method = logdensity,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
 )
-    ℓ(pars) = logpdf(m, merge(pars, _data), method)
+    _data = m.obs
+    ℓ(pars) = logdensity(m, merge(pars, _data), method)
     t = xform(m, _data)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)
@@ -123,7 +141,7 @@ function dynamicHMC(
     return results, steps
 end
 
-function dynamicHMC(m::JointDistribution, args...; kwargs...)
+function dynamicHMC(m::ConditionalModel, args...; kwargs...)
     return dynamicHMC(Random.GLOBAL_RNG, m, args...; kwargs...)
 end
 
@@ -135,7 +153,7 @@ end
 # @resumable function stream(
 #     rng::AbstractRNG,
 #     f::typeof(dynamicHMC),
-#     m::JointDistribution,
+#     m::ConditionalModel,
 #     _data::NamedTuple,
 # )
 #     t = xform(m, _data)
@@ -149,7 +167,7 @@ end
 
 # function stream(
 #     f::typeof(dynamicHMC),
-#     m::JointDistribution,
+#     m::ConditionalModel,
 #     _data::NamedTuple;
 #     kwargs...,
 # )

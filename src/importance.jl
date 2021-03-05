@@ -1,5 +1,4 @@
-using Distributions
-using MonteCarloMeasurements
+# using MonteCarloMeasurements
 
 """
     importanceSample(p(p_args), q(q_args), observed_data)
@@ -26,19 +25,8 @@ Weighted(-7.13971.4
 function importanceSample end
 
 export importanceSample
-@inline function importanceSample(p::JointDistribution, q::JointDistribution, _data)
+@inline function importanceSample(p::ConditionalModel, q::ConditionalModel, _data)
     return _importanceSample(getmoduletypencoding(p.model), p.model, p.args, q.model, q.args, _data)
-end
-
-@gg M function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
-    p = type2model(p)
-    q = type2model(q)
-        
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceImportanceSample(_data)(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()) |> merge_pqargs)
-
-
 end
 
 sourceImportanceSample(p::Model,q::Model,_data) = sourceImportanceSample(_data)(p::Model,q::Model)
@@ -46,14 +34,12 @@ sourceImportanceSample(p::Model,q::Model,_data) = sourceImportanceSample(_data)(
 export sourceImportanceSample
 function sourceImportanceSample(_data)
     function(p::Model,q::Model)
-        p = canonical(p)
-        q = canonical(q)
         m = merge(p,q)
 
         _datakeys = getntkeys(_data)
 
         function proc(m, st::Sample) 
-            st.x ∈ _datakeys && return :(_ℓ += logpdf($(st.rhs), $(st.x)))
+            st.x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $(st.x)))
 
             if hasproperty(p.dists, st.x)
                 pdist = getproperty(p.dists, st.x)
@@ -73,7 +59,7 @@ function sourceImportanceSample(_data)
         proc(m, st::Return)  = :(return $(st.rhs))
         proc(m, st::LineNumber) = nothing
 
-        body = buildSource(m, proc) |> flatten
+        body = buildSource(m, proc) |> MacroTools.flatten
 
         kwargs = arguments(p) ∪ arguments(q)
         kwargsExpr = Expr(:tuple,kwargs...)
@@ -89,13 +75,13 @@ function sourceImportanceSample(_data)
             return Weighted(_ℓ, $stochExpr)
         end
 
-        buildSource(m, proc, wrap) |> flatten
+        buildSource(m, proc, wrap) |> MacroTools.flatten
     end
 end
 
 @inline function importanceSample(p, q, _data)
     x = rand(q)
-    ℓ = logpdf(p,x) - logpdf(q,x)
+    ℓ = logdensity(p,x) - logdensity(q,x)
     Weighted(ℓ,x)
 end
 
@@ -110,7 +96,7 @@ end
 #     # This determines how to initialize a Particle for a given expression
 #     vars(expr) = (bound(p) ∪ bound(q) ∪ stochastic(p) ∪ stochastic(q)) ∩ variables(expr)
 
-#     procp(p, st::Follows) = :($ℓ += logpdf($(st.rhs), $(st.x)))
+#     procp(p, st::Follows) = :($ℓ += logdensity($(st.rhs), $(st.x)))
 #     procp(p, st::Let)     = convert(Expr, st)
 #     procp(p, st::Return)  = nothing
 #     procp(p, st::LineNumber) = convert(Expr, st)
@@ -119,12 +105,12 @@ end
 #         if isempty(vars(st.rhs)) 
 #             @q begin
 #                 $(st.x) = Particles($N, $(st.rhs))
-#                 $ℓ -= logpdf($(st.rhs), $(st.x))
+#                 $ℓ -= logdensity($(st.rhs), $(st.x))
 #             end
 #         else
 #             @q begin
 #                 $(st.x) = rand($(st.rhs))
-#                 $ℓ -= logpdf($(st.rhs), $(st.x))
+#                 $ℓ -= logdensity($(st.rhs), $(st.x))
 #             end
 #         end
 #     end
@@ -174,5 +160,15 @@ function merge_pqargs(src)
     @q begin
         _args = merge(_pargs, _qargs)
         $src
-    end |> flatten
+    end |> MacroTools.flatten
+end
+
+
+@gg M function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
+    p = type2model(p)
+    q = type2model(q)
+        
+    Expr(:let,
+        Expr(:(=), :M, from_type(M)),
+        sourceImportanceSample(_data)(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()) |> merge_pqargs)
 end

@@ -10,7 +10,7 @@ m(μ=1.0)
 
 rand(m(μ=1.0))
 
-logpdf(m(μ=1.0),(x=0.4,))
+logdensity(m(μ=1.0),(x=0.4,))
 # rand(m1)
 
 weightedSample(m(μ=1.0),(x=3,))

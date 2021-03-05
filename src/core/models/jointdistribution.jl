@@ -1,14 +1,9 @@
-using Distributions: ValueSupport, VariateForm
-
-struct MixedSupport <: ValueSupport end
-struct MixedVariate <: VariateForm end
-
-struct JointDistribution{A0,A,B,M} <: Distribution{MixedVariate, MixedSupport}
+struct ConditionalModel{A0,A,B,M} <: Distribution{MixedVariate, MixedSupport}
     model::Model{A,B,M}
     args::A0
 end
 
-(jd::JointDistribution)(nt::NamedTuple) = jd.model(merge(jd.args, nt))
+(jd::ConditionalModel)(nt::NamedTuple) = jd.model(merge(jd.args, nt))
 
 
 # function (m::Model)(nt::NamedTuple)
@@ -16,14 +11,14 @@ end
 #     isempty(badargs) || @error "Unused arguments $badargs"
     
 #     m = predictive(m, keys(nt)...)
-#     return JointDistribution(m, nt)
+#     return ConditionalModel(m, nt)
 # end
 
 (m::Model)(;args...)= m((;args...))
 
-(m::Model{A,B,M})(nt::NamedTuple) where {A,B,M} = JointDistribution(m,nt)
+(m::Model{A,B,M})(nt::NamedTuple) where {A,B,M} = ConditionalModel(m,nt)
 
-function Base.show(io::IO, d :: JointDistribution)
+function Base.show(io::IO, d :: ConditionalModel)
     m = d.model
     println(io, "Joint Distribution")
     print(io, "    Bound arguments: [")

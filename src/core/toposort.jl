@@ -1,5 +1,5 @@
 using SimplePosets
-using SimpleGraphs: SimpleGraph, AbstractSimpleGraph, SimpleDigraph, eltype, NV, elist, in_neighbors, add_edges!
+using SimpleGraphs: SimpleGraph, AbstractSimpleGraph, SimpleDigraph, eltype, NV, elist, in_neighbors, add_edges!, vertex2idx
 
 import Graphs
 import Graphs.simple_graph, Graphs.add_edge!, Graphs.topological_sort_by_dfs
@@ -12,7 +12,7 @@ function convert_simple(G::AbstractSimpleGraph)
     has_dir = isa(G,SimpleDigraph)
 
 
-    d = SimpleGraphs.vertex2idx(G)
+    d = vertex2idx(G)
     dinv = Dict{Int,T}()
     for k in keys(d)
         v = d[k]
