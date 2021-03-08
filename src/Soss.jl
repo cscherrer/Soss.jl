@@ -26,6 +26,9 @@ import MLStyle
 using Requires
 using ArrayInterface: StaticInt
 
+
+using TransformVariables: as, asℝ, as𝕀, asℝ₊
+
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
 

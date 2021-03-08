@@ -4,6 +4,7 @@ using MLStyle
 using NestedTuples
 import NestedTuples
 import TransformVariables
+using TransformVariables: as
 
 function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
     schema(T)
