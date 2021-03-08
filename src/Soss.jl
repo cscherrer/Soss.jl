@@ -59,6 +59,7 @@ include("primitives/likelihood-weighting.jl")
 #     include("primitives/bijectors.jl")
 # end
 include("primitives/entropy.jl")
+include("primitives/basemeasure.jl")
 
 include("transforms/predict.jl")
 include("transforms/markovblanket.jl")
