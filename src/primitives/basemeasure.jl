@@ -14,7 +14,6 @@ sourceBasemeasure(m::AbstractModel) = sourceBasemeasure()(Model(m))
 function sourceBasemeasure()
     function(_m::Model)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
-        # proc(_m, st :: Sample)     = :(_ℓ += basemeasure($(st.rhs), $(st.x)))
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
         function proc(_m, st :: Sample)
