@@ -80,7 +80,7 @@ include("plots.jl")
 
 include("inference/rejection.jl")
 # include("inference/dynamicHMC.jl")
-include("inference/advancedhmc.jl")
+# include("inference/advancedhmc.jl")
 include("inference/power-posterior.jl")
 # include("inference/Δlogdensity.jl")
 
