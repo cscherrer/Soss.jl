@@ -72,14 +72,14 @@ include("symbolic/rules.jl")
 include("symbolic/symbolic.jl")
 include("symbolic/codegen.jl")
 
-include("particles.jl")
+# include("particles.jl")
 include("plots.jl")
 
 include("inference/rejection.jl")
 # include("inference/dynamicHMC.jl")
 include("inference/advancedhmc.jl")
 include("inference/power-posterior.jl")
-include("inference/Δlogdensity.jl")
+# include("inference/Δlogdensity.jl")
 
 #
 # # include("graph.jl")

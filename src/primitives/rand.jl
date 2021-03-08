@@ -1,10 +1,17 @@
 using GeneralizedGenerated
 using Random: GLOBAL_RNG
+using SampleChains: chainvec
 
 export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-Base.rand(rng::AbstractRNG, d::ConditionalModel, N::Int) = TupleVector([rand(rng, d) for n in 1:N])
+function Base.rand(rng::AbstractRNG, d::ConditionalModel, N::Int)
+    r = chainvec(rand(rng, d), N)
+    for j in 2:N
+        @inbounds r[j] = rand(rng, d)
+    end
+    return r
+end
 
 Base.rand(d::ConditionalModel, N::Int) = rand(GLOBAL_RNG, d, N)
 

@@ -12,7 +12,7 @@ function sample(rng::AbstractRNG,
     nchains=4)
 
     ℓ(x) = logdensity(m, x)
-    tr = TransformVariables.as(m)
+    tr = xform(m)
 
     chains = initialize!(rng, DynamicHMCChain, nchains, ℓ, tr)
     drawsamples!(chains, nsamples - 1)
