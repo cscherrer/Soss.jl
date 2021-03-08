@@ -27,7 +27,6 @@ function sourceBasemeasure()
         end
 
         wrap(kernel) = @q begin
-            #_bm = ProductMeasure(())
             _bm = (;)
             $kernel
             return ProductMeasure(_bm)
