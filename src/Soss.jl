@@ -58,6 +58,7 @@ include("simulate.jl")
 include("primitives/logdensity.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")
+# include("primitives/gg.jl")
 # @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
 #     include("primitives/bijectors.jl")
 # end
@@ -91,10 +92,11 @@ include("importance.jl")
 #
 
 
-# function __init__()
-    # @require SampleChainsDynamicHMC = "6d9fd711-e8b2-4778-9c70-c1dfb499d4c4" 
-    include("samplechains/dynamichmc.jl")
-# end
+function __init__()
+    @require SampleChainsDynamicHMC = "6d9fd711-e8b2-4778-9c70-c1dfb499d4c4" begin
+        include("samplechains/dynamichmc.jl")
+    end
+end
 
 # # # include("sobols.jl")
 # # # include("fromcube.jl")
