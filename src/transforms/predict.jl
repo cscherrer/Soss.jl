@@ -1,7 +1,7 @@
 export predict
 
 function predict(d::ConditionalModel, post::Vector{NamedTuple{N,T}}) where {N,T}
-    args = d.args
+    args = argvals(d)
     m = d.model
     pred = predictive(m, keys(post[1])...)
     map(nt -> rand(pred(merge(args,nt))), post)
@@ -30,3 +30,7 @@ end
 predict(m::Model; kwargs...) = predict(m,(;kwargs...))
 
 predict(d,x) = x
+
+function predict(d, s::AbstractVector)
+    [predict(d, sj) for sj in s]
+end
