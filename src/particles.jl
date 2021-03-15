@@ -2,6 +2,9 @@ const DEFAULT_SAMPLE_SIZE = 1000
 
 export sourceParticles
 
+import MonteCarloMeasurements
+using MonteCarloMeasurements: Particles, StaticParticles, AbstractParticles
+
 foreach([<=, >=, <, >]) do cmp
     MonteCarloMeasurements.register_primitive(cmp, eval)
 end
@@ -38,8 +41,8 @@ using MappedArrays, FillArrays
 # Just a little helper function for particles
 # https://github.com/baggepinnen/MonteCarloMeasurements.jl/issues/22
 parts(d, N::Int=DEFAULT_SAMPLE_SIZE) = particles(d, N)
-parts(x::Normal{P} where {P <: AbstractParticles}, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(length(x.μ), Normal()) * x.σ + x.μ
-parts(x::Sampleable{F,S}, N::Int=DEFAULT_SAMPLE_SIZE) where {F,S} = Particles(N,x)
+parts(x::Normal{P} where {P <: AbstractParticles}, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(length(x.μ), Dists.Normal()) * x.σ + x.μ
+parts(x::Dists.Sampleable{F,S}, N::Int=DEFAULT_SAMPLE_SIZE) where {F,S} = Particles(N,x)
 parts(x::Integer, N::Int=DEFAULT_SAMPLE_SIZE) = parts(float(x))
 parts(x::Real, N::Int=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
 parts(x::AbstractArray, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(x)
@@ -65,9 +68,8 @@ end
 #     end
 # end
 
-parts(d::For, N::Int=DEFAULT_SAMPLE_SIZE) = parts.((d.f(Tuple(cind)...) for cind in CartesianIndices(d.θ)), N)
+parts(d::ProductMeasure, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(d.data, N)
 
-parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(fill(d.dist, d.size))
 # size
 # dist 
 
@@ -82,7 +84,7 @@ parts(d::iid, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(fill(d.dist, d.size))
 
 
 @inline function particles(m::ConditionalModel, N::Int=DEFAULT_SAMPLE_SIZE)
-    return _particles(getmoduletypencoding(m.model), m.model, m.args, Val(N))
+    return _particles(getmoduletypencoding(m.model), m.model, m.argvals, Val(N))
 end
 
 sourceParticles(m::Model, N::Int) = sourceParticles()(m, Val(N))

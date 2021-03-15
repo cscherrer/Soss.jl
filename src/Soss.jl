@@ -26,6 +26,9 @@ import MLStyle
 using Requires
 using ArrayInterface: StaticInt
 
+
+using TransformVariables: as, asℝ, as𝕀, asℝ₊
+
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
 
@@ -58,8 +61,10 @@ include("primitives/likelihood-weighting.jl")
 # @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
 #     include("primitives/bijectors.jl")
 # end
-include("primitives/entropy.jl")
+
 include("primitives/basemeasure.jl")
+# include("primitives/entropy.jl")
+
 
 include("transforms/predict.jl")
 include("transforms/markovblanket.jl")
@@ -73,14 +78,14 @@ include("symbolic/rules.jl")
 include("symbolic/symbolic.jl")
 include("symbolic/codegen.jl")
 
-include("particles.jl")
+# include("particles.jl")
 include("plots.jl")
 
 include("inference/rejection.jl")
 # include("inference/dynamicHMC.jl")
 include("inference/advancedhmc.jl")
 include("inference/power-posterior.jl")
-include("inference/Δlogdensity.jl")
+# include("inference/Δlogdensity.jl")
 
 #
 # # include("graph.jl")
