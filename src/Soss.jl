@@ -62,7 +62,10 @@ include("primitives/likelihood-weighting.jl")
 # @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
 #     include("primitives/bijectors.jl")
 # end
+
+include("primitives/basemeasure.jl")
 # include("primitives/entropy.jl")
+
 
 include("transforms/predict.jl")
 include("transforms/markovblanket.jl")
