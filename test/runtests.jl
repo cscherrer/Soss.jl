@@ -62,7 +62,7 @@ include("examples-list.jl")
 
         t = xform(m2() | (; m = (; x = rand(3))))
 
-        @test_broken logdensity(m2() | (; m = (; x = rand(3))), t(randn(3)))
+        @test logdensity(m2() | (; m = (; x = rand(3))), t(randn(3)))
     end
 
     @testset "Doctests" begin

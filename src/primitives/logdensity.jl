@@ -1,6 +1,7 @@
 
 export logdensity
 
+using NestedTuples: lazymerge
 import MeasureTheory
 
 function MeasureTheory.logdensity(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}

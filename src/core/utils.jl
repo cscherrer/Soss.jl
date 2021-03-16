@@ -1,6 +1,7 @@
 using MLStyle
 using SimplePosets
 using NestedTuples
+using NestedTuples: LazyMerge
 
 expr(x) = :(identity($x))
 
@@ -216,13 +217,13 @@ function loadvals(argstype, datatype, parstype)
         push!(loader.args, :($k = _data.$k))
     end
 
-    for k in pars # setdiff(pars, data)
+    for k in setdiff(pars, data)
         push!(loader.args, :($k = _pars.$k))
     end
 
-    # for k in pars ∩ data
-    #     push!(loader.args, :($k = Soss.NestedTuples.LazyMerge(_data.$k, _pars.$k)))
-    # end
+    for k in pars ∩ data
+        push!(loader.args, :($k = Soss.NestedTuples.lazymerge(_data.$k, _pars.$k)))
+    end
 
     src -> (@q begin
         $loader
@@ -234,6 +235,8 @@ end
 getntkeys(::NamedTuple{A,B}) where {A,B} = A
 getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A
 getntkeys(::Type{NamedTuple{A}}) where {A} = A
+getntkeys(::Type{LazyMerge{A,B,S,T}}) where {A,B,S,T} = Tuple(A ∪ B)
+
 
 # These macros quickly define additional methods for when you get tired of typing `NamedTuple()`
 macro tuple3args(f)
