@@ -32,7 +32,7 @@ include("examples-list.jl")
 
     @testset "`For` methods" begin
         @info "Testing `For` methods"
-        for indices in [3, 1:3, (j for j in 1:3), [1,2,3], rand(2,3)]
+        for indices in [3, 1:3, (j for j = 1:3), [1, 2, 3], rand(2, 3)]
             d = For(i -> Normal(0.0, i), indices)
 
             x = logdensity(d, rand(d))
@@ -48,6 +48,23 @@ include("examples-list.jl")
         # end    
     end
 
+    @testset "Nested models" begin
+        m1 = @model a, b begin
+            p ~ Beta(a, b)
+            x ~ Normal(p, 1.0) |> iid(3)
+        end
+
+
+        m2 = @model begin
+            a ~ Beta(0.5, 0.5)
+            b ~ Beta(1, 0.5)
+            m ~ m1(a = a, b = b)
+        end
+
+        t = xform(m2() | (; m = (; x = rand(3))))
+
+        @test logdensity(m2() | (; m = (; x = rand(3))), t(randn(3)))
+    end
 
     @testset "Doctests" begin
         include("doctests.jl")
