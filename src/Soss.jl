@@ -34,7 +34,7 @@ RuntimeGeneratedFunctions.init(@__MODULE__)
 
 const ∞ = MeasureTheory.∞
 
-include("noted.jl")
+# include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/statement.jl")
 include("core/models/model.jl")
@@ -58,6 +58,7 @@ include("simulate.jl")
 include("primitives/logdensity.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")
+# include("primitives/gg.jl")
 # @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
 #     include("primitives/bijectors.jl")
 # end
@@ -83,7 +84,7 @@ include("plots.jl")
 
 include("inference/rejection.jl")
 # include("inference/dynamicHMC.jl")
-include("inference/advancedhmc.jl")
+# include("inference/advancedhmc.jl")
 include("inference/power-posterior.jl")
 # include("inference/Δlogdensity.jl")
 
@@ -94,10 +95,11 @@ include("importance.jl")
 #
 
 
-# function __init__()
-    # @require SampleChainsDynamicHMC = "6d9fd711-e8b2-4778-9c70-c1dfb499d4c4" 
-    include("samplechains/dynamichmc.jl")
-# end
+function __init__()
+    @require SampleChainsDynamicHMC = "6d9fd711-e8b2-4778-9c70-c1dfb499d4c4" begin
+        include("samplechains/dynamichmc.jl")
+    end
+end
 
 # # # include("sobols.jl")
 # # # include("fromcube.jl")

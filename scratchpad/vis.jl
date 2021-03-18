@@ -5,7 +5,7 @@ using Soss
 using NamedTupleTools
 # using BenchmarkTools
 # using Traceur
-using TransformVariables
+import TransformVariables
 using Plots
 using Lazy
 using PositiveFactorizations
@@ -24,7 +24,7 @@ end
 
 asmatrix(ps) = Matrix([ps...])'
 
-using Distributions: MvNormalStats
+using Dists: MvNormalStats
 function Base.:+(ss1::MvNormalStats,ss2::MvNormalStats)
     tw = ss1.tw + ss2.tw
     s = ss1.s .+ ss2.s
@@ -34,7 +34,7 @@ function Base.:+(ss1::MvNormalStats,ss2::MvNormalStats)
 end
 
 
-using Distributions: MvNormalStats
+using Dists: MvNormalStats
 function Base.:*(k::Real,ss::MvNormalStats)
     tw = k * ss.tw
     s = k * ss.s
