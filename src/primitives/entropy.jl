@@ -52,14 +52,16 @@ end
 # StatsBase.entropy(d::For) = sum(entropy ∘ d.f, d.θ)
 
 
-@gg M function _entropy(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceEntropy()(type2model(_m), _n()) |> loadvals(_args, NamedTuple()))
+@gg function _entropy(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
+    body = sourceEntropy()(type2model(_m), _n()) |> loadvals(_args, NamedTuple())
+    @under_global from_type(M) @q let M
+        $body
+    end
 end
 
-@gg M function _entropy(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceEntropy()(type2model(_m), _n))
+@gg function _entropy(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
+    body = sourceEntropy()(type2model(_m), _n)
+    @under_global from_type(M) @q let M
+        $body
+    end
 end

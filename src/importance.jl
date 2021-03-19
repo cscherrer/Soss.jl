@@ -164,11 +164,16 @@ function merge_pqargs(src)
 end
 
 
-@gg M function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
+@gg function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
     p = type2model(p)
     q = type2model(q)
+
+    body = sourceImportanceSample(_data)(p,q) |>
+        loadvals(_qargs, _data) |>
+        loadvals(_pargs, NamedTuple()) |>
+        merge_pqargs
         
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceImportanceSample(_data)(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()) |> merge_pqargs)
+    @under_global from_type(M) @q let M
+        $body    
+    end
 end

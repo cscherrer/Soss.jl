@@ -121,16 +121,18 @@ simulate(μ::AbstractMeasure; trace_assignments=false) = simulate(Random.GLOBAL_
 
 simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(rng, sampletype(μ),  μ)
 
-@gg M function _simulate(_::Type{M}, _m::Model, _args, trace_assignments::Val{V}) where {V, M <: TypeLevel{Module}}
+@gg function _simulate(_::Type{M}, _m::Model, _args, trace_assignments::Val{V}) where {V, M <: TypeLevel{Module}}
     trace_assignments = V
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSimulate(trace_assignments) |> loadvals(_args, NamedTuple()))
+    body = type2model(_m) |> sourceSimulate(trace_assignments) |> loadvals(_args, NamedTuple())
+    @under_global from_type(M) @q let M
+        $body
+    end
 end
 
-@gg M function _simulate(_::Type{M}, _m::Model, _args::NamedTuple{()}, trace_assignments::Val{V}) where {V, M <: TypeLevel{Module}}
+@gg function _simulate(_::Type{M}, _m::Model, _args::NamedTuple{()}, trace_assignments::Val{V}) where {V, M <: TypeLevel{Module}}
     trace_assignments = V
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceSimulate(trace_assignments))
+    body = type2model(_m) |> sourceSimulate(trace_assignments)
+    @under_global from_type(M) @q let M
+        $body
+    end
 end

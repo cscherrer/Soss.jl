@@ -37,8 +37,9 @@ function sourceBasemeasure()
 end
 
 
-@gg M function _basemeasure(_::Type{M}, _m::Model, _args, _data, _pars) where M <: TypeLevel{Module}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceBasemeasure() |> loadvals(_args, _data, _pars))
+@gg function _basemeasure(_::Type{M}, _m::Model, _args, _data, _pars) where M <: TypeLevel{Module}
+    body = type2model(_m) |> sourceBasemeasure() |> loadvals(_args, _data, _pars)
+    @under_global from_type(M) @q let M
+        $body
+    end
 end
