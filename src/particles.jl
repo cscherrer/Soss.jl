@@ -48,7 +48,7 @@ parts(x::Real, N::Int=DEFAULT_SAMPLE_SIZE) = parts(repeat([x],N))
 parts(x::AbstractArray, N::Int=DEFAULT_SAMPLE_SIZE) = Particles(x)
 parts(p::Particles, N::Int=DEFAULT_SAMPLE_SIZE) = p
 
-function parts(x::Bernoulli{P} where {P <: AbstractParticles}, N::Int=DEFAULT_SAMPLE_SIZE) 
+function parts(x::Bernoulli{P} where {P <: AbstractParticles}, N::Int=DEFAULT_SAMPLE_SIZE)
     k = length(x)
     us = Particles(k, Uniform()).particles
     ps = x.p.particles
@@ -71,9 +71,9 @@ end
 parts(d::ProductMeasure, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(d.data, N)
 
 # size
-# dist 
+# dist
 
-# MonteCarloMeasurements.Particles(n::Int, d::For) = 
+# MonteCarloMeasurements.Particles(n::Int, d::For) =
 # -(a::Particles{Float64,1000}, b::Array{Float64,1}) = [a-bj for bj in b]
 
 # Base.promote(a::Particles{T,N}, b)  where {T,N} = (a,parts(b))
@@ -90,15 +90,15 @@ end
 sourceParticles(m::Model, N::Int) = sourceParticles()(m, Val(N))
 
 export sourceParticles
-function sourceParticles() 
-        
+function sourceParticles()
+
     function(_m::Model, ::Type{Val{_N}}) where {_N}
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs), $_N))
         proc(_m, st::Return)  = :(return $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
-        vals = map(x -> Expr(:(=), x,x),variables(_m)) 
+        vals = map(x -> Expr(:(=), x,x),variables(_m))
 
         wrap(kernel) = @q begin
             $kernel
@@ -117,7 +117,7 @@ function Base.getindex(a::AbstractArray{P}, i, j::Particles) where P <: Abstract
     return Particles([a[i,j.particles[n]][n] for n in eachindex(j.particles)])
 end
 
-function Base.getindex(a::AbstractArray, i, j::Particles) 
+function Base.getindex(a::AbstractArray, i, j::Particles)
     return Particles([a[i,j.particles[n]] for n in eachindex(j.particles)])
 end
 
@@ -147,16 +147,16 @@ end
 # Base.to_indices(A, ::Particles) = i.particles
 
 
-@gg function _particles(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
+@gg function _particles(M::Type{<:TypeLevel}, _m::Model, _args, _n::Val{_N}) where {_N}
     body = sourceParticles()(type2model(_m), _n) |> loadvals(_args, NamedTuple())
-    @under_global from_type(M) @q let M
+    @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end
 end
 
-@gg function _particles(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
+@gg function _particles(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {_N}
     body = sourceParticles()(type2model(_m), _n)
-    @under_global from_type(M) @q let M
+    @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end
 end

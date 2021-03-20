@@ -40,9 +40,9 @@ end
 # MeasureTheory.logdensity(d::Distribution, val, tr) = logpdf(d, val)
 
 
-@gg function _logdensity(_::Type{M}, _m::Model, _args, _data, _pars) where M <: TypeLevel{Module}
+@gg function _logdensity(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
     body = type2model(_m) |> sourceLogdensity() |> loadvals(_args, _data, _pars)
-    @under_global from_type(M) @q let M
+    @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end
 end

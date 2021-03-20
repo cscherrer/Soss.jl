@@ -1,23 +1,12 @@
 using SymbolicUtils
 using SymbolicUtils: Sym, Term, FnType, Symbolic
 using SymbolicCodegen: Sum
-using CanonicalTraits
 
 # get it?
 function gensum(t,i,a,b)
     new_i = Sym{Int}(gensym(:i))
     new_t = substitute(t, Dict(i => new_i))
     return Sum(new_t, new_i, a, b)
-end
-
-
-# type-level stuff for GeneralizedGenerated
-@implement NGG.Typeable{Sym{T}} where {T} begin
-    function to_type(@nospecialize(s))
-        let args = Any[s.name] |> NGG.to_typelist
-            NGG.TApp{Sym{T}, Sym{T}, args}
-        end
-    end
 end
 
 

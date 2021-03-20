@@ -139,12 +139,11 @@ function sourceSymlogdensity(types)
     end
 end
 
-
-@gg function _symlogdensity(_::Type{M}, _m::Model, ::Type{T}) where {T, M <: TypeLevel{Module}}
+@gg function _symlogdensity(M::Type{<:TypeLevel}, _m::Model, ::Type{T}) where {T}
     types = GeneralizedGenerated.from_type(T)
     Sym = SymbolicUtils.Sym
     body = type2model(_m) |> sourceSymlogdensity(types)
-    @under_global from_type(M) @q let M
+    @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end    
 end
