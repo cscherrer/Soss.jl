@@ -145,8 +145,9 @@ xform(::Lebesgue{𝕀}) = as𝕀
 xform(::Lebesgue{ℝ₊}) = asℝ₊  
 
 
-@gg M function _xform(_::Type{M}, _m::Model{Asub,B}, _args::A, _data) where {M <: TypeLevel{Module}, Asub, A,B}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data))
+@gg function _xform(M::Type{<:TypeLevel}, _m::Model{Asub,B}, _args::A, _data) where {Asub,A,B}
+    body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
+    @under_global from_type(_unwrap_type(M)) @q let M
+        $body
+    end    
 end
