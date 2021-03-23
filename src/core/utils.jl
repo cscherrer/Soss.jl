@@ -13,15 +13,15 @@ maybesomething(x::Any, y...) = x
 
 
 export argtuple
-argtuple(m) = arguments(m) |> astuple
+argtuple(m) = parameters(m) |> astuple
 
 astuple(x) = Expr(:tuple,x...)
 astuple(x::Symbol) = Expr(:tuple,x)
 
 
 
-export arguments
-arguments(m::AbstractModel) = Model(m).args
+export parameters
+parameters(m::AbstractModel) = Model(m).args
 
 export sampled
 sampled(m::AbstractModel) = keys(Model(m).dists) |> collect
@@ -29,14 +29,14 @@ sampled(m::AbstractModel) = keys(Model(m).dists) |> collect
 export assigned
 assigned(m::AbstractModel) = keys(Model(m).vals) |> collect
 
-export parameters
-function parameters(a::AbstractModel)
+export latent
+function latent(a::AbstractModel)
     m = Model(a)
     union(assigned(Model(m)), sampled(m))
 end
 
 export variables
-variables(m::Model) = union(arguments(m), parameters(m))
+variables(m::Model) = union(parameters(m), latent(m))
 
 function variables(expr :: Expr)
     leaf(x::Symbol) = begin
@@ -52,7 +52,7 @@ end
 variables(s::Symbol) = [s]
 variables(x) = []
 
-for f in [:arguments, :assigned, :sampled, :parameters, :variables]
+for f in [:parameters, :assigned, :sampled, :latent, :variables]
     @eval function $f(m::Model, nt::NamedTuple)
         vs = $f(m)
         isempty(vs) && return NamedTuple()
@@ -92,7 +92,7 @@ import MacroTools: striplines, @q
 
 
 
-# function arguments(model::Model)
+# function parameters(model::Model)
 #     model.args
 # end
 

@@ -39,7 +39,7 @@ function canonical(expr :: Expr)
             :($rf($(rx...)))
         end
 
-        # TODO: This was intended to work around the closure issues by rewriting it as a local fucntion with all values passed explicitly as arguments. Doesn't seem to work, at least not yet
+        # TODO: This was intended to work around the closure issues by rewriting it as a local fucntion with all values passed explicitly as parameters. Doesn't seem to work, at least not yet
         # :($x -> begin $lnn; $fbody end) => begin
         #     vs = setdiff(variables(fbody), variables(x))
         #     @gensym f

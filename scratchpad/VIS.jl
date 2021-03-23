@@ -133,7 +133,7 @@ function initialize(jointdist, obs)
     pars = keys(tr.transformations)
     m = jointdist.model
 
-    args = arguments(jointdist)
+    args = parameters(jointdist)
     prior = Soss.before(m, pars...; inclusive=true)(args)
     pred = predictive(m, pars...)
     samples = structarray(particles(prior))

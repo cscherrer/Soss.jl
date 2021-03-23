@@ -73,7 +73,7 @@ function sourceSimulate(trace_assignments=false)
     function(_m::Model)
         pars = sort(sampled(_m))
         
-        tracekeys = sort(trace_assignments ? parameters(_m) : sampled(_m))
+        tracekeys = sort(trace_assignments ? latent(_m) : sampled(_m))
         _traceName = Dict((k => Symbol(:_trace_, k) for k in tracekeys))
 
         function proc(_m, st::Assign)

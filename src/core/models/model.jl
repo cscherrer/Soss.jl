@@ -135,7 +135,7 @@ function Base.convert(::Type{Expr}, m::Model{T} where T)
 
     body = @q begin end
 
-    for v ∈ setdiff(toposort(m), arguments(m))
+    for v ∈ setdiff(toposort(m), parameters(m))
         push!(body.args, Expr(m,v))
     end
 
@@ -182,7 +182,7 @@ function findStatement(am::AbstractModel, x::Symbol)
     x == :return && return Return(m.retn)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
     x ∈ keys(m.dists) && return Sample(x,m.dists[x])
-    x ∈ arguments(m) && return Arg(x)
+    x ∈ parameters(m) && return Arg(x)
     error("statement not found")
 end
 

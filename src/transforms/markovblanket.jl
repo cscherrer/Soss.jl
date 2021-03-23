@@ -114,7 +114,7 @@ function markovBlanket(m::Model, x :: Symbol)
     # Find the strongly connected component containing x
     # part = find_part(SimpleGraphs.components(g), x) |> union
 
-    # newargs = (arguments(m) ∪ [x]) ∩ part
+    # newargs = (parameters(m) ∪ [x]) ∩ part
     # setdiff!(part, newargs)
 
     (args, vars) = markovBlanketVars(m,g,x)

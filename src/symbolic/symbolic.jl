@@ -122,7 +122,7 @@ function sourceSymlogdensity(types)
                 _ℓ = 0.0
             end
 
-            for x in arguments(_m)
+            for x in parameters(_m)
                 xname = QuoteNode(x)
                 xsym = sym(x)
                 push!(q.args, :($x = $xsym))

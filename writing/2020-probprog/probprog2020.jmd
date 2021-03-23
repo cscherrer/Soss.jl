@@ -27,7 +27,7 @@ A common bottleneck in probabilistic programming comes from evaluation of the lo
 
 ## Code Generation
 
-Given values for model arguments and all stochastic variables, ...
+Given values for model parameters and all stochastic variables, ...
 
 - 
 
@@ -54,7 +54,7 @@ Markov blankets are commonly used in Gibbs sampling, where a given node can be u
 markovBlanket(m,:α)
 ```
 
-Note that the arguments of this model consist of the parents of a `:α`, together with its "stochastic childrens'" parents. Equivalently (and more simply), we must include any referenced but undefined variable as an argument.
+Note that the parameters of this model consist of the parents of a `:α`, together with its "stochastic childrens'" parents. Equivalently (and more simply), we must include any referenced but undefined variable as an argument.
 
 For deterministic 
 

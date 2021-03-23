@@ -31,7 +31,7 @@ export likelihood
 """
     likelihood(m, xs...)
 
-Return a model with only the specified variables in the body. Required dependencies will be included as arguments.
+Return a model with only the specified variables in the body. Required dependencies will be included as parameters.
 
 """
 function likelihood(m::Model, xs...) 
@@ -53,7 +53,7 @@ export prune
 """
     prune(m, xs...)
 
-Returns a model transformed by removing `xs...` and all variables that depend on `xs...`. Unneeded arguments are also removed.
+Returns a model transformed by removing `xs...` and all variables that depend on `xs...`. Unneeded parameters are also removed.
 
 # Examples
 
@@ -97,7 +97,7 @@ export predictive
 """
     predictive(m, xs...)
 
-Returns a model transformed by adding `xs...` to arguments with a body containing only statements that depend on `xs`, or statements that are depended upon by children of `xs` through an open path. Unneeded arguments are trimmed.
+Returns a model transformed by adding `xs...` to parameters with a body containing only statements that depend on `xs`, or statements that are depended upon by children of `xs` through an open path. Unneeded parameters are trimmed.
 
 # Examples
 ```jldoctest
@@ -128,7 +128,7 @@ export Do
 """
     Do(m, xs...)
 
-Returns a model transformed by adding `xs...` to arguments. The remainder of the body remains the same, consistent with Judea Pearl's "Do" operator. Unneeded arguments are trimmed.
+Returns a model transformed by adding `xs...` to parameters. The remainder of the body remains the same, consistent with Judea Pearl's "Do" operator. Unneeded parameters are trimmed.
 
 # Examples
 ```jldoctest

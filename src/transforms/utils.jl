@@ -64,7 +64,7 @@ getReturn(am::AbstractModel) = Model(am).retn
 
 function setReturn(m::Model, x)
     theModule = getmodule(m)
-    m0 = assemblefrom(m, parameters(m), arguments(m))
+    m0 = assemblefrom(m, latent(m), parameters(m))
     isnothing(x) && return m0
     return merge(m0, Model(theModule, Return(x)))
 end 
@@ -80,7 +80,7 @@ sinknodes(g::SimpleDigraph) = setdiff(vlist(g), [first(e) for e in elist(g)])
 """
     after(m::Model, xs...; strict=false)
 
-Transforms `m` by moving `xs` to arguments. If `strict=true`, only descendants of `xs` are retained in the body. Otherwise, the remaining variables in the body are unmodified. Unused arguments are trimmed.
+Transforms `m` by moving `xs` to parameters. If `strict=true`, only descendants of `xs` are retained in the body. Otherwise, the remaining variables in the body are unmodified. Unused parameters are trimmed.
 
 `predictive(m::Model, xs...) = after(m, xs..., strict = true)`
 
@@ -116,7 +116,7 @@ function after(m::Model, xs...; strict = false)
         sinkparents = before(g, v)
         !strict || any(in(sinkparents).(xs)) ? append!(parms, sinkparents) : nothing
     end
-    args = arguments(m) ∪ xs # Will trim later.
+    args = parameters(m) ∪ xs # Will trim later.
     parms = setdiff(parms, args)
     trim_args!(args, m, parms)
     return setReturn(assemblefrom(m, parms, args), getReturn(m))
@@ -125,7 +125,7 @@ end
 """
     before(m::Model, xs...; inclusive=true, strict=true)
 
-Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `strict=false`, retains all variables that are not descendants of any `xs`. Note that adding more variables to `xs` cannot result in a larger model. If `inclusive=true`, `xs` is considered to be an ancestor of itself and is always included in the returned `Model`. Unneeded arguments are trimmed.
+Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `strict=false`, retains all variables that are not descendants of any `xs`. Note that adding more variables to `xs` cannot result in a larger model. If `inclusive=true`, `xs` is considered to be an ancestor of itself and is always included in the returned `Model`. Unneeded parameters are trimmed.
 
 `prune(m::Model, xs...) = before(m, xs..., inclusive = false, strict = false)`
 
@@ -154,7 +154,7 @@ Soss.before(m, :θ, inclusive = true, strict = false)
 function before(m::Model, xs...; inclusive = true, strict = true)
     g = digraph(m)
     vars = strict ? before(g, xs..., inclusive = inclusive) : notafter(g, xs..., inclusive = inclusive)
-    args = arguments(m) ∩ vars
+    args = parameters(m) ∩ vars
     params = setdiff(vars, args)
     trim_args!(args, m, params)
     return assemblefrom(m, params, args)

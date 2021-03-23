@@ -8,7 +8,7 @@ end
 
 # function (m::Model)(nt::NamedTuple)
 #     badargs = setdiff(keys(nt), variables(m))
-#     isempty(badargs) || @error "Unused arguments $badargs"
+#     isempty(badargs) || @error "Unused parameters $badargs"
     
 #     m = predictive(m, keys(nt)...)
 #     return ConditionalModel(m, nt)
@@ -21,11 +21,11 @@ end
 function Base.show(io::IO, d :: ConditionalModel)
     m = d.model
     println(io, "Joint Distribution")
-    print(io, "    Bound arguments: [")
-    join(io, fieldnames(arguments(d)), ", ")
+    print(io, "    Bound parameters: [")
+    join(io, fieldnames(parameters(d)), ", ")
     println(io, "]")
     print(io, "    Variables: [")
-    join(io, setdiff(toposort(m),arguments(m)), ", ")
+    join(io, setdiff(toposort(m),parameters(m)), ", ")
     println(io, "]\n")
     println(io, convert(Expr, m))
 end

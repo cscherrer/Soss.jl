@@ -33,5 +33,5 @@ end
 export toposort
 function toposort(m::Model)
     (g, _, names) = poset(m).D |> convert_simple
-    setdiff(map(v -> names[v], Graphs.topological_sort_by_dfs(g)), arguments(m))
+    setdiff(map(v -> names[v], Graphs.topological_sort_by_dfs(g)), parameters(m))
 end

@@ -11,7 +11,7 @@ Gives an abstract type for all Soss models
 Type variables ending in T are type-level representations used to reconstruct
 
 
-N gives the Names of arguments (each a Symbol)
+N gives the Names of parameters (each a Symbol)
 B gives the Body, as an Expr
 M gives the Module where the model is defined
 """

@@ -5,7 +5,7 @@ export MarkovChain
 """
     MarkovChain
 
-`MarkovChain(pars, step)` defines a Markov Chain with global parameters `pars` and transition kernel `step`. Here, `pars` is a named tuple, and `step` is a Soss model that takes arguments `(pars, state)` and returns a `next` value containing the new `pars` and `state`.
+`MarkovChain(pars, step)` defines a Markov Chain with global parameters `pars` and transition kernel `step`. Here, `pars` is a named tuple, and `step` is a Soss model that takes parameters `(pars, state)` and returns a `next` value containing the new `pars` and `state`.
 
 NOTE: This is experimental, and may change in the near future.
 

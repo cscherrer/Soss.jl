@@ -39,7 +39,7 @@ model = @model X begin
     end
 end;
 
-# In Soss, models are _first-class_ and _function-like_, and applying a model to its arguments gives a _joint distribution_.
+# In Soss, models are _first-class_ and _function-like_, and applying a model to its parameters gives a _joint distribution_.
 
 # Just a few of the things we can do in Soss:
 # - Sample from the forward model

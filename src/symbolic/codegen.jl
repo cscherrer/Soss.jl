@@ -17,7 +17,7 @@ function SymbolicCodegen.codegen(cm :: ConditionalModel; kwargs...)
         pushfirst!(code.args, :($v = $rhs))
     end
 
-    for v in arguments(m)
+    for v in parameters(m)
         vname = QuoteNode(v)
         pushfirst!(code.args, :($v = getproperty(_args, $vname)))
     end

@@ -6,7 +6,7 @@ end
 
 function Base.show(io::IO, cm::ConditionalModel)
     println(io, "ConditionalModel given")
-    println(io, "    arguments    ", keys(argvals(cm)))
+    println(io, "    parameters    ", keys(argvals(cm)))
     println(io, "    observations ", keys(observations(cm)))
     println(io, Model(cm))
 end

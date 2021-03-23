@@ -61,7 +61,7 @@ function sourceImportanceSample(_data)
 
         body = buildSource(m, proc) |> MacroTools.flatten
 
-        kwargs = arguments(p) ∪ arguments(q)
+        kwargs = parameters(p) ∪ parameters(q)
         kwargsExpr = Expr(:tuple,kwargs...)
 
         stochExpr = begin
@@ -121,7 +121,7 @@ end
 #     pbody = buildSource(p, procp) |> striplines
 #     qbody = buildSource(q, procq) |> striplines
 
-#     kwargs = freeVariables(q) ∪ arguments(p)
+#     kwargs = freeVariables(q) ∪ parameters(p)
 #     kwargsExpr = Expr(:tuple,kwargs...)
 
 #     stochExpr = begin

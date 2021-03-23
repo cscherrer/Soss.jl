@@ -34,7 +34,7 @@ This function is essentially a wrapper around `DynamicHMC.mcmc_with_warmup()`. A
 *  `method = logdensity`: How to compute the log-density. Options are `logdensity` (delegates to `logdensity` of each component) or `codegen` (symbolic simplification and code generation).
 *  `ad_backend = Val(:ForwardDiff)`: Automatic differentiation backend.
 *  `reporter = DynamicHMC.NoProgressReport()`: Specify logging during sampling. Default: do not log progress.
-*  `kwargs`: Additional keyword arguments passed to core sampling function `DynamicHMC.mcmc_with_warmup()`.
+*  `kwargs`: Additional keyword parameters passed to core sampling function `DynamicHMC.mcmc_with_warmup()`.
 
 
 Returns an Array of `Namedtuple` of length `N`. Each entry in the array is a sample of parameters indexed by the parameter symbol.

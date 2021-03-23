@@ -3,7 +3,7 @@ function ≊(m1::Model,m2::Model)
     function eq_tuples(nt1::NamedTuple,nt2::NamedTuple)
         return length(nt1)==length(nt2) && all(nt1[k]==nt2[k] for k in keys(nt1))
     end
-    return Set(arguments(m1))==Set(arguments(m2)) && m1.retn==m2.retn && eq_tuples(m1.dists,m2.dists) && eq_tuples(m1.vals,m2.vals)
+    return Set(parameters(m1))==Set(parameters(m2)) && m1.retn==m2.retn && eq_tuples(m1.dists,m2.dists) && eq_tuples(m1.vals,m2.vals)
 end
 
 

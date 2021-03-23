@@ -38,7 +38,7 @@ m = @model sigma,N begin
 
 Given this, a user can do things like
 
-- Specify the `sigma` and `N` arguments, and "forward sample" from the model (`rand`)
+- Specify the `sigma` and `N` parameters, and "forward sample" from the model (`rand`)
 - Compute the log-density (`logdensity`)
 - Call to external inference libraries that benefit from these or other inference primitives
 - Transform the model to yield new models, for example using a known value for `mu` or computing the Markov blanket at a node
