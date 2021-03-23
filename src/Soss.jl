@@ -40,7 +40,7 @@ for generated functions
 """
 _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 
-# include("noted.jl")
+include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/statement.jl")
 include("core/models/model.jl")
