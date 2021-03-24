@@ -1,6 +1,6 @@
-struct ConditionalModel{A,B,M,Argvals,Obs} <: AbstractModel{A,B,M,Argvals,Obs}
+struct ConditionalModel{A,B,M,Par,Obs} <: AbstractModel{A,B,M,Par,Obs}
     model :: Model{A,B,M}
-    argvals :: Argvals
+    argvals :: Par
     obs :: Obs
 end
 
@@ -18,7 +18,7 @@ export observations
 observations(c::ConditionalModel) = c.obs
 
 export observed
-function observed(cm::ConditionalModel{A,B,M,Argvals,Obs}) where {A,B,M,Argvals,Obs}
+function observed(cm::ConditionalModel{A,B,M,Par,Obs}) where {A,B,M,Par,Obs}
     keys(schema(Obs))
 end
 

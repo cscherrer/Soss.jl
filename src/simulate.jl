@@ -1,6 +1,6 @@
 import StatsBase
 
-# function simulate(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals}
+# function simulate(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Par,EmptyNTtype}, N::Int) where {A,B,M,Par}
 #     m = Model(cm)
 #     cm0 = setReturn(m, nothing)(argvals(cm))
 #     info = StructArray(simulate(rng, cm0, N))
@@ -8,12 +8,12 @@ import StatsBase
 #     return StructArray{Noted}((vals, info))
 # end
 
-# function simulate(cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals} 
+# function simulate(cm::ConditionalModel{A,B,M,Par,EmptyNTtype}, N::Int) where {A,B,M,Par} 
 #     return simulate(GLOBAL_RNG, cm, N)
 # end
 
 
-# function simulate(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
+# function simulate(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Par,EmptyNTtype}) where {A,B,M,Par}
 #     m = Model(cm)
 #     cm0 = setReturn(m, nothing)(argvals(cm))
 #     info = simulate(rng, cm0)
@@ -21,7 +21,7 @@ import StatsBase
 #     return Noted(val, info)
 # end
 
-# function simulate(cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
+# function simulate(cm::ConditionalModel{A,B,M,Par,EmptyNTtype}) where {A,B,M,Par}
 #     return simulate(GLOBAL_RNG, cm)
 # end
 
