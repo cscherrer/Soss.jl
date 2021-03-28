@@ -38,7 +38,7 @@ function sourceImportanceSample(_data)
 
         _datakeys = getntkeys(_data)
 
-        function proc(m, st::Sample) 
+        function proc(m, st::Sample)
             st.x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $(st.x)))
 
             if hasproperty(p.dists, st.x)
@@ -102,7 +102,7 @@ end
 #     procp(p, st::LineNumber) = convert(Expr, st)
 
 #     function procq(q, st::Follows)
-#         if isempty(vars(st.rhs)) 
+#         if isempty(vars(st.rhs))
 #             @q begin
 #                 $(st.x) = Particles($N, $(st.rhs))
 #                 $ℓ -= logdensity($(st.rhs), $(st.x))
@@ -124,11 +124,11 @@ end
 #     kwargs = freeVariables(q) ∪ arguments(p)
 #     kwargsExpr = Expr(:tuple,kwargs...)
 
-#     stochExpr = begin 
+#     stochExpr = begin
 #         vals = map(stochastic(q)) do x Expr(:(=), x,x) end
 #         Expr(:tuple, vals...)
 #     end
-    
+
 #     @gensym particleImportance
 #     result = @q function $particleImportance($N, pars)
 #         @unpack $kwargsExpr = pars
@@ -142,11 +142,11 @@ end
 # end
 
 
-    
+
 #     @gensym rand
-    
+
 #     flatten(@q (
-#         function $rand(args...;kwargs...) 
+#         function $rand(args...;kwargs...)
 #             @unpack $argsExpr = kwargs
 #             # kwargs = Dict(kwargs)
 #             $body
@@ -164,11 +164,16 @@ function merge_pqargs(src)
 end
 
 
-@gg M function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
+@gg function _importanceSample(M::Type{<:TypeLevel}, p::Model, _pargs, q::Model, _qargs, _data)
     p = type2model(p)
     q = type2model(q)
-        
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceImportanceSample(_data)(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()) |> merge_pqargs)
+
+    body = sourceImportanceSample(_data)(p,q) |>
+        loadvals(_qargs, _data) |>
+        loadvals(_pargs, NamedTuple()) |>
+        merge_pqargs
+
+    @under_global from_type(_unwrap_type(M)) @q let M
+        $body
+    end
 end

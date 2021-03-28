@@ -35,8 +35,9 @@ function sourceWeightedSample(_data)
     end
 end
 
-@gg M function _weightedSample(_::Type{M}, _m::Model, _args, _data) where M <: TypeLevel{Module}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceWeightedSample(_data) |> loadvals(_args, _data))
+@gg function _weightedSample(M::Type{<:TypeLevel}, _m::Model, _args, _data)
+    body = type2model(_m) |> sourceWeightedSample(_data) |> loadvals(_args, _data)
+    @under_global from_type(_unwrap_type(M)) @q let M
+        $body
+    end
 end

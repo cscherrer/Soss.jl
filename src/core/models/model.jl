@@ -6,7 +6,7 @@ using MacroTools: @q, striplines
 using SimplePosets
 using GeneralizedGenerated
 
-struct Model{A,B,M} <: AbstractModel{A,B,M,Nothing,Nothing}
+struct Model{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModel{A,B,M,Nothing,Nothing}
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple

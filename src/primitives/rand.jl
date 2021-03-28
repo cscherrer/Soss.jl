@@ -56,14 +56,16 @@ function sourceRand()
     end
 end
 
-@gg M function _rand(_::Type{M}, _m::Model, _args) where M <: TypeLevel{Module}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple()))
+@gg function _rand(M::Type{<:TypeLevel}, _m::Model, _args)
+    body = type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple())
+    @under_global from_type(_unwrap_type(M)) @q let M
+        $body
+    end
 end
 
-@gg M function _rand(_::Type{M}, _m::Model, _args::NamedTuple{()}) where M <: TypeLevel{Module}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        type2model(_m) |> sourceRand())
+@gg function _rand(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()})
+    body = type2model(_m) |> sourceRand()
+    @under_global from_type(_unwrap_type(M)) @q let M
+        $body
+    end
 end
