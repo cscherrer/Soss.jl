@@ -29,6 +29,8 @@ using ArrayInterface: StaticInt
 
 using TransformVariables: as, asℝ, as𝕀, asℝ₊
 
+using SimplePosets: SimplePoset
+
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
 

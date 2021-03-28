@@ -10,8 +10,8 @@ function gensum(t,i,a,b)
 end
 
 
-using SymbolicUtils.Rewriters
-const RW = Rewriters
+using SymbolicUtils
+const RW = SymbolicUtils.Rewriters
 
 POSTRULES = [
     @rule getindex(UnitRange(~a,~b), ~i) => ~i - ~a + 1

@@ -1,5 +1,5 @@
 using MLStyle
-using SimplePosets
+import SimplePosets
 using NestedTuples
 using NestedTuples: LazyMerge
 
