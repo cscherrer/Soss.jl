@@ -100,7 +100,7 @@ function sourceSimulate(trace_assignments=false)
                 _value = nothing
                 $kernel
                 _trace = $(Expr(:tuple, _traces...))
-                return (value = _value, trace = _trace)
+                return (trace = _trace, value = _value)
             end
         end
 
