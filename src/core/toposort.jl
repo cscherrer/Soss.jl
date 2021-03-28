@@ -1,4 +1,4 @@
-using SimplePosets
+import SimplePosets
 using SimpleGraphs: SimpleGraph, AbstractSimpleGraph, SimpleDigraph, eltype, NV, elist, in_neighbors, add_edges!, vertex2idx
 
 import Graphs

@@ -1,21 +1,22 @@
 
+
 function graph(T, m::Model)
     g = T()
 
     mvars = variables(m)
     for v in mvars
-        add!(g, v)
+        SimplePosets.add!(g, v)
     end
 
     for (v, expr) in pairs(m.vals)
         for p in variables(expr) ∩ variables(m)
-            add!(g, p, v)
+            SimplePosets.add!(g, p, v)
         end
     end
 
     for (v, expr) in pairs(m.dists)
         for p in variables(expr) ∩ variables(m)
-            add!(g, p, v)
+            SimplePosets.add!(g, p, v)
         end
     end
 
