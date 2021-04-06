@@ -54,7 +54,7 @@ function sourceXform(_data=NamedTuple())
 
             # Non-leaves might be referenced later, so we need to be sure they
             # have a value
-            isleaf(_m, st.x) || pushfirst!(thecode.args, :($x = rand($rhs)))
+            isleaf(_m, st.x) || pushfirst!(thecode.args, :($x = testvalue($rhs)))
 
             return thecode
         end
