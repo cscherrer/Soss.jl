@@ -30,24 +30,6 @@ include("examples-list.jl")
         end
     end
 
-    @testset "`For` methods" begin
-        @info "Testing `For` methods"
-        for indices in [3, 1:3, (j for j = 1:3), [1, 2, 3], rand(2, 3)]
-            d = For(i -> Normal(0.0, i), indices)
-
-            x = logdensity(d, rand(d))
-            y = logdensity(d, rand.(d.data))
-        end
-    
-        # TODO: Restore For tests
-        # for indices in [(2,3), (1:2,1:3)]
-        #     d = For((i,j) -> Normal(i,j), indices)
-    
-        #     x = logdensity(d, rand(d))
-        #     y = logdensity(d, rand.(d.data))
-        # end    
-    end
-
     @testset "Nested models" begin
         m1 = @model a, b begin
             p ~ Beta(a, b)
@@ -60,7 +42,7 @@ include("examples-list.jl")
             m ~ m1(a = a, b = b)
         end
 
-        @test_broken let t = xform(m2() | (; m = (; x = rand(3))))
+        @test let t = xform(m2() | (; m = (; x = rand(3))))
             logdensity(m2() | (; m = (; x = rand(3))), t(randn(3))) isa Float64
         end
     end
