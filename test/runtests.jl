@@ -1,6 +1,7 @@
 using Soss
 using Test
 using MeasureTheory
+using T
 
 include("examples-list.jl")
 
@@ -31,21 +32,22 @@ include("examples-list.jl")
     end
 
     @testset "Nested models" begin
-        nested = @model a, b begin
+        inner = @model a, b begin
             p ~ Beta(a, b)
             x ~ Normal(p, 1.0) |> iid(3)
+            return x
         end
 
-        m = @model sub begin
+        outer = @model sub begin
             a ~ Beta(0.5, 0.5)
             b ~ Beta(1, 0.5)
             m ~ sub(a = a, b = b)
         end
 
-        outer = m(sub=nested)
-        t = xform(outer | (; m = (; x = rand(3))))
-        @test logdensity(outer | (; m = (; x = rand(3))), t(randn(3))) isa Float64
-        
+        x = rand(outer(sub=inner)).m
+        post = outer(sub=inner) | (;m=  (; x))
+        t = xform(post)
+        @test logdensity(post, t(randn(3))) isa Float64
     end
 
     @testset "Doctests" begin
