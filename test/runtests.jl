@@ -1,7 +1,6 @@
 using Soss
 using Test
 using MeasureTheory
-using T
 
 include("examples-list.jl")
 
