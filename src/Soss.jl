@@ -62,7 +62,7 @@ include("distributions/iid.jl")
 # include("distributions/markovchain.jl")
 
 include("primitives/rand.jl")
-include("simulate.jl")
+include("primitives/simulate.jl")
 include("primitives/logdensity.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")
