@@ -50,7 +50,7 @@ export Model, @model
 include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/statement.jl")
-include("core/astmodel.jl")
+include("core/models/astmodel.jl")
 include("core/models/model.jl")
 # include("core/models/jointdistribution.jl")
 include("core/canonical.jl")
