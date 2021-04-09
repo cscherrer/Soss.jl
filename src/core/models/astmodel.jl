@@ -49,7 +49,3 @@ function type2model(::Type{ASTModel{A,B,M}}) where {A,B,M}
     body = from_type(B)
     Model(from_type(M), convert(Vector{Symbol},args), body)
 end
-
-
-
-
