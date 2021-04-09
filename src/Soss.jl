@@ -30,7 +30,10 @@ using ArrayInterface: StaticInt
 using TransformVariables: as, asℝ, as𝕀, asℝ₊
 
 using SimplePosets: SimplePoset
+import SimplePosets
 
+
+using GeneralizedGenerated
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
 
@@ -42,9 +45,12 @@ for generated functions
 """
 _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 
+export Model, @model
+
 include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/statement.jl")
+include("core/astmodel.jl")
 include("core/models/model.jl")
 # include("core/models/jointdistribution.jl")
 include("core/canonical.jl")
