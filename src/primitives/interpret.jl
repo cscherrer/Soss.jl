@@ -12,7 +12,7 @@ function _interpret(ast::Expr)
         length(newargs) == 3 || return expr
 
         (_, x, d) = newargs
-        :(($x, _ctx) = _tilde($(QuoteNode(x)), $d, _ctx))
+        :(($x, _ctx) = _tilde(Val{$(QuoteNode(x))}, $d, _ctx))
     end
 
     body = foldall(identity, branch)(ast)
