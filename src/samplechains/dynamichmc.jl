@@ -1,4 +1,4 @@
-using SampleChainsDynamicHMC
+using .SampleChainsDynamicHMC
 using Random
 
 export sample
