@@ -42,10 +42,39 @@ end
 
 Base.show(io::IO, m :: ASTModel) = println(io, convert(Expr, m))
 
-
-
 function type2model(::Type{ASTModel{A,B,M}}) where {A,B,M}
     args = [fieldnames(A)...]
     body = from_type(B)
     Model(from_type(M), convert(Vector{Symbol},args), body)
 end
+
+# julia> using Soss, MeasureTheory
+
+# julia> m = @model begin
+#        p ~ Uniform()
+#        x ~ Bernoulli(p) |> iid(3)
+#        end;
+
+# julia> f = interpret(m);
+
+# julia> f(NamedTuple()) do x,d,ctx
+#            r = rand(d)
+#            (r, merge(ctx, NamedTuple{(x,)}((r,))))
+#        end
+# (p = 0.3863623559358842, x = Bool[0, 0, 0])
+
+# julia> f(0) do x,d,n
+#            r = rand(d)
+#            (r, n+1)
+#        end
+# 2
+
+# julia> f
+# function = (_tilde, _ctx0;) -> begin
+#     begin
+#         _ctx = _ctx0
+#         (p, _ctx) = _tilde(:p, (Main).Uniform(), _ctx)
+#         (x, _ctx) = _tilde(:x, (Main).:|>((Main).Bernoulli(p), (Main).iid(3)), _ctx)
+#         return _ctx
+#     end
+# end
