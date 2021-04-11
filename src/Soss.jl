@@ -59,7 +59,7 @@ include("core/toposort.jl")
 include("core/weighted.jl")
 include("core/utils.jl")
 include("core/models/conditional.jl")
-
+include("primitives/interpret.jl")
 # include("distributions/dist.jl")
 # include("distributions/for.jl")
 include("distributions/iid.jl")
