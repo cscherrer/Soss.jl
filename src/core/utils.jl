@@ -288,3 +288,8 @@ end
 
 unVal(::Type{V}) where {T, V <: Val{T}} = T
 unVal(::Val{T}) where {T} = T
+
+function val2nt(v,x)
+    k = Soss.unVal(v)
+    NamedTuple{(k,)}((x,))
+end
