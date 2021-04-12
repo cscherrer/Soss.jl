@@ -45,12 +45,12 @@ for generated functions
 """
 _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 
-export Model, @model
+export Model, ASTModel, DAGModel, @model
 
 include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/statement.jl")
-include("core/models/astmodel.jl")
+include("core/models/astmodel/astmodel.jl")
 include("core/models/model.jl")
 # include("core/models/jointdistribution.jl")
 include("core/canonical.jl")
