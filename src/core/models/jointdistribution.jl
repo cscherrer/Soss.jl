@@ -1,12 +1,12 @@
 struct ConditionalModel{A0,A,B,M} <: Distribution{MixedVariate, MixedSupport}
-    model::Model{A,B,M}
+    model::DAGModel{A,B,M}
     args::A0
 end
 
 (jd::ConditionalModel)(nt::NamedTuple) = jd.model(merge(jd.args, nt))
 
 
-# function (m::Model)(nt::NamedTuple)
+# function (m::DAGModel)(nt::NamedTuple)
 #     badargs = setdiff(keys(nt), variables(m))
 #     isempty(badargs) || @error "Unused arguments $badargs"
     
@@ -14,9 +14,9 @@ end
 #     return ConditionalModel(m, nt)
 # end
 
-(m::Model)(;args...)= m((;args...))
+(m::DAGModel)(;args...)= m((;args...))
 
-(m::Model{A,B,M})(nt::NamedTuple) where {A,B,M} = ConditionalModel(m,nt)
+(m::DAGModel{A,B,M})(nt::NamedTuple) where {A,B,M} = ConditionalModel(m,nt)
 
 function Base.show(io::IO, d :: ConditionalModel)
     m = d.model

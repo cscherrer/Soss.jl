@@ -14,6 +14,6 @@ becomes
 ```julia
 Sample(:x, :(Normal(μ,σ)))
 ```
-Next, all of the `Sample`s are brought together to build a named tuple mapping each `Symbol` to its `Expr`. This becomes the `dists` field for a `Model`.
+Next, all of the `Sample`s are brought together to build a named tuple mapping each `Symbol` to its `Expr`. This becomes the `dists` field for a `DAGModel`.
 
 Because all of this is entirely syntactic, translating into another form only helps when its done on the right side of `~` or `=`. Otherwise we need another way to represent this information.

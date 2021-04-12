@@ -23,17 +23,17 @@ function xform(m::ConditionalModel{A, B}) where {A,B}
     return _xform(getmoduletypencoding(m), Model(m), argvals(m), observations(m))
 end
 
-# function xform(m::Model{EmptyNTtype, B}) where {B}
+# function xform(m::DAGModel{EmptyNTtype, B}) where {B}
 #     return xform(m,NamedTuple())    
 # end
 
 
 export sourceXform
 
-sourceXform(m::Model) = sourceXform()(m)
+sourceXform(m::DAGModel) = sourceXform()(m)
 
 function sourceXform(_data=NamedTuple())
-    function(_m::Model)
+    function(_m::DAGModel)
 
         _datakeys = getntkeys(_data)
         proc(_m, st::Assign)        = :($(st.x) = $(st.rhs))
@@ -145,7 +145,7 @@ xform(::Lebesgue{𝕀}) = as𝕀
 xform(::Lebesgue{ℝ₊}) = asℝ₊  
 
 
-@gg function _xform(M::Type{<:TypeLevel}, _m::Model{Asub,B}, _args::A, _data) where {Asub,A,B}
+@gg function _xform(M::Type{<:TypeLevel}, _m::DAGModel{Asub,B}, _args::A, _data) where {Asub,A,B}
     body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

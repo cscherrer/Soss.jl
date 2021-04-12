@@ -19,7 +19,7 @@ function partners(g::SimpleDigraph, v::Symbol)
 end
 
 
-# function stochParents(m::Model, g::SimpleDigraph, v::Symbol, acc=Symbol[])
+# function stochParents(m::DAGModel, g::SimpleDigraph, v::Symbol, acc=Symbol[])
 #     pars = parents(g,v)
 
 #     result = union(pars, acc)
@@ -29,15 +29,15 @@ end
 #     result
 # end
 
-# _stochParents(m::Model, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
-# _stochParents(m::Model, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochParents(m, g, st.x, union([st.x],acc))
-# _stochParents(m::Model, g::SimpleDigraph, st::Arg, acc=Symbol[]) = [st.x]
-# _stochParents(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
+# _stochParents(m::DAGModel, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
+# _stochParents(m::DAGModel, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochParents(m, g, st.x, union([st.x],acc))
+# _stochParents(m::DAGModel, g::SimpleDigraph, st::Arg, acc=Symbol[]) = [st.x]
+# _stochParents(m::DAGModel, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
 
 
 ####################
 
-function stochChildren(m::Model, g::SimpleDigraph, v::Symbol, acc=Symbol[])
+function stochChildren(m::DAGModel, g::SimpleDigraph, v::Symbol, acc=Symbol[])
     pars = children(g,v)
 
     result = union(pars, acc)
@@ -47,14 +47,14 @@ function stochChildren(m::Model, g::SimpleDigraph, v::Symbol, acc=Symbol[])
     result
 end
 
-_stochChildren(m::Model, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
-_stochChildren(m::Model, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochChildren(m, g, st.x, union([st.x],acc))
-_stochChildren(m::Model, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
+_stochChildren(m::DAGModel, g::SimpleDigraph, st::Sample, acc=Symbol[]) = union([st.x], acc)
+_stochChildren(m::DAGModel, g::SimpleDigraph, st::Assign, acc=Symbol[]) = stochChildren(m, g, st.x, union([st.x],acc))
+_stochChildren(m::DAGModel, g::SimpleDigraph, st::Bool, acc=Symbol[]) = []
 
 
 ########################
 
-function stochPartners(m::Model, g::SimpleDigraph, v::Symbol)
+function stochPartners(m::DAGModel, g::SimpleDigraph, v::Symbol)
     s = map(collect(stochChildren(m,g,v))) do x 
         parents(g,x) 
     end
@@ -64,11 +64,11 @@ function stochPartners(m::Model, g::SimpleDigraph, v::Symbol)
     setdiff(union(s...),[v]) |> collect
 end
 
-function markovBlanketVars(m::Model, g::SimpleDigraph, v::Symbol)
+function markovBlanketVars(m::DAGModel, g::SimpleDigraph, v::Symbol)
     markovBlanketVars(m,g,findStatement(m,v))
 end
 
-function markovBlanketVars(m::Model, g::SimpleDigraph,st::Sample)
+function markovBlanketVars(m::DAGModel, g::SimpleDigraph,st::Sample)
     p = poset(m)
     g = digraph(m)
 
@@ -89,7 +89,7 @@ function markovBlanketVars(m::Model, g::SimpleDigraph,st::Sample)
     (args, body)
 end
 
-function markovBlanketVars(m::Model, g::SimpleDigraph,st::Assign)
+function markovBlanketVars(m::DAGModel, g::SimpleDigraph,st::Assign)
     (parents(g,st.x), Symbol[st.x])
 end
 
@@ -107,7 +107,7 @@ end
 # SimpleGraphs.components(g::SimpleDigraph) = SimpleGraphs.components(convert(SimpleGraph, g))
 
 export markovBlanket
-function markovBlanket(m::Model, x :: Symbol)
+function markovBlanket(m::DAGModel, x :: Symbol)
     g = digraph(m) #Creates a new SimpleDigraph, so no need to copy before mutating
 
 
@@ -120,11 +120,11 @@ function markovBlanket(m::Model, x :: Symbol)
     (args, vars) = markovBlanketVars(m,g,x)
 
     M = getmodule(m)
-    m_init = Model(M, args, NamedTuple(), NamedTuple(), nothing)
-    m_init = merge(m_init, Model(M,findStatement(m,x)))
+    m_init = DAGModel(M, args, NamedTuple(), NamedTuple(), nothing)
+    m_init = merge(m_init, DAGModel(M,findStatement(m,x)))
     m = foldl(vars; init= m_init) do m0,v
-        merge(m0, Model(M,findStatement(m, v)))
+        merge(m0, DAGModel(M,findStatement(m, v)))
     end
-    m = merge(m, Model(M,findStatement(m,x)))
+    m = merge(m, DAGModel(M,findStatement(m,x)))
     
 end

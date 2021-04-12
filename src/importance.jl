@@ -29,11 +29,11 @@ export importanceSample
     return _importanceSample(getmoduletypencoding(p.model), p.model, p.args, q.model, q.args, _data)
 end
 
-sourceImportanceSample(p::Model,q::Model,_data) = sourceImportanceSample(_data)(p::Model,q::Model)
+sourceImportanceSample(p::DAGModel,q::DAGModel,_data) = sourceImportanceSample(_data)(p::DAGModel,q::DAGModel)
 
 export sourceImportanceSample
 function sourceImportanceSample(_data)
-    function(p::Model,q::Model)
+    function(p::DAGModel,q::DAGModel)
         m = merge(p,q)
 
         _datakeys = getntkeys(_data)
@@ -164,7 +164,7 @@ function merge_pqargs(src)
 end
 
 
-@gg function _importanceSample(M::Type{<:TypeLevel}, p::Model, _pargs, q::Model, _qargs, _data)
+@gg function _importanceSample(M::Type{<:TypeLevel}, p::DAGModel, _pargs, q::DAGModel, _qargs, _data)
     p = type2model(p)
     q = type2model(q)
 

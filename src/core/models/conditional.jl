@@ -1,5 +1,5 @@
 struct ConditionalModel{A,B,M,Argvals,Obs} <: AbstractModel{A,B,M,Argvals,Obs}
-    model :: Model{A,B,M}
+    model :: DAGModel{A,B,M}
     argvals :: Argvals
     obs :: Obs
 end
@@ -22,20 +22,20 @@ function observed(cm::ConditionalModel{A,B,M,Argvals,Obs}) where {A,B,M,Argvals,
     keys(schema(Obs))
 end
 
-Model(c::ConditionalModel) = c.model
+DAGModel(c::ConditionalModel) = c.model
 
-ConditionalModel(m::Model) = ConditionalModel(m,NamedTuple(), NamedTuple())
+ConditionalModel(m::DAGModel) = ConditionalModel(m,NamedTuple(), NamedTuple())
 
-(m::Model)(nt::NamedTuple) = ConditionalModel(m)(nt)
+(m::DAGModel)(nt::NamedTuple) = ConditionalModel(m)(nt)
 
 (cm::ConditionalModel)(nt::NamedTuple) = ConditionalModel(cm.model, merge(cm.argvals, nt), cm.obs)
 
-(m::Model)(;argvals...)= m((;argvals...))
+(m::DAGModel)(;argvals...)= m((;argvals...))
 
-(m::Model)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
+(m::DAGModel)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
 
 import Base
 
-Base.:|(m::Model, nt::NamedTuple) = ConditionalModel(m) | nt
+Base.:|(m::DAGModel, nt::NamedTuple) = ConditionalModel(m) | nt
 
 Base.:|(cm::ConditionalModel, nt::NamedTuple) = ConditionalModel(cm.model, cm.argvals, merge(cm.obs, nt))

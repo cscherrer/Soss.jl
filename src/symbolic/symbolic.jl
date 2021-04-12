@@ -63,7 +63,7 @@ function symlogdensity(cm::ConditionalModel{A,B,M}; noinline=()) where {A,B,M}
     symlogdensity(m, types, dict, trace)
 end
 
-function symlogdensity(m::Model{A,B,M}, types, dict, trace) where {A,B,M}
+function symlogdensity(m::DAGModel{A,B,M}, types, dict, trace) where {A,B,M}
     s = SymCall(convert(Dict,trace))(_symlogdensity,M, m, to_type(types))
     s = rewrite(s)
     return SymbolicCodegen.foldconstants(s, dict)
@@ -95,7 +95,7 @@ export sourceSymlogdensity
 function sourceSymlogdensity(types)
     sym(s::Symbol) = Soss.sym(getproperty(types, s), s)
 
-    function(_m::Model)
+    function(_m::DAGModel)
         function proc(_m, st :: Assign)
             x = st.x
             xname = QuoteNode(x)
@@ -139,7 +139,7 @@ function sourceSymlogdensity(types)
     end
 end
 
-@gg function _symlogdensity(M::Type{<:TypeLevel}, _m::Model, ::Type{T}) where {T}
+@gg function _symlogdensity(M::Type{<:TypeLevel}, _m::DAGModel, ::Type{T}) where {T}
     types = GeneralizedGenerated.from_type(T)
     Sym = SymbolicUtils.Sym
     body = type2model(_m) |> sourceSymlogdensity(types)

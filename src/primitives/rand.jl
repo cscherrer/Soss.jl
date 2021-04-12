@@ -24,20 +24,20 @@ end
     rand(GLOBAL_RNG, m)
 end
 
-@inline function Base.rand(rng::AbstractRNG, m::Model)
+@inline function Base.rand(rng::AbstractRNG, m::DAGModel)
     return _rand(getmoduletypencoding(m), m, NamedTuple())(rng)
 end
 
-rand(m::Model) = rand(GLOBAL_RNG, m)
+rand(m::DAGModel) = rand(GLOBAL_RNG, m)
 
 
 
-sourceRand(m::Model) = sourceRand()(m)
+sourceRand(m::DAGModel) = sourceRand()(m)
 sourceRand(jd::ConditionalModel) = sourceRand(jd.model)
 
 export sourceRand
 function sourceRand() 
-    function(_m::Model)
+    function(_m::DAGModel)
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         proc(_m, st::Sample)  = :($(st.x) = rand(_rng, $(st.rhs)))
         proc(_m, st::Return)  = :(return $(st.rhs))
@@ -56,14 +56,14 @@ function sourceRand()
     end
 end
 
-@gg function _rand(M::Type{<:TypeLevel}, _m::Model, _args)
+@gg function _rand(M::Type{<:TypeLevel}, _m::DAGModel, _args)
     body = type2model(_m) |> sourceRand() |> loadvals(_args, NamedTuple())
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end
 end
 
-@gg function _rand(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()})
+@gg function _rand(M::Type{<:TypeLevel}, _m::DAGModel, _args::NamedTuple{()})
     body = type2model(_m) |> sourceRand()
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

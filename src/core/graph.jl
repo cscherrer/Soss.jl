@@ -4,7 +4,7 @@ export graph
 
 @reexport using LightGraphs
 @reexport using MetaGraphs
-function graph(m::Model)
+function graph(m::DAGModel)
     vars = variables(m)
     g = MetaDiGraph(length(vars))
     for (n,v) in enumerate(vars)
@@ -21,7 +21,7 @@ function graph(m::Model)
 end
 
 export graphEdges
-function graphEdges(m::Model)
+function graphEdges(m::DAGModel)
     g = graph(m)
     [(g[e.src,:name] => g[e.dst,:name]) for e in edges(g)]
 end

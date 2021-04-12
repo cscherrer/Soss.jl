@@ -57,20 +57,20 @@ end
     simulate(GLOBAL_RNG, m; trace_assignments)
 end
 
-@inline function simulate(rng::AbstractRNG, m::Model; trace_assignments=false)
+@inline function simulate(rng::AbstractRNG, m::DAGModel; trace_assignments=false)
     return _simulate(getmoduletypencoding(m), m, NamedTuple())(rng)
 end
 
-simulate(m::Model; trace_assignments=false) = simulate(GLOBAL_RNG, m; trace_assignments)
+simulate(m::DAGModel; trace_assignments=false) = simulate(GLOBAL_RNG, m; trace_assignments)
 
 
-sourceSimulate(m::Model; trace_assignments=false) = sourceSimulate(trace_assignments)(m)
+sourceSimulate(m::DAGModel; trace_assignments=false) = sourceSimulate(trace_assignments)(m)
 sourceSimulate(jd::ConditionalModel; trace_assignments=false) = sourceSimulate(jd.model; trace_assignments)
 
 export sourceSimulate
 function sourceSimulate(trace_assignments=false) 
     ta = trace_assignments
-    function(_m::Model)
+    function(_m::DAGModel)
         pars = sort(sampled(_m))
         
         tracekeys = sort(trace_assignments ? parameters(_m) : sampled(_m))
@@ -121,7 +121,7 @@ simulate(μ::AbstractMeasure; trace_assignments=false) = simulate(Random.GLOBAL_
 
 simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(rng, μ)
 
-@gg function _simulate(M::Type{<:TypeLevel}, _m::Model, _args, trace_assignments::Val{V}) where {V}
+@gg function _simulate(M::Type{<:TypeLevel}, _m::DAGModel, _args, trace_assignments::Val{V}) where {V}
     trace_assignments = V
     body = type2model(_m) |> sourceSimulate(trace_assignments) |> loadvals(_args, NamedTuple())
     @under_global from_type(_unwrap_type(M)) @q let M
@@ -129,7 +129,7 @@ simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(
     end
 end
 
-@gg function _simulate(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()}, trace_assignments::Val{V}) where {V}
+@gg function _simulate(M::Type{<:TypeLevel}, _m::DAGModel, _args::NamedTuple{()}, trace_assignments::Val{V}) where {V}
     trace_assignments = V
     body = type2model(_m) |> sourceSimulate(trace_assignments)
     @under_global from_type(_unwrap_type(M)) @q let M

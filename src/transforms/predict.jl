@@ -7,7 +7,7 @@ function predict(d::ConditionalModel, post::Vector{NamedTuple{N,T}}) where {N,T}
     map(nt -> rand(pred(merge(args,nt))), post)
 end
 
-function predict(m::Model, post::Vector{NamedTuple{N,T}}) where {N,T}
+function predict(m::DAGModel, post::Vector{NamedTuple{N,T}}) where {N,T}
     pred = predictive(m, keys(post[1])...)
     map(nt -> rand(pred(nt)), post)
 end
@@ -22,12 +22,12 @@ function predict(d::ConditionalModel, post::NamedTuple{N,T}) where {N,T}
     rand(pred(merge(args,post)))
 end
 
-function predict(m::Model, post::NamedTuple{N,T}) where {N,T}
+function predict(m::DAGModel, post::NamedTuple{N,T}) where {N,T}
     pred = predictive(m, keys(post)...)
     rand(pred(post))
 end
 
-predict(m::Model; kwargs...) = predict(m,(;kwargs...))
+predict(m::DAGModel; kwargs...) = predict(m,(;kwargs...))
 
 predict(d,x) = x
 

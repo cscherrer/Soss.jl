@@ -51,22 +51,22 @@ end
 
 notafter(g::SimpleDigraph, vs...; inclusive = false) = setdiff(vlist(g), after(g, vs...; inclusive = !inclusive))
 
-function assemblefrom(m::Model, params, args)
+function assemblefrom(m::DAGModel, params, args)
     theModule = getmodule(m)
-    m_init = Model(theModule, args, NamedTuple(), NamedTuple(), nothing)
+    m_init = DAGModel(theModule, args, NamedTuple(), NamedTuple(), nothing)
     m = foldl(params; init=m_init) do m0,v
-        merge(m0, Model(theModule, findStatement(m, v)))
+        merge(m0, DAGModel(theModule, findStatement(m, v)))
     end
     return m
 end
 
 getReturn(am::AbstractModel) = Model(am).retn
 
-function setReturn(m::Model, x)
+function setReturn(m::DAGModel, x)
     theModule = getmodule(m)
     m0 = assemblefrom(m, parameters(m), arguments(m))
     isnothing(x) && return m0
-    return merge(m0, Model(theModule, Return(x)))
+    return merge(m0, DAGModel(theModule, Return(x)))
 end 
 
 function trim_args!(args, m, params)
@@ -78,13 +78,13 @@ sourcenodes(g::SimpleDigraph) = setdiff(vlist(g), [last(e) for e in elist(g)])
 sinknodes(g::SimpleDigraph) = setdiff(vlist(g), [first(e) for e in elist(g)])
 
 """
-    after(m::Model, xs...; strict=false)
+    after(m::DAGModel, xs...; strict=false)
 
 Transforms `m` by moving `xs` to arguments. If `strict=true`, only descendants of `xs` are retained in the body. Otherwise, the remaining variables in the body are unmodified. Unused arguments are trimmed.
 
-`predictive(m::Model, xs...) = after(m, xs..., strict = true)`
+`predictive(m::DAGModel, xs...) = after(m, xs..., strict = true)`
 
-`Do(m::Model, xs...) = after(m, xs..., strict = false)`
+`Do(m::DAGModel, xs...) = after(m, xs..., strict = false)`
 
 # Example
 ```jldoctest
@@ -106,7 +106,7 @@ Soss.after(m, :α)
     end
 ```
 """
-function after(m::Model, xs...; strict = false)
+function after(m::DAGModel, xs...; strict = false)
     g = digraph(m)
     for x in xs
         map(a->delete!(g, a, x), in_neighbors(g, x))
@@ -123,13 +123,13 @@ function after(m::Model, xs...; strict = false)
 end
 
 """
-    before(m::Model, xs...; inclusive=true, strict=true)
+    before(m::DAGModel, xs...; inclusive=true, strict=true)
 
-Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `strict=false`, retains all variables that are not descendants of any `xs`. Note that adding more variables to `xs` cannot result in a larger model. If `inclusive=true`, `xs` is considered to be an ancestor of itself and is always included in the returned `Model`. Unneeded arguments are trimmed.
+Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `strict=false`, retains all variables that are not descendants of any `xs`. Note that adding more variables to `xs` cannot result in a larger model. If `inclusive=true`, `xs` is considered to be an ancestor of itself and is always included in the returned `DAGModel`. Unneeded arguments are trimmed.
 
-`prune(m::Model, xs...) = before(m, xs..., inclusive = false, strict = false)`
+`prune(m::DAGModel, xs...) = before(m, xs..., inclusive = false, strict = false)`
 
-`prior(m::Model, xs...) = before(m, xs..., inclusive = true, strict = true)`
+`prior(m::DAGModel, xs...) = before(m, xs..., inclusive = true, strict = true)`
 
 # Examples
 ```jldoctest
@@ -151,7 +151,7 @@ Soss.before(m, :θ, inclusive = true, strict = false)
     end
 ```
 """
-function before(m::Model, xs...; inclusive = true, strict = true)
+function before(m::DAGModel, xs...; inclusive = true, strict = true)
     g = digraph(m)
     vars = strict ? before(g, xs..., inclusive = inclusive) : notafter(g, xs..., inclusive = inclusive)
     args = arguments(m) ∩ vars

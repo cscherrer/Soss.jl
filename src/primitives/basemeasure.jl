@@ -12,7 +12,7 @@ export sourceBasemeasure
 sourceBasemeasure(m::AbstractModel) = sourceBasemeasure()(Model(m))
 
 function sourceBasemeasure()
-    function(_m::Model)
+    function(_m::DAGModel)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
@@ -37,7 +37,7 @@ function sourceBasemeasure()
 end
 
 
-@gg function _basemeasure(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
+@gg function _basemeasure(M::Type{<:TypeLevel}, _m::DAGModel, _args, _data, _pars)
     body = type2model(_m) |> sourceBasemeasure() |> loadvals(_args, _data, _pars)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

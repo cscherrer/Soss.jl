@@ -87,12 +87,12 @@ parts(d::ProductMeasure, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(d.data, N)
     return _particles(getmoduletypencoding(m.model), m.model, m.argvals, Val(N))
 end
 
-sourceParticles(m::Model, N::Int) = sourceParticles()(m, Val(N))
+sourceParticles(m::DAGModel, N::Int) = sourceParticles()(m, Val(N))
 
 export sourceParticles
 function sourceParticles()
 
-    function(_m::Model, ::Type{Val{_N}}) where {_N}
+    function(_m::DAGModel, ::Type{Val{_N}}) where {_N}
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         proc(_m, st::Sample)  = :($(st.x) = parts($(st.rhs), $_N))
         proc(_m, st::Return)  = :(return $(st.rhs))
@@ -147,14 +147,14 @@ end
 # Base.to_indices(A, ::Particles) = i.particles
 
 
-@gg function _particles(M::Type{<:TypeLevel}, _m::Model, _args, _n::Val{_N}) where {_N}
+@gg function _particles(M::Type{<:TypeLevel}, _m::DAGModel, _args, _n::Val{_N}) where {_N}
     body = sourceParticles()(type2model(_m), _n) |> loadvals(_args, NamedTuple())
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end
 end
 
-@gg function _particles(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {_N}
+@gg function _particles(M::Type{<:TypeLevel}, _m::DAGModel, _args::NamedTuple{()}, _n::Val{_N}) where {_N}
     body = sourceParticles()(type2model(_m), _n)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

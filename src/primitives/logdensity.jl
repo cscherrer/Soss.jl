@@ -13,7 +13,7 @@ export sourceLogdensity
 sourceLogdensity(m::AbstractModel) = sourceLogdensity()(Model(m))
 
 function sourceLogdensity()
-    function(_m::Model)
+    function(_m::DAGModel)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
         # proc(_m, st :: Sample)     = :(_ℓ += logdensity($(st.rhs), $(st.x)))
         proc(_m, st :: Return)     = nothing
@@ -40,7 +40,7 @@ end
 # MeasureTheory.logdensity(d::Distribution, val, tr) = logpdf(d, val)
 
 
-@gg function _logdensity(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
+@gg function _logdensity(M::Type{<:TypeLevel}, _m::DAGModel, _args, _data, _pars)
     body = type2model(_m) |> sourceLogdensity() |> loadvals(_args, _data, _pars)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

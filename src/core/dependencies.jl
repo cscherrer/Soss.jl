@@ -1,6 +1,6 @@
 
 
-function graph(T, m::Model)
+function graph(T, m::DAGModel)
     g = T()
 
     mvars = variables(m)
@@ -24,7 +24,7 @@ function graph(T, m::Model)
 end
 
 export digraph
-digraph(m::Model) = graph(SimpleDigraph{Symbol}, m)
+digraph(m::DAGModel) = graph(SimpleDigraph{Symbol}, m)
 
 export poset
-poset(m::Model) = graph(SimplePoset{Symbol}, m)
+poset(m::DAGModel) = graph(SimplePoset{Symbol}, m)

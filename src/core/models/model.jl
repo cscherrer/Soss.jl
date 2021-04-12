@@ -1,4 +1,4 @@
-struct Model{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModel{A,B,M,Nothing,Nothing}
+struct DAGModel{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModel{A,B,M,Nothing,Nothing}
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
@@ -8,29 +8,29 @@ end
 
 
 
-function Model(theModule::Module, args, vals, dists, retn)
+function DAGModel(theModule::Module, args, vals, dists, retn)
     M = to_type(theModule)
     A = NamedTuple{Tuple(args)}
-    m = Model{A,Any,M}(args, vals, dists, retn)
+    m = DAGModel{A,Any,M}(args, vals, dists, retn)
     B = convert(Expr, m).args[end] |> to_type
-    Model{A,B,M}(args, vals, dists, retn)
+    DAGModel{A,B,M}(args, vals, dists, retn)
 end
 
-function type2model(::Type{Model{A,B,M}}) where {A,B,M}
+function type2model(::Type{DAGModel{A,B,M}}) where {A,B,M}
     args = [fieldnames(A)...]
     body = from_type(B)
-    Model(from_type(M), convert(Vector{Symbol},args), body)
+    DAGModel(from_type(M), convert(Vector{Symbol},args), body)
 end
 
-function emptyModel(theModule::Module)
+function emptyDAGModel(theModule::Module)
     M = to_type(theModule)
     A = NamedTuple{(),Tuple{}}
     B = (@q begin end) |> to_type
-    Model{A,B,M}([], NamedTuple(), NamedTuple(), nothing)
+    DAGModel{A,B,M}([], NamedTuple(), NamedTuple(), nothing)
 end
 
 
-function Base.merge(m1::Model, m2::Model)
+function Base.merge(m1::DAGModel, m2::DAGModel)
     theModule = getmodule(m1)
     @assert theModule == getmodule(m2)
     vals = merge(m1.vals, m2.vals)
@@ -38,59 +38,59 @@ function Base.merge(m1::Model, m2::Model)
     dists = merge(m1.dists, m2.dists)
     retn = maybesomething(m2.retn, m1.retn) # m2 first so it gets priority
 
-    Model(theModule, args, vals, dists, retn)
+    DAGModel(theModule, args, vals, dists, retn)
 end
 
-Base.merge(m::Model, ::Nothing) = m
+Base.merge(m::DAGModel, ::Nothing) = m
 
-Model(theModule::Module, arg::Arg) = Model(theModule, Symbol[arg.x], NamedTuple(), NamedTuple(), nothing)
-Model(theModule::Module, st::Assign) = Model(theModule, Symbol[], namedtuple(st.x)([st.rhs]), NamedTuple(), nothing)
-Model(theModule::Module, st::Sample) = Model(theModule, Symbol[], NamedTuple(), namedtuple(st.x)([st.rhs]), nothing)
-Model(theModule::Module, st::Return) = Model(theModule, Symbol[], NamedTuple(), NamedTuple(), st.rhs)
-Model(theModule::Module, st::LineNumber) = emptyModel(theModule)
+DAGModel(theModule::Module, arg::Arg) = DAGModel(theModule, Symbol[arg.x], NamedTuple(), NamedTuple(), nothing)
+DAGModel(theModule::Module, st::Assign) = DAGModel(theModule, Symbol[], namedtuple(st.x)([st.rhs]), NamedTuple(), nothing)
+DAGModel(theModule::Module, st::Sample) = DAGModel(theModule, Symbol[], NamedTuple(), namedtuple(st.x)([st.rhs]), nothing)
+DAGModel(theModule::Module, st::Return) = DAGModel(theModule, Symbol[], NamedTuple(), NamedTuple(), st.rhs)
+DAGModel(theModule::Module, st::LineNumber) = emptyDAGModel(theModule)
 
-Model(theModule::Module, ::LineNumberNode) = emptyModel(theModule)
+DAGModel(theModule::Module, ::LineNumberNode) = emptyDAGModel(theModule)
 
-function Model(theModule::Module, expr :: Expr)
+function DAGModel(theModule::Module, expr :: Expr)
     nt = NamedTuple()
     @match expr begin
-        :($k = $v)   => Model(theModule, Assign(k,v))
-        :($k ~ $v)   => Model(theModule, Sample(k,v))
-        :($k .~ $v)  => Model(theModule, Sample(k, :(For(identity, $v))))
-        Expr(:return, x...) => Model(theModule, Return(x[1]))
-        Expr(:block, body...) => foldl(merge, map(body) do line Model(theModule, line) end)
-        :(@model $lnn $body) => Model(theModule, body)
-        :(@model $lnn $args $body) => Model(theModule, args.args, body)
+        :($k = $v)   => DAGModel(theModule, Assign(k,v))
+        :($k ~ $v)   => DAGModel(theModule, Sample(k,v))
+        :($k .~ $v)  => DAGModel(theModule, Sample(k, :(For(identity, $v))))
+        Expr(:return, x...) => DAGModel(theModule, Return(x[1]))
+        Expr(:block, body...) => foldl(merge, map(body) do line DAGModel(theModule, line) end)
+        :(@model $lnn $body) => DAGModel(theModule, body)
+        :(@model $lnn $args $body) => DAGModel(theModule, args.args, body)
 
         x => begin
-            @error "Bad argument to Model(::Expr)" expr=x
+            @error "Bad argument to DAGModel(::Expr)" expr=x
         end
     end
 end
 
-function Model(vs::Expr,expr::Expr)
+function DAGModel(vs::Expr,expr::Expr)
     @assert vs.head == :tuple
     @assert expr.head == :block
-    Model(Vector{Symbol}(vs.args), expr)
+    DAGModel(Vector{Symbol}(vs.args), expr)
 end
 
-function Model{A,B,M}(args::Vector{Symbol}, expr::Expr) where {A,B,M}
-    m1 = Model{A,B,M}(args, NamedTuple(), NamedTuple(), nothing)
-    m2 = Model{A,B,M}(expr)
+function DAGModel{A,B,M}(args::Vector{Symbol}, expr::Expr) where {A,B,M}
+    m1 = DAGModel{A,B,M}(args, NamedTuple(), NamedTuple(), nothing)
+    m2 = DAGModel{A,B,M}(expr)
     merge(m1, m2)
 end
 
-function Model(theModule::Module, args::Vector{Symbol}, expr::Expr)
-    m1 = Model(theModule, args, NamedTuple(), NamedTuple(), nothing)
-    m2 = Model(theModule, expr)
+function DAGModel(theModule::Module, args::Vector{Symbol}, expr::Expr)
+    m1 = DAGModel(theModule, args, NamedTuple(), NamedTuple(), nothing)
+    m2 = DAGModel(theModule, expr)
     merge(m1, m2)
 end
 
-Model(m::Model) = m
+DAGModel(m::DAGModel) = m
 
-Expr(m::Model,v) = convert(Expr,findStatement(m,v) )
+Expr(m::DAGModel,v) = convert(Expr,findStatement(m,v) )
 
-Model(::LineNumberNode) = emptyModel
+DAGModel(::LineNumberNode) = emptyDAGModel
 
 toargs(vs :: Vector{Symbol}) = Tuple(vs)
 toargs(vs :: NTuple{N,Symbol} where {N}) = vs
@@ -117,7 +117,7 @@ end
 
 
 
-function Base.convert(::Type{Expr}, m::Model{T} where T)
+function Base.convert(::Type{Expr}, m::DAGModel{T} where T)
     numArgs = length(m.args)
     args = if numArgs == 1
        m.args[1]
@@ -147,7 +147,7 @@ function Base.convert(::Type{Expr}, m::Model{T} where T)
 end
 
 
-# function Base.get(m::Model, k::Symbol)
+# function Base.get(m::DAGModel, k::Symbol)
 #     result = []
 
 #     if k ∈ keys(m.vals)
@@ -163,11 +163,11 @@ end
 # end
 
 # For pretty-printing in the REPL
-Base.show(io::IO, m :: Model) = println(io, convert(Expr, m))
+Base.show(io::IO, m :: DAGModel) = println(io, convert(Expr, m))
 
 # export observe
-# observe(m,v::Symbol) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
-# observe(m,vs::Vector{Symbol}) = merge(m, Model(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
+# observe(m,v::Symbol) = merge(m, DAGModel(Symbol[], NamedTuple(), NamedTuple(), nothing, Symbol[v]))
+# observe(m,vs::Vector{Symbol}) = merge(m, DAGModel(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
 
 function findStatement(am::AbstractModel, x::Symbol)
     m = Model(am)
