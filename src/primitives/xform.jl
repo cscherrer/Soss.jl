@@ -145,6 +145,7 @@ xform(::Lebesgue{𝕀}) = as𝕀
 
 xform(::Lebesgue{ℝ₊}) = asℝ₊  
 
+xform(d::Dists.AbstractMvNormal) = as(Array, size(d))
 
 @gg function _xform(M::Type{<:TypeLevel}, _m::Model{Asub,B}, _args::A, _data) where {Asub,A,B}
     body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
