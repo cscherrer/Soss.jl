@@ -22,7 +22,7 @@ function sourceBasemeasure()
             rhs = st.rhs
             @q begin
                 _bm = merge(_bm, NamedTuple{($xname,)}((basemeasure($rhs),)))
-                $x = Soss.predict($rhs, $x)
+                $x = Soss.testvalue($rhs)
             end
         end
 
