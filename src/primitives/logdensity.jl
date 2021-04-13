@@ -22,7 +22,7 @@ function sourceLogdensity()
             x = st.x
             rhs = st.rhs
             @q begin
-                _ℓ += logdensity($rhs, $x)
+                _ℓ += Soss.logdensity($rhs, $x)
                 $x = Soss.predict($rhs, $x)
             end
         end
