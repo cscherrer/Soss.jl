@@ -4,8 +4,7 @@ using MLStyle
 using NestedTuples
 import NestedTuples
 using TransformVariables
-
-
+import MeasureTheory
 
 function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
     schema(T)
@@ -54,7 +53,7 @@ function sourceXform(_data=NamedTuple())
 
             # Non-leaves might be referenced later, so we need to be sure they
             # have a value
-            isleaf(_m, st.x) || pushfirst!(thecode.args, :($x = testvalue($rhs)))
+            isleaf(_m, st.x) || pushfirst!(thecode.args, :($x = MeasureTheory.testvalue($rhs)))
 
             return thecode
         end
@@ -70,6 +69,8 @@ function sourceXform(_data=NamedTuple())
 
     end
 end
+
+using Distributions: support
 
 function xform(d, _data::NamedTuple)
     if hasmethod(support, (typeof(d),))
