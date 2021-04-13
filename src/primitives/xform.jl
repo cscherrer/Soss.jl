@@ -139,13 +139,13 @@ xform(μ::ProductMeasure) = as(Array, xform(first(μ.data)), size(μ.data)...)
 
 using MeasureTheory
 
-xform(::Lebesgue{ℝ}) = asℝ
+xform(::Lebesgue{ℝ}, _data::NamedTuple=NamedTuple()) = asℝ
 
-xform(::Lebesgue{𝕀}) = as𝕀
+xform(::Lebesgue{𝕀}, _data::NamedTuple=NamedTuple()) = as𝕀
 
-xform(::Lebesgue{ℝ₊}) = asℝ₊  
+xform(::Lebesgue{ℝ₊}, _data::NamedTuple=NamedTuple()) = asℝ₊  
 
-xform(d::Dists.AbstractMvNormal) = as(Array, size(d))
+xform(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 
 @gg function _xform(M::Type{<:TypeLevel}, _m::Model{Asub,B}, _args::A, _data) where {Asub,A,B}
     body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
