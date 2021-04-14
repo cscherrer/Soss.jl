@@ -74,6 +74,7 @@ include("primitives/likelihood-weighting.jl")
 # end
 
 include("primitives/basemeasure.jl")
+include("primitives/testvalue.jl")
 # include("primitives/entropy.jl")
 
 
