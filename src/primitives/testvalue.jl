@@ -20,10 +20,6 @@ EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
     return _testvalue(getmoduletypencoding(m), m, argvals(c))
 end
 
-@inline function testvalue(m::ConditionalModel) 
-    testvalue(m)
-end
-
 @inline function testvalue(m::Model)
     return _testvalue(getmoduletypencoding(m), m, NamedTuple())
 end
