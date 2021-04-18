@@ -22,14 +22,14 @@ function sourceBasemeasure()
             rhs = st.rhs
             @q begin
                 _bm = merge(_bm, NamedTuple{($xname,)}((basemeasure($rhs),)))
-                $x = Soss.predict($rhs, $x)
+                $x = Soss.testvalue($rhs)
             end
         end
 
         wrap(kernel) = @q begin
             _bm = (;)
             $kernel
-            return ProductMeasure(_bm)
+            return Soss.ProductMeasure(_bm)
         end
 
         buildSource(_m, proc, wrap) |> MacroTools.flatten

@@ -4,8 +4,7 @@ using MLStyle
 using NestedTuples
 import NestedTuples
 using TransformVariables
-
-
+import MeasureTheory: testvalue
 
 function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
     schema(T)
@@ -46,7 +45,7 @@ function sourceXform(_data=NamedTuple())
             rhs = st.rhs
             
             thecode = @q begin 
-                _t = xform($rhs, get(_data, $xname, NamedTuple()))
+                _t = Soss.xform($rhs, get(_data, $xname, NamedTuple()))
                 if !isnothing(_t)
                     _result = merge(_result, ($x=_t,))
                 end
@@ -54,7 +53,7 @@ function sourceXform(_data=NamedTuple())
 
             # Non-leaves might be referenced later, so we need to be sure they
             # have a value
-            isleaf(_m, st.x) || pushfirst!(thecode.args, :($x = testvalue($rhs)))
+            isleaf(_m, st.x) || pushfirst!(thecode.args, :($x = Soss.testvalue($rhs)))
 
             return thecode
         end
@@ -70,6 +69,8 @@ function sourceXform(_data=NamedTuple())
 
     end
 end
+
+using Distributions: support
 
 function xform(d, _data::NamedTuple)
     if hasmethod(support, (typeof(d),))
@@ -138,12 +139,13 @@ xform(μ::ProductMeasure) = as(Array, xform(first(μ.data)), size(μ.data)...)
 
 using MeasureTheory
 
-xform(::Lebesgue{ℝ}) = asℝ
+xform(::Lebesgue{ℝ}, _data::NamedTuple=NamedTuple()) = asℝ
 
-xform(::Lebesgue{𝕀}) = as𝕀
+xform(::Lebesgue{𝕀}, _data::NamedTuple=NamedTuple()) = as𝕀
 
-xform(::Lebesgue{ℝ₊}) = asℝ₊  
+xform(::Lebesgue{ℝ₊}, _data::NamedTuple=NamedTuple()) = asℝ₊  
 
+xform(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 
 @gg function _xform(M::Type{<:TypeLevel}, _m::DAGModel{Asub,B}, _args::A, _data) where {Asub,A,B}
     body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)

@@ -1,4 +1,4 @@
-using SampleChainsDynamicHMC
+using .SampleChainsDynamicHMC
 using Random
 
 export sample
@@ -11,7 +11,7 @@ function sample(rng::AbstractRNG,
     nsamples::Int=1000,
     nchains::Int=4)
 
-    ℓ(x) = logdensity(m, x)
+    ℓ(x) = Soss.logdensity(m, x)
     tr = xform(m)
 
     chains = initialize!(rng, nchains, DynamicHMCChain, ℓ, tr)

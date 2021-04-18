@@ -5,7 +5,9 @@ using Random
 using Reexport: @reexport
 
 @reexport using StatsFuns
-@reexport using MeasureTheory
+using MeasureTheory
+
+export For
 
 using NamedTupleTools
 using SampleChains
@@ -78,6 +80,7 @@ include("primitives/likelihood-weighting.jl")
 # end
 
 include("primitives/basemeasure.jl")
+include("primitives/testvalue.jl")
 # include("primitives/entropy.jl")
 
 

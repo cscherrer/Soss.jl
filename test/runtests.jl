@@ -1,6 +1,7 @@
 using Soss
 using Test
 using MeasureTheory
+using TransformVariables
 
 include("examples-list.jl")
 
@@ -47,6 +48,57 @@ include("examples-list.jl")
         post = outer(sub=inner) | (;m=  (; x))
         t = xform(post)
         @test logdensity(post, t(randn(3))) isa Float64
+    end
+
+    @testset "https://github.com/cscherrer/Soss.jl/issues/258" begin
+        m1 = @model begin
+            x1 ~ Soss.Normal(0.0, 1.0)
+            x2 ~ Dists.LogNormal(0.0, 1.0)
+            return x1^2/x2
+        end
+
+        m2 = @model m begin
+            μ ~ m
+            y ~ Soss.Normal(μ, 1.0)
+        end
+
+        mm = m2(m=m1())
+        
+        @test xform(mm|(y=1.0,)) isa TransformVariables.TransformTuple
+        @test basemeasure(mm | (y=1.0,)) isa ProductMeasure
+        @test testvalue(mm) isa NamedTuple
+    end
+
+    @testset "https://github.com/cscherrer/Soss.jl/issues/258#issuecomment-819035325" begin
+        m1 = @model begin
+            x1 ~ Soss.Normal(0.0, 1.0)
+            x2 ~ Dists.MvNormal(fill(x1,2), ones(2))
+            return x2
+        end
+        
+        m2 = @model m begin
+            μ ~ m
+            y ~ For(μ) do x 
+                Soss.Normal(x, 1.0)
+            end
+        end
+        
+        mm = m2(m=m1())
+
+        @test xform(mm|(;y=1.0,)) isa TransformVariables.TransformTuple
+        @test basemeasure(mm | (y=1.0,)) isa ProductMeasure
+        @test testvalue(mm) isa NamedTuple
+    end
+
+    @testset "Local variables" begin
+        # https://github.com/cscherrer/Soss.jl/issues/253
+
+        m = @model begin
+            a ~ For(3) do x Normal(μ=x) end
+            x ~ Normal(μ=sum(a))
+        end
+
+        digraph(m).N == Dict(:a => Set([:x]), :x => Set())
     end
 
     @testset "Doctests" begin
