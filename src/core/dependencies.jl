@@ -10,7 +10,9 @@ unwrap_scoped(ex) = @match ex begin
     a => a
 end
 
-function globals(ex)
+globals(s::Symbol) = [s]
+
+function globals(ex::Expr)
     branch(head, newargs) = union(newargs...)
 
     function leaf(v::JuliaVariables.Var)
@@ -19,7 +21,7 @@ function globals(ex)
 
     leaf(x) = []
 
-    solved_ex = unwrap_scoped(solve_from_local(simplify_ex(ex)))
+    solved_ex = unwrap_scoped(solve_from_local!(simplify_ex(ex)))
 
     return foldall(leaf, branch)(solved_ex)
 end
