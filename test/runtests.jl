@@ -90,6 +90,17 @@ include("examples-list.jl")
         @test testvalue(mm) isa NamedTuple
     end
 
+    @testset "Local variables" begin
+        # https://github.com/cscherrer/Soss.jl/issues/253
+
+        m = @model begin
+            a ~ For(3) do x Normal(μ=x) end
+            x ~ Normal(μ=sum(a))
+        end
+
+        digraph(m).N == Dict(:a => Set([:x]), :x => Set())
+    end
+
     @testset "Doctests" begin
         include("doctests.jl")
     end
