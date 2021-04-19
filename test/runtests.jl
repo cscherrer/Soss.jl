@@ -98,7 +98,7 @@ include("examples-list.jl")
             x ~ Normal(μ=sum(a))
         end
 
-        digraph(m).N == Dict(:a => Set([:x]), :x => Set())
+        @test digraph(m).N == Dict(:a => Set([:x]), :x => Set())
     end
 
     @testset "Doctests" begin
