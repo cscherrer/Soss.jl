@@ -92,7 +92,7 @@ julia> post = sample(DynamicHMCChain, m(x=x) | (y=y,))
 ## How is Soss different from [Turing](https://turing.ml/dev/)?
 
 - In Soss, models are first class, and can be composed or nested. At the time of this writing, it looks like nested models will be coming soon to Turing, see [this PR](https://github.com/TuringLang/DynamicPPL.jl/pull/233).
-- Soss has been updated to use [MesureTheory.jl](https://github.com/cscherrer/MeasureTheory.jl), though everything from Distributions.jl is still available.
+- Soss has been updated to use [MeasureTheory.jl](https://github.com/cscherrer/MeasureTheory.jl), though everything from Distributions.jl is still available.
 - Soss allows model transformations. This can be used, for example, to easily express predictive distributions or Markov blanket as a new model.
 - Most of the focus of Soss is at the syntactic level; inference works in terms of "primitives" that transform the model's abstract syntax tree (AST) to new code. As a result, there's complete flexibility for new applications. In particular the generated code is not required to use "Soss-specific" data structures in any way. 
 - Soss can evaluate log-densities symbolically, which can then be used to produce optimized evaluations for much faster inference. This capability is in relatively early stages, and will be made more robust in our ongoing development.
