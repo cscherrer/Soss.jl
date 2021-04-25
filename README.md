@@ -1,3 +1,4 @@
+
 # Soss
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://cscherrer.github.io/Soss.jl/stable)
@@ -87,6 +88,34 @@ julia> post = sample(DynamicHMCChain, m(x=x) | (y=y,))
 4000-element MultiChain with 4 chains and schema (σ = Float64, β = Float64, α = Float64)
 (σ = 1.0±0.15, β = 0.503±0.26, α = 10.2±0.25)
 ```
+
+## How is Soss different from [Turing](https://turing.ml/dev/)?
+
+- In Soss, models are first class, and can be composed or nested. At the time of this writing, it looks like nested models will be coming soon to Turing, see [this PR](https://github.com/TuringLang/DynamicPPL.jl/pull/233).
+- Soss has been updated to use [MesureTheory.jl](https://github.com/cscherrer/MeasureTheory.jl), though everything from Distributions.jl is still available.
+- Soss allows model transformations. This can be used, for example, to easily express predictive distributions or Markov blanket as a new model.
+- Most of the focus of Soss is at the syntactic level; inference works in terms of "primitives" that transform the model's abstract syntax tree (AST) to new code. As a result, there's complete flexibility for new applications. In particular the generated code is not required to use "Soss-specific" data structures in any way. 
+- Soss can evaluate log-densities symbolically, which can then be used to produce optimized evaluations for much faster inference. This capability is in relatively early stages, and will be made more robust in our ongoing development.
+- The Soss team is *much* smaller than Turing. But I hope that will change (contributors welcome!)
+
+## How can I get involved?
+
+I'm glad you asked! Lots of things:
+
+- Contribute documentation or tests
+- Ask questions on Discourse or Zulip
+- File issues for bugs (or other problems) or feature requests
+- Use Soss in your applications, teaching, or blogging
+- Get involved in other libraries in the Soss ecosystem:
+    - [SossMLJ](https://github.com/cscherrer/SossMLJ.jl)
+    - [SossGen](https://github.com/cscherrer/SossGen.jl) (needs updating)
+    - [SampleChains](https://github.com/cscherrer/SampleChains.jl)
+    - [SampleChainsDynamicHMC](https://github.com/cscherrer/SampleChainsDynamicHMC.jl)
+    - [TupleVectors](https://github.com/cscherrer/TupleVectors.jl)
+    - [NestedTuples](https://github.com/cscherrer/NestedTuples.jl)
+    - [MeasureTheory](https://github.com/cscherrer/MeasureTheory.jl)
+    - [SymbolicCodegen](https://github.com/cscherrer/SymbolicCodegen.jl)
+
 
 For more details, please see the [documentation](https://cscherrer.github.io/Soss.jl/stable/).
 
