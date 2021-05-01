@@ -3,7 +3,7 @@ using Soss
 get_distname(x::Symbol) = Symbol(:_, x, :_dist)
 
 """
-    withmeasures(m::Model) -> Model
+    withmeasures(m::DAGModel) -> Model
 
 julia> m = @model begin
     σ ~ HalfNormal()

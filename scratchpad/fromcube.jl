@@ -14,15 +14,15 @@
 
 
 # export makeFromcube
-# function makeFromcube(m :: Model)
+# function makeFromcube(m ::DAGModel)
 #     fpre = @eval $(sourceFromcube(m))
 #     f(next;kwargs...) = Base.invokelatest(fpre, next; kwargs...)
 # end
 
 # export fromcube
-# fromcube(m::Model, next; kwargs...) = makeFromcube(m)(next;kwargs...)
+# fromcube(m::DAGModel, next; kwargs...) = makeFromcube(m)(next;kwargs...)
 
-# function fromcube(m::Model, next, n::Int64; kwargs...)
+# function fromcube(m::DAGModel, next, n::Int64; kwargs...)
 #     r = makeFromcube(m)
 #     [r(next;kwargs...) for j in 1:n] |> DataFrame
 
@@ -30,7 +30,7 @@
 
 
 # export sourceFromcube
-# function sourceFromcube(m::Model)
+# function sourceFromcube(m::DAGModel)
 #     m = canonical(m)
 
 #     @gensym next

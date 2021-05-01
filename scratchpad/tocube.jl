@@ -6,7 +6,7 @@ using MacroTools: @q, striplines
 using Parameters
 
 export tocube
-function tocube(m::Model)
+function tocube(m::DAGModel)
 
     m = canonical(m) |> dropLines
 
