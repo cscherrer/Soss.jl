@@ -139,12 +139,12 @@ Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `s
 # Examples
 ```jldoctest
 julia> m = @model (n, k) begin
-        β ~ Gamma()
-        α ~ Gamma()
-        θ ~ Beta(α, β)
-        x ~ Binomial(n, θ)
-        z ~ Binomial(k, α / (α + β))
-    end;
+           β ~ Gamma()
+           α ~ Gamma()
+           θ ~ Beta(α, β)
+           x ~ Binomial(n, θ)
+           z ~ Binomial(k, α / (α + β))
+       end;
 
 julia> Soss.before(m, :θ, inclusive = true, strict = true)
 @model begin
