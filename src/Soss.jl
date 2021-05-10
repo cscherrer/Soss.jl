@@ -51,7 +51,7 @@ export Model, ASTModel, DAGModel, @model, @dagmodel
 
 include("noted.jl")
 include("core/models/abstractmodel.jl")
-include("core/statement.jl")
+include("core/models/dagmodel/statement.jl")
 include("core/models/astmodel/astmodel.jl")
 include("core/models/dagmodel/dagmodel.jl")
 include("core/models/model.jl")
