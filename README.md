@@ -91,12 +91,16 @@ julia> post = sample(DynamicHMCChain, m(x=x) | (y=y,))
 
 ## How is Soss different from [Turing](https://turing.ml/dev/)?
 
-- In Soss, models are first class, and can be composed or nested. At the time of this writing, it looks like nested models will be coming soon to Turing, see [this PR](https://github.com/TuringLang/DynamicPPL.jl/pull/233).
+First, a fine point: When people say "the Turing PPL" they usually mean what's technically called "DynamicPPL". 
+
+- In Soss, models are first class, and can be composed or nested. For example, you can define a model and later nest it inside another model, and inference will handle both together. DynamicPPL can also handle nested models (see [this PR](https://github.com/TuringLang/DynamicPPL.jl/pull/233)) though I'm not aware of a way to combine independently-defined DynamicPPL models for a single inference pass.
 - Soss has been updated to use [MeasureTheory.jl](https://github.com/cscherrer/MeasureTheory.jl), though everything from Distributions.jl is still available.
 - Soss allows model transformations. This can be used, for example, to easily express predictive distributions or Markov blanket as a new model.
-- Most of the focus of Soss is at the syntactic level; inference works in terms of "primitives" that transform the model's abstract syntax tree (AST) to new code. As a result, there's complete flexibility for new applications. In particular the generated code is not required to use "Soss-specific" data structures in any way. 
+- Most of the focus of Soss is at the syntactic level; inference works in terms of "primitives" that transform the model's abstract syntax tree (AST) to new code. This adds the same benefits as using Julia's macros and generated functions, as opposed to higher-order functions alone.
 - Soss can evaluate log-densities symbolically, which can then be used to produce optimized evaluations for much faster inference. This capability is in relatively early stages, and will be made more robust in our ongoing development.
-- The Soss team is *much* smaller than Turing. But I hope that will change (contributors welcome!)
+- The Soss team is *much* smaller than that of DynamicPPL. But I hope that will change (contributors welcome!)
+
+Soss and DynamicPPL are both maturing and becoming more complete, so the above will change over time. It's also worth noting that we (the Turing team and I) hope to move toward a natural way of using these systems together to arrive at the best of both.
 
 ## How can I get involved?
 
