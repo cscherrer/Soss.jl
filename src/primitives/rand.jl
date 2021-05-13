@@ -1,6 +1,6 @@
 using GeneralizedGenerated
 using Random: GLOBAL_RNG
-using SampleChains: chainvec
+using TupleVectors: chainvec
 
 export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple

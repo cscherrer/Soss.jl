@@ -1,5 +1,5 @@
 using GeneralizedGenerated
-using SampleChains: chainvec
+using TupleVectors: chainvec
 import MeasureTheory: testvalue
 
 export testvalue
