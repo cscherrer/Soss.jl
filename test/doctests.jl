@@ -8,6 +8,7 @@ DocMeta.setdocmeta!(Soss, :DocTestSetup,
         using Random
         using Soss
         using StableRNGs
+        using MeasureTheory
         Random.seed!(3)
     end; recursive=true)
 

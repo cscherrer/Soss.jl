@@ -1,5 +1,6 @@
 using SimplePartitions: find_part
 import SimpleGraphs
+using SimplePosets: interval
 
 export parents
 parents(g::SimpleDigraph, v) = g.NN[v] |> collect
