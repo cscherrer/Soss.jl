@@ -132,7 +132,7 @@ xform(d, _data) = nothing
 # xform(d::MvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 
 function xform(μ::AbstractMeasure,  _data::NamedTuple=NamedTuple())
-    xform(representative(μ))
+    xform(rootmeasure(μ))
 end
 
 xform(μ::ProductMeasure) = as(Array, xform(first(μ.data)), size(μ.data)...)
