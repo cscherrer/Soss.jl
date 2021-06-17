@@ -3,7 +3,6 @@ using Reexport
 using MLStyle
 using NestedTuples
 import NestedTuples
-using TransformVariables
 import MeasureTheory: testvalue
 
 function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
@@ -80,7 +79,7 @@ function xform(d, _data::NamedTuple)
     error("Not implemented:\nxform($d)")
 end
 
-using TransformVariables: ShiftedExp, ScaledShiftedLogistic
+using TransformVariables: ShiftedExp, ScaledShiftedLogistic, as
 
 function asTransform(supp:: Dists.RealInterval) 
     (lb, ub) = (supp.lb, supp.ub)
@@ -91,59 +90,9 @@ function asTransform(supp:: Dists.RealInterval)
     return ScaledShiftedLogistic(ub-lb, lb)
 end
 
-# export xform
-# xform(::Normal)       = asℝ
-# xform(::Cauchy)       = asℝ
-# xform(::Flat)         = asℝ
-
-# xform(::HalfCauchy)   = asℝ₊
-# xform(::HalfNormal)   = asℝ₊
-# xform(::HalfFlat)     = asℝ₊
-# xform(::InverseGamma) = asℝ₊
-# xform(::Gamma)        = asℝ₊
-# xform(::Exponential)  = asℝ₊
-
-# xform(::Beta)         = as𝕀
-# xform(::Uniform)      = as𝕀
-
 xform(d, _data) = nothing
 
-# TODO: Convert this to use `ProductMeasure`
-# function xform(d::For{T,NTuple{N,Int}}, _data)  where {N,T}
-#     xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
-#     return as(Array, xf1, d.θ...)
-    
-#     # TODO: Implement case of unequal supports
-# end
-
-# TODO: Convert this to use `ProductMeasure`
-# function xform(d::For{T,NTuple{N,UnitRange{Int}}}, _data::NamedTuple)  where {N,T}
-#     xf1 = xform(d.f(getindex.(d.θ, 1)...), _data)
-#     return as(Array, xf1, length.(d.θ)...)
-    
-#     # TODO: Implement case of unequal supports
-# end
-
-# TODO: Convert this to use `ProductMeasure`
-# function xform(d::iid, _data::NamedTuple)
-#     as(Array, xform(d.dist, _data), d.size...)
-# end
-
-# xform(d::MvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
-
-function xform(μ::AbstractMeasure,  _data::NamedTuple=NamedTuple())
-    xform(representative(μ))
-end
-
-xform(μ::ProductMeasure) = as(Array, xform(first(μ.data)), size(μ.data)...)
-
-using MeasureTheory
-
-xform(::Lebesgue{ℝ}, _data::NamedTuple=NamedTuple()) = asℝ
-
-xform(::Lebesgue{𝕀}, _data::NamedTuple=NamedTuple()) = as𝕀
-
-xform(::Lebesgue{ℝ₊}, _data::NamedTuple=NamedTuple()) = asℝ₊  
+xform(μ::AbstractMeasure,  _data::NamedTuple=NamedTuple()) = as(μ)
 
 xform(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 
