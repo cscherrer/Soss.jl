@@ -3,7 +3,6 @@ using Reexport
 using MLStyle
 using NestedTuples
 import NestedTuples
-using TransformVariables
 import MeasureTheory: testvalue
 
 function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 

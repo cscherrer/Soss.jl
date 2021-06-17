@@ -1,5 +1,4 @@
-using TransformVariables,
-      LogDensityProblems,
+using LogDensityProblems,
       DynamicHMC,
       Statistics,
       ForwardDiff
@@ -104,7 +103,7 @@ function dynamicHMC(
     x = TupleArray{T,1}(undef, N)
 
     for j in 1:N
-        @inbounds x[j] = TransformVariables.transform(t, results.chain[j])
+        @inbounds x[j] = TV.transform(t, results.chain[j])
     end
 
     return x
