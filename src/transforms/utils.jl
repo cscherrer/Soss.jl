@@ -60,6 +60,15 @@ function assemblefrom(m::Model, params, args)
     return m
 end
 
+getReturn(am::AbstractModel) = Model(am).retn
+
+function setReturn(m::Model, x)
+    theModule = getmodule(m)
+    m0 = assemblefrom(m, parameters(m), arguments(m))
+    isnothing(x) && return m0
+    return merge(m0, Model(theModule, Return(x)))
+end 
+
 function trim_args!(args, m, params)
     g = digraph(m)
     intersect!(args, setdiff(vcat((parents(g, p) for p in params)...), params))
@@ -79,21 +88,26 @@ Transforms `m` by moving `xs` to arguments. If `strict=true`, only descendants o
 
 # Example
 ```jldoctest
-m = @model (n, k) begin
-    β ~ Gamma()
-    α ~ Gamma()
-    θ ~ Beta(α, β)
-    x ~ Binomial(n, θ)
-    z ~ Binomial(k, α / (α + β))
-end;
-Soss.after(m, :α)
+julia> m = @model (n, k) begin
+           β ~ Gamma()
+           α ~ Gamma()
+           θ ~ Beta(α, β)
+           x ~ Binomial(n, θ)
+           z ~ Binomial(k, α / (α + β))
+       end;
 
-# output
-@model (n, k, α) begin
+julia> Soss.after(m, :θ, strict=false) # same as Do(m, :θ)
+@model (n, k, θ) begin
         β ~ Gamma()
-        θ ~ Beta(α, β)
+        α ~ Gamma()
         x ~ Binomial(n, θ)
         z ~ Binomial(k, α / (α + β))
+    end
+
+
+julia> Soss.after(m, :θ, strict = true) # same as predictive(m, :θ)
+@model (n, θ) begin
+        x ~ Binomial(n, θ)
     end
 ```
 """
@@ -110,7 +124,7 @@ function after(m::Model, xs...; strict = false)
     args = arguments(m) ∪ xs # Will trim later.
     parms = setdiff(parms, args)
     trim_args!(args, m, parms)
-    return assemblefrom(m, parms, args)
+    return setReturn(assemblefrom(m, parms, args), getReturn(m))
 end
 
 """
@@ -124,20 +138,39 @@ Transforms `m` by retaining all ancestors of any of `xs` if `strict=true`; if `s
 
 # Examples
 ```jldoctest
-m = @model (n, k) begin
-    β ~ Gamma()
-    α ~ Gamma()
-    θ ~ Beta(α, β)
-    x ~ Binomial(n, θ)
-    z ~ Binomial(k, α / (α + β))
-end;
-Soss.before(m, :θ, inclusive = true, strict = false)
+julia> m = @model (n, k) begin
+           β ~ Gamma()
+           α ~ Gamma()
+           θ ~ Beta(α, β)
+           x ~ Binomial(n, θ)
+           z ~ Binomial(k, α / (α + β))
+       end;
 
-# output
+julia> Soss.before(m, :θ, inclusive = true, strict = true)
+@model begin
+        β ~ Gamma()
+        α ~ Gamma()
+        θ ~ Beta(α, β)
+    end
+
+julia> Soss.before(m, :θ, inclusive = true, strict = false)
 @model k begin
         β ~ Gamma()
         α ~ Gamma()
         θ ~ Beta(α, β)
+        z ~ Binomial(k, α / (α + β))
+    end
+
+julia> Soss.before(m, :θ, inclusive = false, strict = true) # same as Soss.prior(m, :θ)
+@model begin
+        β ~ Gamma()
+        α ~ Gamma()
+    end
+
+julia> Soss.before(m, :θ, inclusive=false, strict=false) # same as Soss.prune(m, :θ)
+@model k begin
+        β ~ Gamma()
+        α ~ Gamma()
         z ~ Binomial(k, α / (α + β))
     end
 ```

@@ -1,6 +1,6 @@
 ### Define the target distribution and its gradient
-using Distributions: logdensity, MvNormal
-using DiffResults: GradientResult, value, gradient
+using DiffResults: GradientResult
+import DiffResults
 using ForwardDiff: gradient!
 
 
@@ -48,7 +48,7 @@ println("Posterior mean β: " * string(round(E_β, digits=2)))
 
 
 """
-function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000;
+function advancedHMC(m :: ConditionalModel{A,B}, _data, N = 1000;
                                                          n_adapts  = 1000) where {A,B}
 
     ℓ(pars) = logdensity(m, merge(pars, _data))
@@ -64,7 +64,7 @@ function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000;
     function ∂f(x)
         res = GradientResult(x)
         gradient!(res, f, x)
-        return (value(res), gradient(res))
+        return (DiffResults.value(res), DiffResults.gradient(res))
     end
 
     # Sampling parameter settings
@@ -85,6 +85,6 @@ function advancedHMC(m :: JointDistribution{A,B}, _data, N = 1000;
     # Draw samples via simulating Hamiltonian dynamics
     # - `samples` will store the samples
     # - `stats` will store statistics for each sample
-    samples, stats = sample(hamiltonian, prop, initial_θ, N, adaptor, n_adapts; progress=false, verbose=false)
+    samples, stats = simulate(hamiltonian, prop, initial_θ, N, adaptor, n_adapts; progress=false, verbose=false)
 
 end

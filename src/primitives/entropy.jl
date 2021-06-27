@@ -4,29 +4,17 @@ export entropy
 
 import StatsBase
 
-@inline function StatsBase.entropy(m::JointDistribution, N::Int=DEFAULT_SAMPLE_SIZE)
-    return _entropy(getmoduletypencoding(m.model), m.model, m.args, Val(N))
+@inline function StatsBase.entropy(m::ConditionalModel, N::Int=DEFAULT_SAMPLE_SIZE)
+    return _entropy(getmoduletypencoding(m.model), m.model, argvals(m), Val(N))
 end
 
-@gg M function _entropy(_::Type{M}, _m::Model, _args, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceEntropy()(type2model(_m), _n) |> loadvals(_args, NamedTuple()))
-end
-
-@gg M function _entropy(_::Type{M}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {M <: TypeLevel{Module},_N}
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceEntropy()(type2model(_m), _n))
-end
-
-sourceEntropy(m::Model, N::Int) = sourceEntropy()(m, Val(N))
+sourceEntropy(m::Model, N::Int=DEFAULT_SAMPLE_SIZE) = sourceEntropy()(m, Val(N))
 
 export sourceEntropy
+    
 function sourceEntropy() 
         
-    function(m::Model, ::Type{Val{_N}}) where {_N}
-        _m = canonical(m)
+    function(_m::Model, ::Val{_N}) where {_N}
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         
         function proc(_m, st::Sample) 
@@ -44,7 +32,7 @@ function sourceEntropy()
         end
         
         
-        proc(_m, st::Return)  = :(return $(st.rhs))
+        proc(_m, st::Return)  = nothing # :(return $(st.rhs))
         proc(_m, st::LineNumber) = nothing
 
         vals = map(x -> Expr(:(=), x,x),variables(_m)) 
@@ -55,9 +43,25 @@ function sourceEntropy()
             return _H
         end
 
-        buildSource(_m, proc, wrap) |> flatten
+        buildSource(_m, proc, wrap) |> MacroTools.flatten
     end
 end
 
-StatsBase.entropy(d::iid) = prod(d.size) * entropy(d.dist)
-StatsBase.entropy(d::For) = sum(entropy, (d.f(Tuple(cind)...) for cind in CartesianIndices(d.θ)))
+# TODO: Get entropy going again
+# StatsBase.entropy(d::iid) = prod(d.size) * entropy(d.dist)
+# StatsBase.entropy(d::For) = sum(entropy ∘ d.f, d.θ)
+
+
+@gg function _entropy(M::Type{<:TypeLevel}, _m::Model, _args, _n::Val{_N}) where {_N}
+    body = sourceEntropy()(type2model(_m), _n()) |> loadvals(_args, NamedTuple())
+    @under_global from_type(_unwrap_type(M)) @q let M
+        $body
+    end
+end
+
+@gg function _entropy(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {_N}
+    body = sourceEntropy()(type2model(_m), _n)
+    @under_global from_type(_unwrap_type(M)) @q let M
+        $body
+    end
+end

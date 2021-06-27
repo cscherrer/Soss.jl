@@ -4,5 +4,5 @@ const DOCROOT = joinpath(PACKAGE_ROOT, "docs")
 const DOCSOURCE = joinpath(DOCROOT, "src")
 const EXAMPLESROOT = joinpath(PACKAGE_ROOT, "examples")
 const EXAMPLES = [
-    ("Linear regression", "linear-regression"),
+    # ("Linear regression", "linear-regression"),
     ]

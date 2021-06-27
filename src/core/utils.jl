@@ -1,5 +1,7 @@
 using MLStyle
-using SimplePosets
+import SimplePosets
+using NestedTuples
+using NestedTuples: LazyMerge
 
 expr(x) = :(identity($x))
 
@@ -19,17 +21,19 @@ astuple(x::Symbol) = Expr(:tuple,x)
 
 
 export arguments
-arguments(m::Model) = m.args
-arguments(d::JointDistribution) = d.args
+arguments(m::AbstractModel) = Model(m).args
 
 export sampled
-sampled(m::Model) = keys(m.dists) |> collect
+sampled(m::AbstractModel) = keys(Model(m).dists) |> collect
 
 export assigned
-assigned(m::Model) = keys(m.vals) |> collect
+assigned(m::AbstractModel) = keys(Model(m).vals) |> collect
 
 export parameters
-parameters(m::Model) = union(assigned(m), sampled(m))
+function parameters(a::AbstractModel)
+    m = Model(a)
+    union(assigned(Model(m)), sampled(m))
+end
 
 export variables
 variables(m::Model) = union(arguments(m), parameters(m))
@@ -140,7 +144,7 @@ function buildSource(m, proc, wrap=identity; kwargs...)
     #     end
     # end
 
-    wrap(kernel) |> flatten
+    wrap(kernel) |> MacroTools.flatten
     # flatten(body)
 end
 
@@ -194,7 +198,7 @@ function loadvals(argstype, datatype)
     src -> (@q begin
         $loader
         $src
-    end) |> flatten
+    end) |> MacroTools.flatten
 end
 
 function loadvals(argstype, datatype, parstype)
@@ -209,24 +213,30 @@ function loadvals(argstype, datatype, parstype)
     for k in args
         push!(loader.args, :($k = _args.$k))
     end
-    for k in data
+    for k in setdiff(data, pars)
         push!(loader.args, :($k = _data.$k))
     end
 
-    for k in pars
+    for k in setdiff(pars, data)
         push!(loader.args, :($k = _pars.$k))
+    end
+
+    for k in pars ∩ data
+        push!(loader.args, :($k = Soss.NestedTuples.lazymerge(_data.$k, _pars.$k)))
     end
 
     src -> (@q begin
         $loader
         $src
-    end) |> flatten
+    end) |> MacroTools.flatten
 end
 
 
 getntkeys(::NamedTuple{A,B}) where {A,B} = A
 getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A
 getntkeys(::Type{NamedTuple{A}}) where {A} = A
+getntkeys(::Type{LazyMerge{A,B,S,T}}) where {A,B,S,T} = Tuple(A ∪ B)
+
 
 # These macros quickly define additional methods for when you get tired of typing `NamedTuple()`
 macro tuple3args(f)
@@ -270,9 +280,11 @@ end
 
 const TypeLevel = GeneralizedGenerated.TypeLevel
 
-unVal(::Type{Val{T}}) where {T} = T
-unVal(::Val{T}) where {T} = T
 
 function isleaf(m, v::Symbol)
     isempty(digraph(m).N[v])
 end
+
+
+unVal(::Type{V}) where {T, V <: Val{T}} = T
+unVal(::Val{T}) where {T} = T

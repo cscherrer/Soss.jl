@@ -1,5 +1,4 @@
-using Distributions
-using MonteCarloMeasurements
+# using MonteCarloMeasurements
 
 """
     importanceSample(p(p_args), q(q_args), observed_data)
@@ -26,19 +25,8 @@ Weighted(-7.13971.4
 function importanceSample end
 
 export importanceSample
-@inline function importanceSample(p::JointDistribution, q::JointDistribution, _data)
+@inline function importanceSample(p::ConditionalModel, q::ConditionalModel, _data)
     return _importanceSample(getmoduletypencoding(p.model), p.model, p.args, q.model, q.args, _data)
-end
-
-@gg M function _importanceSample(_::Type{M}, p::Model, _pargs, q::Model, _qargs, _data) where M <: TypeLevel{Module}
-    p = type2model(p)
-    q = type2model(q)
-        
-    Expr(:let,
-        Expr(:(=), :M, from_type(M)),
-        sourceImportanceSample(_data)(p,q) |> loadvals(_qargs, _data) |> loadvals(_pargs, NamedTuple()) |> merge_pqargs)
-
-
 end
 
 sourceImportanceSample(p::Model,q::Model,_data) = sourceImportanceSample(_data)(p::Model,q::Model)
@@ -46,8 +34,6 @@ sourceImportanceSample(p::Model,q::Model,_data) = sourceImportanceSample(_data)(
 export sourceImportanceSample
 function sourceImportanceSample(_data)
     function(p::Model,q::Model)
-        p = canonical(p)
-        q = canonical(q)
         m = merge(p,q)
 
         _datakeys = getntkeys(_data)
@@ -73,7 +59,7 @@ function sourceImportanceSample(_data)
         proc(m, st::Return)  = :(return $(st.rhs))
         proc(m, st::LineNumber) = nothing
 
-        body = buildSource(m, proc) |> flatten
+        body = buildSource(m, proc) |> MacroTools.flatten
 
         kwargs = arguments(p) ∪ arguments(q)
         kwargsExpr = Expr(:tuple,kwargs...)
@@ -89,7 +75,7 @@ function sourceImportanceSample(_data)
             return Weighted(_ℓ, $stochExpr)
         end
 
-        buildSource(m, proc, wrap) |> flatten
+        buildSource(m, proc, wrap) |> MacroTools.flatten
     end
 end
 
@@ -116,7 +102,7 @@ end
 #     procp(p, st::LineNumber) = convert(Expr, st)
 
 #     function procq(q, st::Follows)
-#         if isempty(vars(st.rhs)) 
+#         if isempty(vars(st.rhs))
 #             @q begin
 #                 $(st.x) = Particles($N, $(st.rhs))
 #                 $ℓ -= logdensity($(st.rhs), $(st.x))
@@ -138,11 +124,11 @@ end
 #     kwargs = freeVariables(q) ∪ arguments(p)
 #     kwargsExpr = Expr(:tuple,kwargs...)
 
-#     stochExpr = begin 
+#     stochExpr = begin
 #         vals = map(stochastic(q)) do x Expr(:(=), x,x) end
 #         Expr(:tuple, vals...)
 #     end
-    
+
 #     @gensym particleImportance
 #     result = @q function $particleImportance($N, pars)
 #         @unpack $kwargsExpr = pars
@@ -156,11 +142,11 @@ end
 # end
 
 
-    
+
 #     @gensym rand
-    
+
 #     flatten(@q (
-#         function $rand(args...;kwargs...) 
+#         function $rand(args...;kwargs...)
 #             @unpack $argsExpr = kwargs
 #             # kwargs = Dict(kwargs)
 #             $body
@@ -174,5 +160,20 @@ function merge_pqargs(src)
     @q begin
         _args = merge(_pargs, _qargs)
         $src
-    end |> flatten
+    end |> MacroTools.flatten
+end
+
+
+@gg function _importanceSample(M::Type{<:TypeLevel}, p::Model, _pargs, q::Model, _qargs, _data)
+    p = type2model(p)
+    q = type2model(q)
+
+    body = sourceImportanceSample(_data)(p,q) |>
+        loadvals(_qargs, _data) |>
+        loadvals(_pargs, NamedTuple()) |>
+        merge_pqargs
+
+    @under_global from_type(_unwrap_type(M)) @q let M
+        $body
+    end
 end

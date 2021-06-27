@@ -29,10 +29,10 @@ Base.log(x::Log{T}) where {T <: Real} = x.val
 
 struct AbstractMix end
 
-struct MixFor
-    dists :: For
-    weights :: Simplex
-end
+# struct MixFor
+#     dists :: For
+#     weights :: Simplex
+# end
 
 struct MixVec{D,W}
     dists :: Vector{D}
@@ -77,7 +77,7 @@ end
 
 xform(mix::MixVec) = xform(mix.dists[1])
 
-function Distributions.logdensity(mix::MixVec, x)
+function Dists.logpdf(mix::MixVec, x)
     ℓ = 0.0
     @simd for j in eachindex(mix.weights)
         @inbounds ℓ += log(mix.weights[j]) + logdensity(mix.dists[j], x)

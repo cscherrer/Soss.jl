@@ -32,13 +32,7 @@ function canonical(expr :: Expr)
             :(For($rf, $rxtup)) |> r
         end        
         
-        :((iid($n))($dist)) => begin
-            rn = r(n)
-            rdist = r(dist)
-            :(iid($rn,$rdist)) |> r
-        end
-
-        
+                
         :($f($(args...))) => begin
             rf = r(f)
             rx = map(r,args)

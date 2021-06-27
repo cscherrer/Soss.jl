@@ -4,9 +4,9 @@ CurrentModule = Soss
 
 # To-Do List
 
-We need a way to "lift" a "`Distribution`" (without parameters, so really a family) to a `Model`, or one with parameters to a `JointDistribution`
+We need a way to "lift" a "`Distribution`" (without parameters, so really a family) to a `Model`, or one with parameters to a `ConditionalModel`
 
-Models are "function-like", so a `JointDistribution` should be sometimes usable as a value. `m1(m2(args))` should work.
+Models are "function-like", so a `ConditionalModel` should be sometimes usable as a value. `m1(m2(args))` should work.
 
 This also means `m1 ∘ m2` should be fine
 

@@ -11,3 +11,6 @@ cache/
 example-*.md
 tracefile*.info
 .history
+.vscode/settings.json
+/coverage
+profile.pb.gz

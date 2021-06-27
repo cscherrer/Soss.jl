@@ -91,7 +91,7 @@ y_true = μ_true .+ noise
 # Now we use MCMC (specifically, the No-U-turn sampler) to sample from the
 # posterior distribution:
 
-posterior = dynamicHMC(model(X=X), (y=y_true,))
+posterior = dynamicHMC(model(X=X) | (y=y_true,))
 
 # Often, the posterior distributions are easier to work with in terms of
 # `particles` (built using [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl)):
@@ -136,7 +136,8 @@ y_true - particles(y_ppc)
 
 # This idea can be used in much more complex ways. `weightedSample` is a sort of hybrid between `rand` and `logdensity`. For data that are provided, it increments a `_ℓ` using `logdensity`. Unknown values are sampled using `rand`.
 
-ℓ, proposal = weightedSample(model(X=X), (y=y_true,));
+# TODO: Fix weightedSample
+ℓ, proposal = weightedSample(model(X=X) | (y=y_true,));
 
 # `ℓ`:
 

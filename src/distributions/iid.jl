@@ -59,11 +59,5 @@ function Distributions.logdensity(d::iid,x)
 end
 
 
-# function Base.rand(d::Union{iid, HalfNormal}, n::Int)
-#     x1 = rand(d)
-#     x = Array{typeof(x1),1}(undef, n)
-#     for j in eachindex(x)
-#         @inbounds x[j] = rand(d)
-#     end
-#     x
-# end 
+iid(n) = dist -> (dist ^ n)
+iid(n::Int...) = dist -> (dist ^ n)

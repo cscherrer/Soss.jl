@@ -1,5 +1,5 @@
 
-using TransformVariables, Parameters, Distributions, Statistics, StatsFuns, Optim
+using TransformVariables, Parameters, Statistics, StatsFuns, Optim
 using NLSolversBase
 
 function makeLoss(model)
