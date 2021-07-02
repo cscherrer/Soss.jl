@@ -38,7 +38,7 @@ function sourceImportanceSample(_data)
 
         _datakeys = getntkeys(_data)
 
-        function proc(m, st::Sample) 
+        function proc(m, st::Sample)
             st.x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $(st.x)))
 
             if hasproperty(p.dists, st.x)
