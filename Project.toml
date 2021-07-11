@@ -51,7 +51,7 @@ JuliaVariables = "0.2"
 MLStyle = "0.3,0.4"
 MacroTools = "0.5"
 MappedArrays = "0.3, 0.4"
-MeasureTheory = "0.8"
+MeasureTheory = "0.8, 0.9"
 NamedTupleTools = "0.12, 0.13"
 NestedTuples = "0.3"
 RecipesBase = "0.7,0.8, 1"
@@ -73,6 +73,7 @@ TupleVectors = "0.1"
 julia = "1.5"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 BayesianLinearRegression = "5047281b-d44e-44a3-ad3e-58447b69b7ca"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
@@ -82,4 +83,4 @@ StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["BayesianLinearRegression", "Documenter", "Literate", "Plots", "Random", "StableRNGs", "Test"]
+test = ["Aqua", "BayesianLinearRegression", "Documenter", "Literate", "Plots", "Random", "StableRNGs", "Test"]
