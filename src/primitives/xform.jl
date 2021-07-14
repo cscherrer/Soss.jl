@@ -5,6 +5,7 @@ using NestedTuples
 import NestedTuples
 using TransformVariables
 import MeasureTheory: testvalue
+using TransformVariables
 
 function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
     schema(T)
