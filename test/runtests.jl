@@ -2,6 +2,8 @@ using Soss
 using Test
 using MeasureTheory
 using TransformVariables
+using Aqua
+Aqua.test_all(Soss; ambiguities=false, unbound_args=false)
 
 include("examples-list.jl")
 
@@ -47,7 +49,7 @@ include("examples-list.jl")
         x = rand(outer(sub=inner)).m
         post = outer(sub=inner) | (;m=  (; x))
         t = xform(post)
-        @test logdensity(post, t(randn(3))) isa Float64
+        @test logdensity(post, transform(t, randn(3))) isa Float64
     end
 
     @testset "https://github.com/cscherrer/Soss.jl/issues/258" begin

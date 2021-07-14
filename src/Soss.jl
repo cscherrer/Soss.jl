@@ -30,6 +30,8 @@ using ArrayInterface: StaticInt
 
 
 using TransformVariables: as, asℝ, as𝕀, asℝ₊
+import TransformVariables
+const TV = TransformVariables
 
 using SimplePosets: SimplePoset
 import SimplePosets

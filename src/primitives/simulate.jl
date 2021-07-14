@@ -29,6 +29,7 @@ using GeneralizedGenerated
 using Random: GLOBAL_RNG
 using NestedTuples
 using SampleChains
+using TupleVectors
 
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 export simulate
