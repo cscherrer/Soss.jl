@@ -7,8 +7,6 @@ using Reexport: @reexport
 @reexport using StatsFuns
 using MeasureTheory
 
-export For
-
 using NamedTupleTools
 using SampleChains
 using SymbolicCodegen
