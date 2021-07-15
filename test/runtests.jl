@@ -100,6 +100,10 @@ include("examples-list.jl")
             x ~ Normal(μ=sum(a))
         end
 
+        @test_broken let t = xform(m2() | (; m = (; x = rand(3))))
+            logdensity(m2() | (; m = (; x = rand(3))), t(randn(3))) isa Float64
+        end
+        
         @test digraph(m).N == Dict(:a => Set([:x]), :x => Set())
     end
 
