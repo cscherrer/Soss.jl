@@ -45,7 +45,7 @@ Base.show(io::IO, m :: ASTModel) = println(io, convert(Expr, m))
 function type2model(::Type{ASTModel{A,B,M}}) where {A,B,M}
     args = [fieldnames(A)...]
     body = from_type(B)
-    DAGModel(from_type(M), convert(Vector{Symbol},args), body)
+    ASTModel(from_type(M), convert(Vector{Symbol},args), body)
 end
 
 # julia> using Soss, MeasureTheory
