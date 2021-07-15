@@ -285,6 +285,8 @@ function isleaf(m, v::Symbol)
     isempty(digraph(m).N[v])
 end
 
+export unVal
+export val2nt
 
 unVal(::Type{V}) where {T, V <: Val{T}} = T
 unVal(::Val{T}) where {T} = T
