@@ -1,8 +1,8 @@
 export interpret
 
-function interpret(m::ASTModel{A,B,M}, _tilde, call=nothing) where {A,B,M}
-    theModule = from_type(M)
-    mk_function(theModule, _interpret(m.body, _tilde; call=call))
+function interpret(m::ASTModel{A,B,M}, tilde, ctx0, call=nothing) where {A,B,M}
+    theModule = getmodule(m)
+    mk_function(theModule, _interpret(m.body, tilde, ctx0; call=call))
 end
 
 function _interpret(ast::Expr, _tilde, _ctx0, call=nothing)
@@ -12,7 +12,7 @@ function _interpret(ast::Expr, _tilde, _ctx0, call=nothing)
         length(newargs) == 3 || return expr
 
         (_, x, d) = newargs
-        :(($x, _ctx) = $_tilde(Val{$(QuoteNode(x))}(), $d, _ctx))
+        :(($x, _ctx) = $_tilde(Val{$(QuoteNode(x))}(), $d, _ctx, _runtime_args))
     end
 
     body = foldall(identity, branch)(ast)
@@ -23,12 +23,12 @@ function _interpret(ast::Expr, _tilde, _ctx0, call=nothing)
 
     quote
         _ctx = $_ctx0
-        $(body.args...)
+        $body
         _ctx
     end
 end
 
-function mkfun(f, _m, _args, _obs, tilde, ctx0, call)
+function mkfun(_m, _args, _obs, tilde, ctx0, call)
     call = call.instance
     _m = type2model(_m)
     M = getmodule(_m)
@@ -36,9 +36,10 @@ function mkfun(f, _m, _args, _obs, tilde, ctx0, call)
     body = _m.body |> loadvals(_args, NamedTuple())
     body = _interpret(body, tilde, ctx0, call)
 
-    body = f(body)
     @under_global M @q let M
-        $body
+        function(_runtime_args)
+            $body
+        end
     end
 end
 
@@ -48,22 +49,15 @@ end
     return _rand(m, NamedTuple(), call)(rng)
 end
 
-@gg function _rand(_m::ASTModel, _args, call)
-    
-    _obs = NamedTuple()
-    function tilde(v::Val, d, ctx)
-        x = rand(d)
-        ctx = merge(ctx, NamedTuple{(unVal(v),)}((x,)))
-        (x, ctx)
-    end
+function tilde_rand(v::Val, d, ctx, rng)
+    x = rand(rng, d)
+    ctx = merge(ctx, NamedTuple{(unVal(v),)}((x,)))
+    (x, ctx)
+end
 
+@gg function _rand(_m::ASTModel, _args, call)
+    _obs = NamedTuple()
     ctx0 = NamedTuple()
 
-    f(ex) = quote
-        function(_rng)
-            $(ex.args...)
-        end
-    end
-
-    mkfun(f, _m, _args, _obs, tilde, ctx0, call)
+    mkfun(_m, _args, _obs, tilde_rand, ctx0, call)
 end
