@@ -46,8 +46,8 @@ end
     body = _interpret(body, tilde, ctx0, call)
 
     @under_global from_type(_unwrap_type(M)) @q let M
-        _rng -> begin
-            $body
+        function(_rng)
+            $(body.args...)
         end
     end
 end
