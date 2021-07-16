@@ -62,3 +62,10 @@ function withmeasures(m::Model)
     end
     return m_new
 end
+
+function withmeasures(d::ConditionalModel)
+    withmeasures(Model(d))(argvals(d)) | observations(d)
+end
+
+# TODO: Finish this
+# function predict_measure(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
