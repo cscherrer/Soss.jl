@@ -28,7 +28,7 @@ function _interpret(ast::Expr, _tilde, _ctx0, call=nothing)
     end
 end
 
-function mkfun(M, _m, _args, _obs, tilde, ctx0, call)
+function mkfun(f, M, _m, _args, _obs, tilde, ctx0, call)
     call = call.instance
     _m = type2model(_m)
 
@@ -36,10 +36,9 @@ function mkfun(M, _m, _args, _obs, tilde, ctx0, call)
     body = _m.body |> loadvals(_args, NamedTuple())
     body = _interpret(body, tilde, ctx0, call)
 
+    body = f(body)
     @under_global from_type(_unwrap_type(M)) @q let M
-        function(_rng)
-            $(body.args...)
-        end
+        $body
     end
 end
 
@@ -59,7 +58,13 @@ end
 
     ctx0 = NamedTuple()
 
-    mkfun(M, _m, _args, _obs, tilde, ctx0, call)
+    f(ex) = quote
+        function(_rng)
+            $(ex.args...)
+        end
+    end
+
+    mkfun(f, M, _m, _args, _obs, tilde, ctx0, call)
 end
 
 # @gg function _rand(M::Type{<:TypeLevel}, _m::ASTModel, _args::NamedTuple{()})
