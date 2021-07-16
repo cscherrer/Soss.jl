@@ -28,12 +28,29 @@ function _interpret(ast::Expr, _tilde, _ctx0, call=nothing)
     end
 end
 
+function mkfun(M, _m, _args, _obs, tilde, ctx0, call)
+    call = call.instance
+    _m = type2model(_m)
+
+
+    body = _m.body |> loadvals(_args, NamedTuple())
+    body = _interpret(body, tilde, ctx0, call)
+
+    @under_global from_type(_unwrap_type(M)) @q let M
+        function(_rng)
+            $(body.args...)
+        end
+    end
+end
+
+
+
 @inline function Base.rand(rng::AbstractRNG, m::ASTModel; call=nothing)
     return _rand(getmoduletypencoding(m), m, NamedTuple(), call)(rng)
 end
 
 @gg function _rand(M::Type{<:TypeLevel}, _m::ASTModel, _args, call)
-    call = call.instance
+    _obs = NamedTuple()
     function tilde(v::Val, d, ctx)
         x = rand(d)
         ctx = merge(ctx, NamedTuple{(unVal(v),)}((x,)))
@@ -42,14 +59,7 @@ end
 
     ctx0 = NamedTuple()
 
-    body = type2model(_m).body |> loadvals(_args, NamedTuple())
-    body = _interpret(body, tilde, ctx0, call)
-
-    @under_global from_type(_unwrap_type(M)) @q let M
-        function(_rng)
-            $(body.args...)
-        end
-    end
+    mkfun(M, _m, _args, _obs, tilde, ctx0, call)
 end
 
 # @gg function _rand(M::Type{<:TypeLevel}, _m::ASTModel, _args::NamedTuple{()})
