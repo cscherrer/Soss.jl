@@ -58,22 +58,3 @@ end
 
     mkfun(_m, _args, _obs, tilde_rand, call)
 end
-
-
-export rand2
-
-@inline function rand2(rng::AbstractRNG, m::ASTModel; call=nothing)
-    return _rand2(m, NamedTuple(), call)(rng)
-end
-
-function tilde_rand2(v::Val, d, ctx, rng)
-    x = rand(rng, d)
-    (x, ())
-end
-
-@gg function _rand2(_m::ASTModel, _args, call)
-    _obs = NamedTuple()
-    ctx0 = NamedTuple()
-
-    mkfun(_m, _args, _obs, tilde_rand2, ctx0, call)
-end
