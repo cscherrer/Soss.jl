@@ -1,8 +1,7 @@
 export interpret
 
-function interpret(m::ASTModel{A,B,M}, tilde, ctx, call=nothing) where {A,B,M}
-    theModule = getmodule(m)
-    mk_function(theModule, _interpret(m.body, tilde, ctx; call=call))
+function interpret(m::ASTModel{A,B,M}, tilde, ctx0, call=nothing) where {A,B,M}
+    interp = _interpret(m.body, tilde, ctx0, call)
 end
 
 function _interpret(ast::Expr, _tilde, _ctx, call=nothing)
@@ -60,3 +59,21 @@ end
     mkfun(_m, _args, _obs, tilde_rand, call)
 end
 
+
+export rand2
+
+@inline function rand2(rng::AbstractRNG, m::ASTModel; call=nothing)
+    return _rand2(m, NamedTuple(), call)(rng)
+end
+
+function tilde_rand2(v::Val, d, ctx, rng)
+    x = rand(rng, d)
+    (x, ())
+end
+
+@gg function _rand2(_m::ASTModel, _args, call)
+    _obs = NamedTuple()
+    ctx0 = NamedTuple()
+
+    mkfun(_m, _args, _obs, tilde_rand2, ctx0, call)
+end
