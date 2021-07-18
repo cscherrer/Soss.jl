@@ -2,9 +2,8 @@ using Accessors
 
 export interpret
 
-function interpret(m::ASTModel{A,B,M}, tilde, ctx, call=nothing) where {A,B,M}
-    theModule = getmodule(m)
-    mk_function(theModule, _interpret(m.body, tilde, ctx; call=call))
+function interpret(m::ASTModel{A,B,M}, tilde, ctx0, call=nothing) where {A,B,M}
+    interp = _interpret(m.body, tilde, ctx0, call)
 end
 
 function _interpret(ast::Expr, _tilde, call=nothing)
