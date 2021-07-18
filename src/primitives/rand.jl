@@ -15,10 +15,10 @@ end
 
 Base.rand(d::ConditionalModel, N::Int) = rand(GLOBAL_RNG, d, N)
 
-@inline function Base.rand(rng::AbstractRNG, c::ConditionalModel)
-    m = Model(c)
-    return _rand(getmoduletypencoding(m), m, argvals(c))(rng)
-end
+# @inline function Base.rand(rng::AbstractRNG, c::ConditionalModel)
+#     m = Model(c)
+#     return _rand(getmoduletypencoding(m), m, argvals(c))(rng)
+# end
 
 @inline function Base.rand(m::ConditionalModel) 
     rand(GLOBAL_RNG, m)
