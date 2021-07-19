@@ -11,6 +11,10 @@ function Base.show(io::IO, cm::ModelPosterior)
     println(io, Model(cm))
 end
 
+type2model(::Type{MP}) where {M, MP<:ModelPosterior{M}} = type2model(M)
+type2model(::ModelPosterior{M}) where {M} = type2model(M)
+
+
 export argvals
 argvals(c::ModelPosterior) = argvals(c.closure)
 
@@ -28,7 +32,7 @@ function observed(cm::ModelPosterior{M,A,O}) where {M,A,O}
     keys(schema(O))
 end
 
-Model(c::ModelPosterior) = c.model
+Model(post::ModelPosterior) = Model(post.closure)
 
 ModelPosterior(m::AbstractModelFunction) = ModelPosterior(m,NamedTuple(), NamedTuple())
 

@@ -35,7 +35,7 @@ argvalstype(::Type{MC}) where {M,A,MC<:ModelClosure{M,A}} = A
 obstype(::ModelClosure) = NamedTuple{(), Tuple{}}
 obstype(::Type{<:ModelClosure}) = NamedTuple{(), Tuple{}}
 
-type2model(::Type{MC}) where {M,A,MC<:ModelClosure{M,A}} = type2model(M)
+type2model(::Type{MC}) where {M,MC<:ModelClosure{M}} = type2model(M)
 
 import Base
 
