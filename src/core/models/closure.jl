@@ -1,4 +1,4 @@
-struct ModelClosure{M,A}
+struct ModelClosure{M,A} <: AbstractModel
     model::M
     argvals::A
 end

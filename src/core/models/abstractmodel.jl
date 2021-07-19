@@ -3,6 +3,9 @@
 # struct MixedSupport <: ValueSupport end
 # struct MixedVariate <: VariateForm end
 
+
+abstract type AbstractModel <: AbstractMeasure end
+
 """
     AbstractModelFunction{A,B}
 
@@ -15,7 +18,7 @@ N gives the Names of arguments (each a Symbol)
 B gives the Body, as an Expr
 M gives the Module where the model is defined
 """
-abstract type AbstractModelFunction{A,B,M} <: AbstractMeasure end
+abstract type AbstractModelFunction{A,B,M} <: AbstractModel end
 
 
 
