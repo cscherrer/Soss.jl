@@ -12,7 +12,7 @@ function _interpret(ast::Expr, _tilde, _ctx0, call=nothing)
         length(newargs) == 3 || return expr
 
         (_, x, d) = newargs
-        :(($x, _ctx) = $_tilde(Val{$(QuoteNode(x))}(), $d, _cfg, _ctx))
+        :(($x, _ctx) = $_tilde($(QuoteNode(x)), $d, _cfg, _ctx))
     end
 
     body = foldall(identity, branch)(ast)
@@ -43,19 +43,19 @@ function mkfun(_m, _args, _obs, tilde, ctx0, call)
     end) |> MacroTools.flatten
 
 
-function tilde_rand(v, d, cfg, ctx::NamedTuple)
+@inline function tilde_rand(v, d, cfg, ctx::NamedTuple)
     x = rand(cfg.rng, d)
-    ctx = merge(ctx, NamedTuple{(unVal(v),)}((x,)))
+    ctx = merge(ctx, NamedTuple{(v,)}((x,)))
     (x, ctx)
 end
 
-function tilde_rand(v, d, cfg, ctx::Dict)
+@inline function tilde_rand(v, d, cfg, ctx::Dict)
     x = rand(cfg.rng, d)
-    ctx[unVal(v)] = x 
+    ctx[v] = x 
     (x, ctx)
 end
 
-function tilde_rand(v, d, cfg, ctx::Tuple{})
+@inline function tilde_rand(v, d, cfg, ctx::Tuple{})
     x = rand(cfg.rng, d)
     (x, ())
 end
