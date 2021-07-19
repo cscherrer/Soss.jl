@@ -12,7 +12,7 @@ function _interpret(ast::Expr, _tilde, call=nothing)
         length(newargs) == 3 || return expr
 
         (_, x, d) = newargs
-        :(($x, _ctx) = $_tilde($(QuoteNode(x)), $d, _cfg, _ctx))
+        :(($x, _ctx, _retn) = $_tilde($(QuoteNode(x)), $d, _cfg, _ctx))
     end
 
     body = foldall(identity, branch)(ast)
@@ -21,10 +21,7 @@ function _interpret(ast::Expr, _tilde, call=nothing)
         body = callify(body; call=call)
     end
 
-    quote
-        $body
-        _ctx
-    end
+    body
 end
 
 @gg function mkfun(_m, _args, _obs, tilde, call)
@@ -40,6 +37,7 @@ end
     q = (@q let M
         function(_cfg, _ctx)
             $body
+            _retn
         end
     end) |> MacroTools.flatten
 end
@@ -47,18 +45,18 @@ end
 @inline function tilde_rand(v, d, cfg, ctx::NamedTuple)
     x = rand(cfg.rng, d)
     ctx = merge(ctx, NamedTuple{(v,)}((x,)))
-    (x, ctx)
+    (x, ctx, ctx)
 end
 
 @inline function tilde_rand(v, d, cfg, ctx::Dict)
     x = rand(cfg.rng, d)
     ctx[v] = x 
-    (x, ctx)
+    (x, ctx, ctx)
 end
 
 @inline function tilde_rand(v, d, cfg, ctx::Tuple{})
     x = rand(cfg.rng, d)
-    (x, ())
+    (x, (), x)
 end
 
 @inline function rand(rng::AbstractRNG, cm::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
@@ -66,14 +64,6 @@ end
     args = argvals(cm)
     obs = NamedTuple()
     m = Model(cm)
-    f = mkfun(m, args, obs, tilde_rand, call)
-    return f(cfg, ctx)
-end
-
-@inline function rand(rng::AbstractRNG, m::ASTModel; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
-    cfg = merge(cfg, (rng=rng,))
-    args = NamedTuple()
-    obs = NamedTuple()
     f = mkfun(m, args, obs, tilde_rand, call)
     return f(cfg, ctx)
 end
