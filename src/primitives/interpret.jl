@@ -5,7 +5,7 @@ function interpret(m::ASTModel{A,B,M}, tilde, ctx0, call=nothing) where {A,B,M}
     mk_function(theModule, _interpret(m.body, tilde, ctx0; call=call))
 end
 
-function _interpret(ast::Expr, _tilde, _ctx0, call=nothing)
+function _interpret(ast::Expr, _tilde, call=nothing)
     function branch(head, newargs)
         expr = Expr(head, newargs...)
         (head, newargs[1]) == (:call, :~) || return expr
@@ -22,26 +22,27 @@ function _interpret(ast::Expr, _tilde, _ctx0, call=nothing)
     end
 
     quote
-        _ctx = $_ctx0
         $body
         _ctx
     end
 end
 
-function mkfun(_m, _args, _obs, tilde, ctx0, call)
+@gg function mkfun(_m, _args, _obs, tilde, call)
+    tilde = tilde.instance
     call = call.instance
+
     _m = type2model(_m)
     M = getmodule(_m)
 
     body = _m.body |> loadvals(_args, NamedTuple())
-    body = _interpret(body, tilde, ctx0, call)
+    body = _interpret(body, tilde, call)
 
     q = (@q let M
         function(_cfg, _ctx)
             $body
         end
     end) |> MacroTools.flatten
-
+end
 
 @inline function tilde_rand(v, d, cfg, ctx::NamedTuple)
     x = rand(cfg.rng, d)
