@@ -4,7 +4,7 @@ export entropy
 
 import StatsBase
 
-@inline function StatsBase.entropy(m::ConditionalModel, N::Int=DEFAULT_SAMPLE_SIZE)
+@inline function StatsBase.entropy(m::ModelClosure, N::Int=DEFAULT_SAMPLE_SIZE)
     return _entropy(getmoduletypencoding(m.model), m.model, argvals(m), Val(N))
 end
 

@@ -60,11 +60,19 @@ function tilde_rand(v, d, cfg, ctx::Tuple{})
     (x, ())
 end
 
-@inline function rand(rng::AbstractRNG, m::ConditionalModel; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
+@inline function rand(rng::AbstractRNG, cm::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
     cfg = merge(cfg, (rng=rng,))
-    args = argvals(m)
+    args = argvals(cm)
     obs = NamedTuple()
-    m = Model(m)
+    m = Model(cm)
+    f = mkfun(m, args, obs, tilde_rand, call)
+    return f(cfg, ctx)
+end
+
+@inline function rand(rng::AbstractRNG, m::ASTModel; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
+    cfg = merge(cfg, (rng=rng,))
+    args = NamedTuple()
+    obs = NamedTuple()
     f = mkfun(m, args, obs, tilde_rand, call)
     return f(cfg, ctx)
 end

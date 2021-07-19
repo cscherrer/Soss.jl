@@ -3,13 +3,13 @@ export basemeasure
 
 import MeasureTheory
 
-function MeasureTheory.basemeasure(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
+function MeasureTheory.basemeasure(c::ModelClosure{M,A}, x=NamedTuple()) where {M,A}
     _basemeasure(M, Model(c), argvals(c), observations(c), x)
 end
 
 export sourceBasemeasure
 
-sourceBasemeasure(m::AbstractModel) = sourceBasemeasure()(Model(m))
+sourceBasemeasure(m::AbstractModelFunction) = sourceBasemeasure()(Model(m))
 
 function sourceBasemeasure()
     function(_m::DAGModel)

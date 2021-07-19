@@ -5,7 +5,7 @@ import MeasureTheory: testvalue
 export testvalue
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-# function testvalue(d::ConditionalModel, N::Int)
+# function testvalue(d::ModelClosure, N::Int)
 #     r = chainvec(testvalue(d), N)
 #     for j in 2:N
 #         @inbounds r[j] = testvalue(d)
@@ -13,9 +13,9 @@ EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 #     return r
 # end
 
-# testvalue(d::ConditionalModel, N::Int) = testvalue(d, N)
+# testvalue(d::ModelClosure, N::Int) = testvalue(d, N)
 
-@inline function testvalue(c::ConditionalModel)
+@inline function testvalue(c::ModelClosure)
     m = Model(c)
     return _testvalue(getmoduletypencoding(m), m, argvals(c))
 end
@@ -28,7 +28,7 @@ end
 
 
 sourceTestvalue(m::DAGModel) = sourceTestvalue()(m)
-sourceTestvalue(jd::ConditionalModel) = sourceTestvalue(jd.model)
+sourceTestvalue(jd::ModelClosure) = sourceTestvalue(jd.model)
 
 export sourceTestvalue
 function sourceTestvalue() 

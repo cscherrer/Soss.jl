@@ -4,13 +4,17 @@ export logdensity
 using NestedTuples: lazymerge
 import MeasureTheory
 
-function MeasureTheory.logdensity(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
+function MeasureTheory.logdensity(c::ModelClosure{M,A}, x=NamedTuple()) where {M,A}
+    _logdensity(M, Model(c), argvals(c), observations(c), x)
+end
+
+function MeasureTheory.logdensity(c::ModelPosterior{M,A,O}, x=NamedTuple()) where {M,A,O}
     _logdensity(M, Model(c), argvals(c), observations(c), x)
 end
 
 export sourceLogdensity
 
-sourceLogdensity(m::AbstractModel) = sourceLogdensity()(Model(m))
+sourceLogdensity(m::AbstractModelFunction) = sourceLogdensity()(Model(m))
 
 function sourceLogdensity()
     function(_m::DAGModel)

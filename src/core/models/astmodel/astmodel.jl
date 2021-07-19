@@ -1,4 +1,4 @@
-struct ASTModel{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModel{A,B,M,Nothing,Nothing}
+struct ASTModel{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModelFunction{A,B,M}
     args :: Vector{Symbol}
     body :: Expr
 end
@@ -11,7 +11,7 @@ function ASTModel(theModule::Module, args::Vector{Symbol}, body::Expr)
     return ASTModel{A,B,M}(args, striplines(body))
 end
 
-# ConditionalModel{A,B,M,Args,Obs} <: AbstractModel{A,B,M,Argvals,Obs}
+# ModelClosure{A,B,M,Args,Obs} <: AbstractModel{A,B,M,Argvals,Obs}
 #     model::ASTModel{A,B,M}
 #     argvals :: Argvals
 #     obs :: Obs

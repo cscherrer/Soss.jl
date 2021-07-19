@@ -5,7 +5,7 @@ using TupleVectors: chainvec
 export rand
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-function Base.rand(rng::AbstractRNG, d::ConditionalModel, N::Int)
+function Base.rand(rng::AbstractRNG, d::ModelClosure, N::Int)
     r = chainvec(rand(rng, d), N)
     for j in 2:N
         @inbounds r[j] = rand(rng, d)
@@ -13,14 +13,14 @@ function Base.rand(rng::AbstractRNG, d::ConditionalModel, N::Int)
     return r
 end
 
-Base.rand(d::ConditionalModel, N::Int) = rand(GLOBAL_RNG, d, N)
+Base.rand(d::ModelClosure, N::Int) = rand(GLOBAL_RNG, d, N)
 
-# @inline function Base.rand(rng::AbstractRNG, c::ConditionalModel)
+# @inline function Base.rand(rng::AbstractRNG, c::ModelClosure)
 #     m = Model(c)
 #     return _rand(getmoduletypencoding(m), m, argvals(c))(rng)
 # end
 
-@inline function Base.rand(m::ConditionalModel) 
+@inline function Base.rand(m::ModelClosure) 
     rand(GLOBAL_RNG, m)
 end
 
@@ -33,7 +33,7 @@ rand(m::DAGModel) = rand(GLOBAL_RNG, m)
 
 
 sourceRand(m::DAGModel) = sourceRand()(m)
-sourceRand(jd::ConditionalModel) = sourceRand(jd.model)
+sourceRand(jd::ModelClosure) = sourceRand(jd.model)
 
 export sourceRand
 function sourceRand() 

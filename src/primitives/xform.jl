@@ -16,9 +16,9 @@ end
 
 export xform
 
-xform(m::ConditionalModel{A, B}, _data::NamedTuple) where {A,B} = xform(m | _data)
+xform(m::ModelClosure{M,A}, _data::NamedTuple) where {M,A} = xform(m | _data)
 
-function xform(m::ConditionalModel{A, B}) where {A,B}
+function xform(m::ModelPosterior{M,A,O}) where {M,A,O}
     return _xform(getmoduletypencoding(m), Model(m), argvals(m), observations(m))
 end
 

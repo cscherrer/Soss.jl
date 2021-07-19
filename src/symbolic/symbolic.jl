@@ -48,13 +48,13 @@ function getsummand(marginals::Fill, x::Symbolic, iters)
     symlogdensity(marginals.value, x[iters...])
 end
 
-function NestedTuples.schema(cm::ConditionalModel) 
+function NestedTuples.schema(cm::ModelClosure) 
     trace = simulate(cm; trace_assignments=true).trace
     types = schema(merge(trace, argvals(cm)))
     return types
 end
 
-function symlogdensity(cm::ConditionalModel{A,B,M}; noinline=()) where {A,B,M}
+function symlogdensity(cm::ModelClosure{A,B,M}; noinline=()) where {A,B,M}
     trace = simulate(cm; trace_assignments=true).trace
     types = schema(merge(trace, argvals(cm)))
     # m = symify(cm.model)
@@ -71,9 +71,9 @@ end
 
 # Convert a named tuple to a dictionary for symbolic substitution
 symdict(nt::NamedTuple; noinline=()) = Dict((k => v for (k,v) in pairs(nt) if k ∉ noinline))
-symdict(cm::ConditionalModel; noinline=()) = symdict(merge(cm.argvals, cm.obs); noinline=noinline)
+symdict(cm::ModelClosure; noinline=()) = symdict(merge(cm.argvals, cm.obs); noinline=noinline)
 
-function sourceSymlogdensity(cm::ConditionalModel{A,B,M}) where {A,B,M}
+function sourceSymlogdensity(cm::ModelClosure{A,B,M}) where {A,B,M}
     types = schema(cm)
     return sourceSymlogdensity(types)(Model(cm))
 end

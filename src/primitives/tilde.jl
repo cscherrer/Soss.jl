@@ -5,7 +5,7 @@ export tilde
     return _tilde(getmoduletypencoding(m), m)
 end
 
-# @inline function Base.tilde(m::ConditionalModel) 
+# @inline function Base.tilde(m::ModelClosure) 
 #     tilde(GLOBAL_RNG, m)
 # end
 
@@ -18,7 +18,7 @@ end
 
 
 # sourcetilde(m::DAGModel) = sourcetilde()(m)
-# sourcetilde(jd::ConditionalModel) = sourcetilde(jd.model)
+# sourcetilde(jd::ModelClosure) = sourcetilde(jd.model)
 
 export sourcetilde
 function sourcetilde() 

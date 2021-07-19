@@ -21,16 +21,16 @@ astuple(x::Symbol) = Expr(:tuple,x)
 
 
 export arguments
-arguments(m::AbstractModel) = Model(m).args
+arguments(m::AbstractModelFunction) = Model(m).args
 
 export sampled
-sampled(m::AbstractModel) = keys(Model(m).dists) |> collect
+sampled(m::AbstractModelFunction) = keys(Model(m).dists) |> collect
 
 export assigned
-assigned(m::AbstractModel) = keys(Model(m).vals) |> collect
+assigned(m::AbstractModelFunction) = keys(Model(m).vals) |> collect
 
 export parameters
-function parameters(a::AbstractModel)
+function parameters(a::AbstractModelFunction)
     m = Model(a)
     union(assigned(Model(m)), sampled(m))
 end

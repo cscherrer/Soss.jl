@@ -1,41 +1,41 @@
-struct ConditionalModel{A,B,M,Argvals,Obs} <: AbstractModel{A,B,M,Argvals,Obs}
-    model :: AbstractModel{A,B,M, Nothing, Nothing}
-    argvals :: Argvals
-    obs :: Obs
+struct ModelClosure{M,A,O} <: AbstractModelFunction{A,B}
+    model :: M
+    argvals :: A
+    obs :: O
 end
 
-function Base.show(io::IO, cm::ConditionalModel)
-    println(io, "ConditionalModel given")
+function Base.show(io::IO, cm::ModelClosure)
+    println(io, "ModelClosure given")
     println(io, "    arguments    ", keys(argvals(cm)))
     println(io, "    observations ", keys(observations(cm)))
     println(io, Model(cm))
 end
 
 export argvals
-argvals(c::ConditionalModel) = c.argvals
+argvals(c::ModelClosure) = c.argvals
 
 export observations
-observations(c::ConditionalModel) = c.obs
+observations(c::ModelClosure) = c.obs
 
 export observed
-function observed(cm::ConditionalModel{A,B,M,Argvals,Obs}) where {A,B,M,Argvals,Obs}
+function observed(cm::ModelClosure{M,A,O}) where {M,A,O}
     keys(schema(Obs))
 end
 
-Model(c::ConditionalModel) = c.model
+Model(c::ModelClosure) = c.model
 
-ConditionalModel(m::AbstractModel) = ConditionalModel(m,NamedTuple(), NamedTuple())
+ModelClosure(m::AbstractModelFunction) = ModelClosure(m,NamedTuple(), NamedTuple())
 
-(m::AbstractModel)(nt::NamedTuple) = ConditionalModel(m)(nt)
+(m::AbstractModelFunction)(nt::NamedTuple) = ModelClosure(m)(nt)
 
-(cm::ConditionalModel)(nt::NamedTuple) = ConditionalModel(cm.model, merge(cm.argvals, nt), cm.obs)
+(cm::ModelClosure)(nt::NamedTuple) = ModelClosure(cm.model, merge(cm.argvals, nt), cm.obs)
 
-(m::AbstractModel)(;argvals...)= m((;argvals...))
+(m::AbstractModelFunction)(;argvals...)= m((;argvals...))
 
-(m::AbstractModel)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
+(m::AbstractModelFunction)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
 
 import Base
 
-Base.:|(m::AbstractModel, nt::NamedTuple) = ConditionalModel(m) | nt
+Base.:|(m::AbstractModelFunction, nt::NamedTuple) = ModelClosure(m) | nt
 
-Base.:|(cm::ConditionalModel, nt::NamedTuple) = ConditionalModel(cm.model, cm.argvals, merge(cm.obs, nt))
+Base.:|(cm::ModelClosure, nt::NamedTuple) = ModelClosure(cm.model, cm.argvals, merge(cm.obs, nt))

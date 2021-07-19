@@ -83,7 +83,7 @@ parts(d::ProductMeasure, N::Int=DEFAULT_SAMPLE_SIZE) = parts.(d.data, N)
 # promote_rule(::Type{B}, ::Type{A}) where {A <: Real, B <: AbstractParticles{T,N}} where {T} = AbsractParticles{promote_type(A,T),N} where {N}
 
 
-@inline function particles(m::ConditionalModel, N::Int=DEFAULT_SAMPLE_SIZE)
+@inline function particles(m::ModelClosure, N::Int=DEFAULT_SAMPLE_SIZE)
     return _particles(getmoduletypencoding(m.model), m.model, m.argvals, Val(N))
 end
 

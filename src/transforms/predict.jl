@@ -1,6 +1,6 @@
 export predict
 
-function predict(d::ConditionalModel, post::Vector{NamedTuple{N,T}}) where {N,T}
+function predict(d::ModelClosure, post::Vector{NamedTuple{N,T}}) where {N,T}
     args = argvals(d)
     m = d.model
     pred = predictive(m, keys(post[1])...)
@@ -15,7 +15,7 @@ end
 
 # TODO: These don't yet work properly t on particles
 
-function predict(d::ConditionalModel, post::NamedTuple{N,T}) where {N,T}
+function predict(d::ModelClosure, post::NamedTuple{N,T}) where {N,T}
     args = argvals(d)
     m = Model(d)
     pred = predictive(m, keys(post)...)

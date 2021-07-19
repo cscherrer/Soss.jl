@@ -1,4 +1,4 @@
-# `DAGModel`s and `ConditionalModel`s
+# `DAGModel`s and `ModelClosure`s
 
 A `DAGModel` in Soss
 
@@ -24,12 +24,12 @@ For more details on inference primitives, see the *Internals* section.
 
 ## Inference Functions
 
-An *inference function* is a function that takes a `ConditionalModel` as an argument, and calls at least one inference primitive (not necessarily directly). The wrapper around each primitive is a special case of this, but most inference functions work at a higher level of abstraction.
+An *inference function* is a function that takes a `ModelClosure` as an argument, and calls at least one inference primitive (not necessarily directly). The wrapper around each primitive is a special case of this, but most inference functions work at a higher level of abstraction.
 
 There's some variability , but is often of the form
 
 ```julia
-foo(d::ConditionalModel, data::NamedTuple)
+foo(d::ModelClosure, data::NamedTuple)
 ```
 
 For example, `advancedHMC` uses [`TuringLang/AdvancedHMC.jl`](https://github.com/TuringLang/AdvancedHMC.jl) , which needs a `logdensity` and its gradient.

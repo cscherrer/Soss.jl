@@ -1,4 +1,4 @@
-function zigzag(m::ConditionalModel, T = 1000.0; c=10.0, adapt=false) where {A,B}
+function zigzag(m::ModelClosure, T = 1000.0; c=10.0, adapt=false) where {A,B}
 
     ℓ = Base.Fix1(logdensity, m)
 

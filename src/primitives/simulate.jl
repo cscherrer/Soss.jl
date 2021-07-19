@@ -1,6 +1,6 @@
 import StatsBase
 
-# function simulate(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals}
+# function simulate(rng::AbstractRNG, cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals}
 #     m = Model(cm)
 #     cm0 = setReturn(m, nothing)(argvals(cm))
 #     info = StructArray(simulate(rng, cm0, N))
@@ -8,12 +8,12 @@ import StatsBase
 #     return StructArray{Noted}((vals, info))
 # end
 
-# function simulate(cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals} 
+# function simulate(cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals} 
 #     return simulate(GLOBAL_RNG, cm, N)
 # end
 
 
-# function simulate(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
+# function simulate(rng::AbstractRNG, cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
 #     m = Model(cm)
 #     cm0 = setReturn(m, nothing)(argvals(cm))
 #     info = simulate(rng, cm0)
@@ -21,7 +21,7 @@ import StatsBase
 #     return Noted(val, info)
 # end
 
-# function simulate(cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
+# function simulate(cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
 #     return simulate(GLOBAL_RNG, cm)
 # end
 
@@ -34,7 +34,7 @@ using TupleVectors
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 export simulate
 
-function simulate(rng::AbstractRNG, d::ConditionalModel, N::Int; trace_assignments=false)
+function simulate(rng::AbstractRNG, d::ModelClosure, N::Int; trace_assignments=false)
     x = simulate(rng, d)
     T = typeof(x)
     ta = TupleVector(undef, x, N)
@@ -47,14 +47,14 @@ function simulate(rng::AbstractRNG, d::ConditionalModel, N::Int; trace_assignmen
     return ta
 end
 
-simulate(d::ConditionalModel, N::Int; trace_assignments=false) = simulate(GLOBAL_RNG, d, N; trace_assignments)
+simulate(d::ModelClosure, N::Int; trace_assignments=false) = simulate(GLOBAL_RNG, d, N; trace_assignments)
 
-@inline function simulate(rng::AbstractRNG, c::ConditionalModel; trace_assignments=false)
+@inline function simulate(rng::AbstractRNG, c::ModelClosure; trace_assignments=false)
     m = Model(c)
     return _simulate(getmoduletypencoding(m), m, argvals(c), Val(trace_assignments))(rng)
 end
 
-@inline function simulate(m::ConditionalModel; trace_assignments=false) 
+@inline function simulate(m::ModelClosure; trace_assignments=false) 
     simulate(GLOBAL_RNG, m; trace_assignments)
 end
 
@@ -66,7 +66,7 @@ simulate(m::DAGModel; trace_assignments=false) = simulate(GLOBAL_RNG, m; trace_a
 
 
 sourceSimulate(m::DAGModel; trace_assignments=false) = sourceSimulate(trace_assignments)(m)
-sourceSimulate(jd::ConditionalModel; trace_assignments=false) = sourceSimulate(jd.model; trace_assignments)
+sourceSimulate(jd::ModelClosure; trace_assignments=false) = sourceSimulate(jd.model; trace_assignments)
 
 export sourceSimulate
 function sourceSimulate(trace_assignments=false) 
