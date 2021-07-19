@@ -14,7 +14,7 @@ export argvals
 argvals(c::ModelClosure) = c.argvals
 
 export observations
-observations(c::ModelClosure) = c.obs
+observations(c::ModelClosure) = NamedTuple()
 
 export observed
 function observed(cm::ModelClosure{M,A}) where {M,A}
@@ -29,6 +29,13 @@ ModelClosure(m::AbstractModelFunction) = ModelClosure(m,NamedTuple())
 
 (cm::ModelClosure)(nt::NamedTuple) = ModelClosure(cm.model, merge(cm.argvals, nt), cm.obs)
 
+argvalstype(mc::ModelClosure{M,A}) where {M,A} = A
+argvalstype(::Type{MC}) where {M,A,MC<:ModelClosure{M,A}} = A
+
+obstype(::ModelClosure) = NamedTuple{(), Tuple{}}
+obstype(::Type{<:ModelClosure}) = NamedTuple{(), Tuple{}}
+
+type2model(::Type{MC}) where {M,A,MC<:ModelClosure{M,A}} = type2model(M)
 
 import Base
 

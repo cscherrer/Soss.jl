@@ -14,6 +14,12 @@ end
 export argvals
 argvals(c::ModelPosterior) = argvals(c.closure)
 
+argvalstype(mp::ModelPosterior{M,A}) where {M,A} = A
+argvalstype(::Type{MP}) where {M,A,MP<:ModelPosterior{M,A}} = A
+
+obstype(mp::ModelPosterior{M,A,O}) where {M,A,O} = O
+obstype(::Type{MP}) where {M,A,O,MP<:ModelPosterior{M,A,O}} = O
+
 export observations
 observations(c::ModelPosterior) = c.obs
 

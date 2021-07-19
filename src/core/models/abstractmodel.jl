@@ -33,12 +33,12 @@ getmodule(::AbstractModelFunction{A,B,M}) where {A,B,M} = from_type(M)
 # getmoduletypencoding(::Type{AbstractModelFunction{A,B}}) where  {M,A,O,AM<:AbstractModelFunction{A,B}} = M
 # getmoduletypencoding(::AbstractModelFunction{A,B}) where  {M,A,O,AM<:AbstractModelFunction{A,B}} = M
 
-# argvalstype(::AbstractModelFunction{A,B}) where {M,A,O} = A
-# argvalstype(::Type{AM}) where {M,A,O,AM<:AbstractModelFunction{A,B}} = A
+argvalstype(::AbstractModelFunction{A}) where {A} = A
+argvalstype(::Type{AM}) where {A,AM<:AbstractModelFunction{A}} = A
 
 
-# obstype(::AbstractModelFunction{A,B}) where {M,A,O} = O
-# obstype(::Type{AM}) where {M,A,O,AM<:AbstractModelFunction{A,B}} = O
+obstype(::AbstractModelFunction) = NamedTuple{(), Tuple{}}
+obstype(::Type{<:AbstractModelFunction}) = NamedTuple{(), Tuple{}}
 
 
 (m::AbstractModelFunction)(;argvals...)= m((;argvals...))

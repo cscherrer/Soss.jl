@@ -24,18 +24,23 @@ function _interpret(ast::Expr, _tilde, call=nothing)
     body
 end
 
-@gg function mkfun(_m, _args, _obs, tilde, call)
+@gg function mkfun(_mc, tilde, call)
     tilde = tilde.instance
     call = call.instance
 
-    _m = type2model(_m)
+    _m = type2model(_mc)
     M = getmodule(_m)
 
-    body = _m.body |> loadvals(_args, NamedTuple())
+    _args = argvalstype(_mc)
+    _obs = obstype(_mc)
+
+    body = _m.body |> loadvals(_args, _obs)
     body = _interpret(body, tilde, call)
 
     q = (@q let M
         function(_cfg, _ctx)
+            _args = Soss.argvals(_mc)
+            _obs = Soss.observations(_mc)
             $body
             _retn
         end
@@ -59,11 +64,8 @@ end
     (x, (), x)
 end
 
-@inline function rand(rng::AbstractRNG, cm::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
+@inline function rand(rng::AbstractRNG, mc::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
     cfg = merge(cfg, (rng=rng,))
-    args = argvals(cm)
-    obs = NamedTuple()
-    m = Model(cm)
-    f = mkfun(m, args, obs, tilde_rand, call)
+    f = mkfun(mc, tilde_rand, call)
     return f(cfg, ctx)
 end
