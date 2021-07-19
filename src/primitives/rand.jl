@@ -20,8 +20,8 @@ Base.rand(d::ModelClosure, N::Int) = rand(GLOBAL_RNG, d, N)
 #     return _rand(getmoduletypencoding(m), m, argvals(c))(rng)
 # end
 
-@inline function Base.rand(m::ModelClosure) 
-    rand(GLOBAL_RNG, m)
+@inline function Base.rand(m::ModelClosure; kwargs...) 
+    rand(GLOBAL_RNG, m; kwargs...)
 end
 
 @inline function Base.rand(rng::AbstractRNG, m::DAGModel)
