@@ -58,12 +58,12 @@ function canonical(expr :: Expr)
     end
 end
 
-function canonical(m :: Model)
+function canonical(m :: DAGModel)
     args = m.args :: Vector{Symbol}
     vals  = map(canonical, m.vals) 
     dists = map(canonical, m.dists) 
     retn = m.retn  
-    Model(getmodule(m), args, vals, dists, retn)
+    DAGModel(getmodule(m), args, vals, dists, retn)
 end    
 
 ex1 = :(map(1:10) do x x^2 end)

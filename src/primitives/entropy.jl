@@ -4,17 +4,17 @@ export entropy
 
 import StatsBase
 
-@inline function StatsBase.entropy(m::ConditionalModel, N::Int=DEFAULT_SAMPLE_SIZE)
+@inline function StatsBase.entropy(m::ModelClosure, N::Int=DEFAULT_SAMPLE_SIZE)
     return _entropy(getmoduletypencoding(m.model), m.model, argvals(m), Val(N))
 end
 
-sourceEntropy(m::Model, N::Int=DEFAULT_SAMPLE_SIZE) = sourceEntropy()(m, Val(N))
+sourceEntropy(m::DAGModel, N::Int=DEFAULT_SAMPLE_SIZE) = sourceEntropy()(m, Val(N))
 
 export sourceEntropy
     
 function sourceEntropy() 
         
-    function(_m::Model, ::Val{_N}) where {_N}
+    function(_m::DAGModel, ::Val{_N}) where {_N}
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         
         function proc(_m, st::Sample) 
@@ -52,14 +52,14 @@ end
 # StatsBase.entropy(d::For) = sum(entropy ∘ d.f, d.θ)
 
 
-@gg function _entropy(M::Type{<:TypeLevel}, _m::Model, _args, _n::Val{_N}) where {_N}
+@gg function _entropy(M::Type{<:TypeLevel}, _m::DAGModel, _args, _n::Val{_N}) where {_N}
     body = sourceEntropy()(type2model(_m), _n()) |> loadvals(_args, NamedTuple())
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end
 end
 
-@gg function _entropy(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {_N}
+@gg function _entropy(M::Type{<:TypeLevel}, _m::DAGModel, _args::NamedTuple{()}, _n::Val{_N}) where {_N}
     body = sourceEntropy()(type2model(_m), _n)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

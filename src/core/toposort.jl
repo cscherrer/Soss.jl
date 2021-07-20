@@ -31,7 +31,7 @@ function convert_simple(G::AbstractSimpleGraph)
 end
 
 export toposort
-function toposort(m::Model)
+function toposort(m::DAGModel)
     (g, _, names) = poset(m).D |> convert_simple
     setdiff(map(v -> names[v], Graphs.topological_sort_by_dfs(g)), arguments(m))
 end

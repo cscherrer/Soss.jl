@@ -1,6 +1,6 @@
 import StatsBase
 
-# function simulate(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals}
+# function simulate(rng::AbstractRNG, cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals}
 #     m = Model(cm)
 #     cm0 = setReturn(m, nothing)(argvals(cm))
 #     info = StructArray(simulate(rng, cm0, N))
@@ -8,12 +8,12 @@ import StatsBase
 #     return StructArray{Noted}((vals, info))
 # end
 
-# function simulate(cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals} 
+# function simulate(cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals} 
 #     return simulate(GLOBAL_RNG, cm, N)
 # end
 
 
-# function simulate(rng::AbstractRNG, cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
+# function simulate(rng::AbstractRNG, cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
 #     m = Model(cm)
 #     cm0 = setReturn(m, nothing)(argvals(cm))
 #     info = simulate(rng, cm0)
@@ -21,7 +21,7 @@ import StatsBase
 #     return Noted(val, info)
 # end
 
-# function simulate(cm::ConditionalModel{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
+# function simulate(cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
 #     return simulate(GLOBAL_RNG, cm)
 # end
 
@@ -34,7 +34,7 @@ using TupleVectors
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 export simulate
 
-function simulate(rng::AbstractRNG, d::ConditionalModel, N::Int; trace_assignments=false)
+function simulate(rng::AbstractRNG, d::ModelClosure, N::Int; trace_assignments=false)
     x = simulate(rng, d)
     T = typeof(x)
     ta = TupleVector(undef, x, N)
@@ -47,31 +47,31 @@ function simulate(rng::AbstractRNG, d::ConditionalModel, N::Int; trace_assignmen
     return ta
 end
 
-simulate(d::ConditionalModel, N::Int; trace_assignments=false) = simulate(GLOBAL_RNG, d, N; trace_assignments)
+simulate(d::ModelClosure, N::Int; trace_assignments=false) = simulate(GLOBAL_RNG, d, N; trace_assignments)
 
-@inline function simulate(rng::AbstractRNG, c::ConditionalModel; trace_assignments=false)
+@inline function simulate(rng::AbstractRNG, c::ModelClosure; trace_assignments=false)
     m = Model(c)
     return _simulate(getmoduletypencoding(m), m, argvals(c), Val(trace_assignments))(rng)
 end
 
-@inline function simulate(m::ConditionalModel; trace_assignments=false) 
+@inline function simulate(m::ModelClosure; trace_assignments=false) 
     simulate(GLOBAL_RNG, m; trace_assignments)
 end
 
-@inline function simulate(rng::AbstractRNG, m::Model; trace_assignments=false)
+@inline function simulate(rng::AbstractRNG, m::DAGModel; trace_assignments=false)
     return _simulate(getmoduletypencoding(m), m, NamedTuple())(rng)
 end
 
-simulate(m::Model; trace_assignments=false) = simulate(GLOBAL_RNG, m; trace_assignments)
+simulate(m::DAGModel; trace_assignments=false) = simulate(GLOBAL_RNG, m; trace_assignments)
 
 
-sourceSimulate(m::Model; trace_assignments=false) = sourceSimulate(trace_assignments)(m)
-sourceSimulate(jd::ConditionalModel; trace_assignments=false) = sourceSimulate(jd.model; trace_assignments)
+sourceSimulate(m::DAGModel; trace_assignments=false) = sourceSimulate(trace_assignments)(m)
+sourceSimulate(jd::ModelClosure; trace_assignments=false) = sourceSimulate(jd.model; trace_assignments)
 
 export sourceSimulate
 function sourceSimulate(trace_assignments=false) 
     ta = trace_assignments
-    function(_m::Model)
+    function(_m::DAGModel)
         pars = sort(sampled(_m))
         
         tracekeys = sort(trace_assignments ? parameters(_m) : sampled(_m))
@@ -122,7 +122,7 @@ simulate(μ::AbstractMeasure; trace_assignments=false) = simulate(Random.GLOBAL_
 
 simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(rng, μ)
 
-@gg function _simulate(M::Type{<:TypeLevel}, _m::Model, _args, trace_assignments::Val{V}) where {V}
+@gg function _simulate(M::Type{<:TypeLevel}, _m::DAGModel, _args, trace_assignments::Val{V}) where {V}
     trace_assignments = V
     body = type2model(_m) |> sourceSimulate(trace_assignments) |> loadvals(_args, NamedTuple())
     @under_global from_type(_unwrap_type(M)) @q let M
@@ -130,7 +130,7 @@ simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(
     end
 end
 
-@gg function _simulate(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()}, trace_assignments::Val{V}) where {V}
+@gg function _simulate(M::Type{<:TypeLevel}, _m::DAGModel, _args::NamedTuple{()}, trace_assignments::Val{V}) where {V}
     trace_assignments = V
     body = type2model(_m) |> sourceSimulate(trace_assignments)
     @under_global from_type(_unwrap_type(M)) @q let M

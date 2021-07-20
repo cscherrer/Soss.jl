@@ -87,7 +87,7 @@ t(randn(4))
 
 
 # julia> d =  Cauchy() ⋅ (x -> Normal(μ=x)) ⋅ (x -> Normal(μ=x)) ⋅ (x -> Normal(μ=x))
-# ConditionalModel given
+# ModelClosure given
 #     arguments    (:μ, :κ)
 #     observations ()
 # @model (μ, κ) begin

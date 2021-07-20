@@ -15,7 +15,7 @@ function makeLoss(model)
 end
 
 export getMAP
-function getMAP(m :: Model ;kwargs...)
+function getMAP(m :: DAGModel ;kwargs...)
     @unpack loss, t = makeLoss(m)
     d = dimension(t) 
 

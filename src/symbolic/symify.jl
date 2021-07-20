@@ -23,10 +23,10 @@ function symify(expr::Expr)
     return foldall(identity, branch)(expr)
 end
 
-function symify(m :: Model)
+function symify(m :: DAGModel)
     args = m.args :: Vector{Symbol}
     vals  = map(symify, m.vals) 
     dists = map(symify, m.dists) 
     retn = m.retn  
-    Model(getmodule(m), args, vals, dists, retn)
+    DAGModel(getmodule(m), args, vals, dists, retn)
 end    

@@ -1,5 +1,5 @@
 using Soss
-using Soss: ConditionalModel
+using Soss: ModelClosure
 using ZigZagBoomerang
 # using Makie
 ### Define the target distribution and its gradient
@@ -15,7 +15,7 @@ Draw  samples until time `T` from the posterior distribution of parameters defin
 Samples are drawn using the Bouncy particle sampler.
 Returns a `Trace` object. 
 """
-function bouncy(m::ConditionalModel, T = 1000.0;  c=10.0, λref=0.1, ρ=0.0, adapt=false) where {A,B}
+function bouncy(m::ModelClosure, T = 1000.0;  c=10.0, λref=0.1, ρ=0.0, adapt=false) where {A,B}
 
     ℓ(pars) = logdensity(m, pars)
 
