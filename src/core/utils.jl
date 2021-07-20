@@ -60,7 +60,6 @@ for f in [:arguments, :assigned, :sampled, :parameters, :variables]
     end
 end
 
-
 export foldall
 function foldall(leaf, branch; kwargs...)
     function go(ast)

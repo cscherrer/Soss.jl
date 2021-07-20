@@ -94,9 +94,25 @@ end
     tilde_rand(v, d(cfg._args), cfg, ctx)
 end
 
+@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::Dict)
+    _args = get(cfg._args, v, Dict())
+    cfg = merge(cfg, (_args = _args,))
+    tilde_rand(v, d(cfg._args), cfg, ctx)
+end
+
 
 @inline function Base.rand(rng::AbstractRNG, mc::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
     cfg = merge(cfg, (rng=rng,))
     f = mkfun(mc, tilde_rand, call)
     return f(cfg, ctx)
+end
+
+@testset "rand" begin
+    m = @model begin
+        p ~ Uniform()
+        x ~ Bernoulli(p)
+    end
+
+    @test rand(m(); ctx=()) isa Bool
+    @test logdensity(m(), rand(m())) isa Float64
 end

@@ -56,23 +56,25 @@ import MeasureTheory
 end
 
 @inline function MeasureTheory.logdensity(mc::ModelClosure, data; cfg = NamedTuple(), ctx=(ℓ=0.0,), call=nothing)
-    cfg = (_data = data,)
+    cfg = merge(cfg, data)
     f = mkfun(mc, tilde_logdensity, call)
     return f(cfg, ctx)
 end
 
 @inline function tilde_logdensity(v, d, cfg, ctx::NamedTuple)
     ℓ = ctx.ℓ
-    x = getproperty(cfg._data, v)
+    x = getproperty(cfg, v)
     Δℓ = logdensity(d, x)
     ℓ += Δℓ
     merge(ctx, (ℓ=ℓ, Δℓ=Δℓ))
     (x, ctx, ℓ)
 end
 
-#TODO: Make nested models work
 @inline function tilde_logdensity(v, d::AbstractModelFunction, cfg, ctx::NamedTuple)
-    _data = get(cfg._data, v, NamedTuple())
-    cfg = merge(cfg, (_data = _data,))
-    tilde_logdensity(v, d(cfg), cfg, ctx)
+    ℓ = ctx.ℓ
+    x = getproperty(cfg, v)
+    Δℓ = logdensity(d(cfg._args), x)
+    ℓ += Δℓ
+    merge(ctx, (ℓ=ℓ, Δℓ=Δℓ))
+    (x, ctx, ℓ)
 end

@@ -1,5 +1,7 @@
 module Soss
 
+using InlineTest
+
 import Base.rand
 using Random
 using Reexport: @reexport

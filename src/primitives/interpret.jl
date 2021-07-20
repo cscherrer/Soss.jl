@@ -6,19 +6,22 @@ function interpret(m::ASTModel{A,B,M}, tilde, ctx0, call=nothing) where {A,B,M}
 end
 
 function _interpret(ast::Expr, _tilde, call=nothing)
-    function branch(head, newargs)
-        expr = Expr(head, newargs...)
-        (head, newargs[1]) == (:call, :~) || return expr
-        length(newargs) == 3 || return expr
+    function go(ex)
+        @match ex begin
+            :($x ~ $d) => begin
+                qx = QuoteNode(x)
+                quote
+                    ($x, _ctx, _retn) = $_tilde($qx, $d, _cfg, _ctx)
+                end
+            end
 
-        (_, x, d) = newargs
-        qx = QuoteNode(x)
-        quote
-            ($x, _ctx, _retn) = $_tilde($qx, $d, _cfg, _ctx)
+            Expr(head, args...) => Expr(head, map(go, args)...)
+            
+            x => x
         end
     end
 
-    body = foldall(identity, branch)(ast)
+    body = go(ast)
 
     if !isnothing(call)
         body = callify(body; call=call)
