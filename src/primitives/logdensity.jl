@@ -78,3 +78,17 @@ end
     merge(ctx, (ℓ=ℓ, Δℓ=Δℓ))
     (x, ctx, ℓ)
 end
+
+@testset "Nested models" begin
+    m = @model begin
+        params ~ @model begin
+            p ~ Uniform()
+            end
+        obs = @model params begin
+            x ~ Bernoulli(params.p)
+            end
+        data ~ obs(params=params)
+    end
+
+    @test logdensity(m(), rand(m())) isa Float64
+end

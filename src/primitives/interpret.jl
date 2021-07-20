@@ -8,7 +8,7 @@ end
 function _interpret(ast::Expr, _tilde, call=nothing)
     function go(ex)
         @match ex begin
-            :($x ~ $d) => begin
+            :($(x::Symbol) ~ $d) => begin
                 qx = QuoteNode(x)
                 quote
                     ($x, _ctx, _retn) = $_tilde($qx, $d, _cfg, _ctx)
