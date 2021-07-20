@@ -61,7 +61,7 @@ end
     return f(cfg, ctx)
 end
 
-@inline function tilde_logdensity(v, d, cfg, ctx::NamedTuple)
+@inline function tilde_logdensity(v, d, cfg, ctx::NamedTuple, inargs, inobs)
     ℓ = ctx.ℓ
     x = getproperty(cfg, v)
     Δℓ = logdensity(d, x)
@@ -70,7 +70,7 @@ end
     (x, ctx, ℓ)
 end
 
-@inline function tilde_logdensity(v, d::AbstractModelFunction, cfg, ctx::NamedTuple)
+@inline function tilde_logdensity(v, d::AbstractModelFunction, cfg, ctx::NamedTuple, inargs, inobs)
     ℓ = ctx.ℓ
     x = getproperty(cfg, v)
     Δℓ = logdensity(d(cfg._args), x)

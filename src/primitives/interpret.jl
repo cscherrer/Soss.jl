@@ -5,13 +5,15 @@ function interpret(m::ASTModel{A,B,M}, tilde, ctx0, call=nothing) where {A,B,M}
     mk_function(theModule, _interpret(m.body, tilde, ctx0; call=call))
 end
 
-function _interpret(ast::Expr, _tilde, call=nothing)
+function _interpret(ast::Expr, _tilde, _args, _obs, call=nothing)
     function go(ex)
         @match ex begin
             :($(x::Symbol) ~ $d) => begin
                 qx = QuoteNode(x)
+                inargs = Val(x ∈ getntkeys(_args))
+                inobs = Val(x ∈ getntkeys(_obs))
                 quote
-                    ($x, _ctx, _retn) = $_tilde($qx, $d, _cfg, _ctx)
+                    ($x, _ctx, _retn) = $_tilde($qx, $d, _cfg, _ctx, $inargs, $inobs)
                 end
             end
 
@@ -41,7 +43,7 @@ end
     call = call.instance
      
     body = _m.body |> loadvals(_args, _obs)
-    body = _interpret(body, tilde, call)
+    body = _interpret(body, tilde, _args, _obs, call)
 
     q = (@q let M
         function(_cfg, _ctx)

@@ -30,45 +30,45 @@ end
 ###############################################################################
 # ctx::NamedTuple
 
-@inline function tilde_rand(v, d, cfg, ctx::NamedTuple)
+@inline function tilde_rand(v, d, cfg, ctx::NamedTuple, inargs, inobs)
     x = rand(cfg.rng, d)
     ctx = merge(ctx, NamedTuple{(v,)}((x,)))
     (x, ctx, ctx)
 end
 
-@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::NamedTuple)
+@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::NamedTuple, inargs, inobs)
     _args = get(cfg._args, v, NamedTuple())
     cfg = merge(cfg, (_args = _args,))
-    tilde_rand(v, d(cfg._args), cfg, ctx)
+    tilde_rand(v, d(cfg._args), cfg, ctx, inargs, inobs)
 end
 
 ###############################################################################
 # ctx::Dict
 
-@inline function tilde_rand(v, d, cfg, ctx::Dict)
+@inline function tilde_rand(v, d, cfg, ctx::Dict, inargs, inobs)
     x = rand(cfg.rng, d)
     ctx[v] = x 
     (x, ctx, ctx)
 end
 
-@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::Dict)
+@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::Dict, inargs, inobs)
     _args = get(cfg._args, v, Dict())
     cfg = merge(cfg, (_args = _args,))
-    tilde_rand(v, d(cfg._args), cfg, ctx)
+    tilde_rand(v, d(cfg._args), cfg, ctx, inargs, inobs)
 end
 
 ###############################################################################
 # ctx::Tuple{}
 
-@inline function tilde_rand(v, d, cfg, ctx::Tuple{})
+@inline function tilde_rand(v, d, cfg, ctx::Tuple{}, inargs, inobs)
     x = rand(cfg.rng, d)
     (x, (), x)
 end
 
-@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::Tuple{})
+@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::Tuple{}, inargs, inobs)
     _args = get(cfg._args, v, NamedTuple())
     cfg = merge(cfg, (_args = _args,))
-    tilde_rand(v, d(cfg._args), cfg, ctx)
+    tilde_rand(v, d(cfg._args), cfg, ctx, inargs, inobs)
 end
 
 ###############################################################################
