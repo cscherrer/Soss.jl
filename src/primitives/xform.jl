@@ -105,7 +105,9 @@ end
 
 function xform(d::Dists.Distribution{Dists.Univariate}, _data::NamedTuple=NamedTuple())
     sup = Dists.support(d)
-    as(Real, sup.lb, sup.ub)
+    lo = isinf(sup.lb) ? -TV.∞ : sup.lb
+    hi = isinf(sup.ub) ? TV.∞ : sup.ub
+    as(Real, lo,hi)
 end
 
 function xform(d::Dists.Product, _data::NamedTuple=NamedTuple())
