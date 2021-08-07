@@ -1,4 +1,8 @@
 export iid
 
-iid(n) = dist -> (dist ^ n)
-iid(n::Int...) = dist -> (dist ^ n)
+
+iid(n::Int...) = dist -> iid(dist, n...)
+
+iid(dist::AbstractMeasure, n...) = dist ^ n
+
+iid(dist::Dists.Distribution, n) = Dists.Product(fill(dist, n))

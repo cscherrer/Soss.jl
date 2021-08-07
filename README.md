@@ -84,7 +84,7 @@ Now for inference! Let's use `DynamicHMC`, which we have wrapped in `SampleChain
 julia> using SampleChainsDynamicHMC
 [ Info: Precompiling SampleChainsDynamicHMC [6d9fd711-e8b2-4778-9c70-c1dfb499d4c4]
 
-julia> post = sample(DynamicHMCChain, m(x=x) | (y=y,))
+julia> post = sample(m(x=x) | (y=y,), dynamichmc())
 4000-element MultiChain with 4 chains and schema (σ = Float64, β = Float64, α = Float64)
 (σ = 1.0±0.15, β = 0.503±0.26, α = 10.2±0.25)
 ```

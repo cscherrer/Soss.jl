@@ -106,4 +106,21 @@ include("examples-list.jl")
     @testset "Doctests" begin
         include("doctests.jl")
     end
+
+    @testset "Distributions" begin
+        m = @model begin
+            a ~ Normal() |> iid(3)
+            b ~ Dists.Normal() |> iid(3)
+            c ~ For(3) do i
+                Normal(μ = a[i] +b[i])
+            end
+        end
+
+        c = rand(m()).c
+
+        post = m() | (c=c,)
+
+        @test transform(xform(post), randn(6)) isa NamedTuple
+
+    end
 end

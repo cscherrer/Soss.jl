@@ -102,3 +102,16 @@ xform(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, siz
         $body
     end    
 end
+
+function xform(d::Dists.Distribution{Dists.Univariate}, _data::NamedTuple=NamedTuple())
+    sup = Dists.support(d)
+    lo = isinf(sup.lb) ? -TV.∞ : sup.lb
+    hi = isinf(sup.ub) ? TV.∞ : sup.ub
+    as(Real, lo,hi)
+end
+
+function xform(d::Dists.Product, _data::NamedTuple=NamedTuple())
+    n = length(d)
+    v = d.v
+    as(Vector, xform(v[1]), n)
+end
