@@ -24,6 +24,8 @@ end
 
 Model(c::ConditionalModel) = c.model
 
+Model(::Type{<:ConditionalModel{A,B,M}}) where {A,B,M} = type2model(Model{A,B,M})
+
 ConditionalModel(m::Model) = ConditionalModel(m,NamedTuple(), NamedTuple())
 
 (m::Model)(nt::NamedTuple) = ConditionalModel(m)(nt)
