@@ -1,50 +1,20 @@
 export predict
 using TupleVectors
 
-function predict(d::ConditionalModel, post::Vector{NamedTuple{N,T}}) where {N,T}
-    args = argvals(d)
-    m = d.model
-    pred = predictive(m, keys(post[1])...)
-    map(nt -> rand(pred(merge(args,nt))), post)
+predict(m::AbstractModel, args...) = predict(Random.GLOBAL_RNG, m, args...)
+predict(d::AbstractMeasure, x) = x
+
+
+@inline function predict(rng::AbstractRNG, m::AbstractModel, nt::NamedTuple{N}) where {N}
+    pred = predictive(Model(m), N...)
+    rand(rng, pred(merge(argvals(m), nt)))
 end
 
-function predict(m::Model, post::Vector{NamedTuple{N,T}}) where {N,T}
-    pred = predictive(m, keys(post[1])...)
-    map(nt -> rand(pred(nt)), post)
-end
-
-function predict(d, s::AbstractVector)
-    [predict(d, sj) for sj in s]
-end
+predict(rng::AbstractRNG, m::Model; kwargs...) = predict(rng, m, (;kwargs...))
 
 
-# TODO: These don't yet work properly t on particles
-
-function predict(d::ConditionalModel, post::NamedTuple{N,T}) where {N,T}
-    args = argvals(d)
-    m = Model(d)
-    pred = predictive(m, keys(post)...)
-    rand(pred(merge(args,post)))
-end
-
-function predict(m::Model, post::NamedTuple{N,T}) where {N,T}
-    pred = predictive(m, keys(post)...)
-    rand(pred(post))
-end
-
-predict(m::Model; kwargs...) = predict(m,(;kwargs...))
-
-predict(d,x) = x
-
-predict(d::ConditionalModel, post) = predict(Random.GLOBAL_RNG, d, post)
-
-# TODO: Still a dynamic dispatch here, check using JETTest
-@generated function predict(rng::AbstractRNG, d::ConditionalModel, nt::LazyMerge{Nx,Ny}) where {Nx,Ny}
-    m = Model(d)
-    pred = predictive(m, Nx..., Ny...)
-    quote
-        rand(rng, $pred(nt)) 
-    end
+@inline function predict(rng::AbstractRNG, d::AbstractModel, nt::LazyMerge)
+    predict(rng, d, convert(NamedTuple, nt))
 end
 
 function predict(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
@@ -54,8 +24,9 @@ function predict(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:N
     y1 = rand(rng, pred(merge(args,post[1])))
     n = length(post)
     v = TupleVectors.chainvec(y1, n)
-    for j in 2:n
-        v[j] = rand(rng, pred(merge(args,post[j])))
+    @inbounds for j in 2:n
+        newargs = merge(args,post[j])
+        v[j] = rand(rng, pred(newargs))
     end
 
     v
