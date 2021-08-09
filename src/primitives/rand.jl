@@ -15,9 +15,9 @@ end
 
 Base.rand(d::ConditionalModel, N::Int) = rand(GLOBAL_RNG, d, N)
 
-@inline function Base.rand(rng::AbstractRNG, c::ConditionalModel)
+@inline function Base.rand(rng::AbstractRNG, c::ConditionalModel{A,B,M}) where {A,B,M}
     m = Model(c)
-    return _rand(getmoduletypencoding(m), m, argvals(c))(rng)
+    return _rand(M, m, argvals(c))(rng)
 end
 
 @inline function Base.rand(m::ConditionalModel) 

@@ -47,9 +47,19 @@ include("examples-list.jl")
         end
 
         x = rand(outer(sub=inner)).m
-        post = outer(sub=inner) | (;m=  (; x))
+        post = outer(sub=inner) | (m = (x=x,),)
         t = xform(post)
         @test logdensity(post, transform(t, randn(3))) isa Float64
+    end
+
+    @testset "Predict" begin
+        m = @model begin
+            p ~ Uniform()
+            y ~ Bernoulli(p)
+            return y
+        end
+            
+        mean(predict(m(), [(p=p,) for p in rand(10000)])) isa Float64
     end
 
     @testset "https://github.com/cscherrer/Soss.jl/issues/258" begin

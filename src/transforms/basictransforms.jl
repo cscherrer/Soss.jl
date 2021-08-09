@@ -117,11 +117,16 @@ predictive(m, :θ)
 ```
 
 """
-predictive(m::Model, xs...) = _predictive(m, namedtuple(xs)(xs))
+@inline predictive(m::Model, xs...) = _predictive(m, NamedTuple{xs})
 # predictive(m::Model, xs...) = after(m, xs..., strict = true)
 
-@generated function _predictive(m::Model, xs)
-    return after(type2model(m), getntkeys(xs)...; strict=true)
+@generated function _predictive(m::Model, ::Type{NT}) where {NT<:NamedTuple}
+    m = type2model(m)
+    result = after(m, getntkeys(NT)...; strict=true)
+    quote
+        $(Expr(:meta,:inline))
+        $result
+    end
 end
 
 export Do
