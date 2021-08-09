@@ -38,7 +38,7 @@ using SimplePosets: SimplePoset
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
 
-const ∞ = MeasureTheory.∞
+using MeasureTheory: ∞
 
 """
 we use this to avoid introduce static type parameters
