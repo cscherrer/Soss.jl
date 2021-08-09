@@ -52,6 +52,16 @@ include("examples-list.jl")
         @test logdensity(post, transform(t, randn(3))) isa Float64
     end
 
+    @testset "Predict" begin
+        m = @model begin
+            p ~ Uniform()
+            y ~ Bernoulli(p)
+            return y
+        end
+            
+        mean(predict(m(), [(p=p,) for p in rand(10000)])) isa Float64
+    end
+
     @testset "https://github.com/cscherrer/Soss.jl/issues/258" begin
         m1 = @model begin
             x1 ~ Soss.Normal(0.0, 1.0)
