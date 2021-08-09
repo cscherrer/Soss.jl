@@ -124,7 +124,9 @@ function after(m::Model, xs...; strict = false)
     args = arguments(m) ∪ xs # Will trim later.
     parms = setdiff(parms, args)
     trim_args!(args, m, parms)
-    return setReturn(assemblefrom(m, parms, args), getReturn(m))
+    m1 = setReturn(assemblefrom(m, parms, args), getReturn(m))
+    newargs = arguments(m1) ∪ setdiff(variables(m) ∩ variables(getReturn(m1)), variables(m1))
+    return merge(m1, Model(getmodule(m), newargs, quote end))
 end
 
 """

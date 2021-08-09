@@ -24,7 +24,7 @@ Soss.prior(m, :x)
     end
 ```
 """
-prior(m::Model, xs...) = fixargs(m, before(m, xs..., inclusive = false, strict = true))
+prior(m::Model, xs...) = before(m, xs..., inclusive = false, strict = true)
 
 
 export likelihood
@@ -90,7 +90,7 @@ prune(m, :n)
     end
 ```
 """
-prune(m::Model, xs...) = fixargs(m, before(m, xs..., inclusive = false, strict = false))
+prune(m::Model, xs...) = before(m, xs..., inclusive = false, strict = false)
 
 
 export predictive
@@ -122,7 +122,7 @@ predictive(m, :θ)
 
 @generated function _predictive(m::Model, ::Type{NT}) where {NT<:NamedTuple}
     m = type2model(m)
-    return fixargs(m, after(m, getntkeys(NT)...; strict=true))
+    return after(m, getntkeys(NT)...; strict=true)
 end
 
 export Do
@@ -152,4 +152,4 @@ Do(m, :θ)
 ```
 
 """
-Do(m::Model, xs...) = fixargs(m, after(m, xs..., strict = false))
+Do(m::Model, xs...) = after(m, xs..., strict = false)
