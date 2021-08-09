@@ -38,10 +38,13 @@ predict(d,x) = x
 
 predict(d::ConditionalModel, post) = predict(Random.GLOBAL_RNG, d, post)
 
-function predict(rng::AbstractRNG, d::ConditionalModel, nt::LazyMerge{Nx,Ny}) where {Nx,Ny}
+# TODO: Still a dynamic dispatch here, check using JETTest
+@generated function predict(rng::AbstractRNG, d::ConditionalModel, nt::LazyMerge{Nx,Ny}) where {Nx,Ny}
     m = Model(d)
     pred = predictive(m, Nx..., Ny...)
-    rand(rng, pred(nt)) 
+    quote
+        rand(rng, $pred(nt)) 
+    end
 end
 
 function predict(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
