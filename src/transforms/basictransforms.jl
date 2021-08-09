@@ -1,8 +1,5 @@
 export prior
 
-
-
-
 """
     prior(m, xs...)
 
