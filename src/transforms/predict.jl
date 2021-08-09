@@ -13,6 +13,10 @@ function predict(m::Model, post::Vector{NamedTuple{N,T}}) where {N,T}
     map(nt -> rand(pred(nt)), post)
 end
 
+function predict(d, s::AbstractVector)
+    [predict(d, sj) for sj in s]
+end
+
 
 # TODO: These don't yet work properly t on particles
 
@@ -33,6 +37,12 @@ predict(m::Model; kwargs...) = predict(m,(;kwargs...))
 predict(d,x) = x
 
 predict(d::ConditionalModel, post) = predict(Random.GLOBAL_RNG, d, post)
+
+function predict(rng::AbstractRNG, d::ConditionalModel, nt::LazyMerge{Nx,Ny}) where {Nx,Ny}
+    m = Model(d)
+    pred = predictive(m, Nx..., Ny...)
+    rand(rng, pred(nt)) 
+end
 
 function predict(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
     m = Model(d)

@@ -288,3 +288,8 @@ end
 
 unVal(::Type{V}) where {T, V <: Val{T}} = T
 unVal(::Val{T}) where {T} = T
+
+function fixargs(m0, m1)
+    newargs = arguments(m1) ∪ setdiff(variables(m0) ∩ variables(getReturn(m1)), variables(m1))
+    merge(m1, Model(getmodule(m0), newargs, quote end))
+end

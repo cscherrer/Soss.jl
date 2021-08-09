@@ -34,7 +34,7 @@ ConditionalModel(m::Model) = ConditionalModel(m,NamedTuple(), NamedTuple())
 
 (m::Model)(;argvals...)= m((;argvals...))
 
-(m::Model)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
+(m::Model)(args...) = m(NamedTuple{Tuple(m.args)}(args))
 
 import Base
 
