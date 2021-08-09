@@ -13,6 +13,7 @@ end
 
 export argvals
 argvals(c::ConditionalModel) = c.argvals
+argvals(m::Model) = NamedTuple()
 
 export observations
 observations(c::ConditionalModel) = c.obs

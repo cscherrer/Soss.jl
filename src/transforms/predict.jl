@@ -10,14 +10,14 @@ predict(d::AbstractMeasure, x) = x
     rand(rng, pred(merge(argvals(m), nt)))
 end
 
-predict(rng::AbstractRNG, m::Model; kwargs...) = predict(rng, m, (;kwargs...))
+predict(rng::AbstractRNG, m::AbstractModel; kwargs...) = predict(rng, m, (;kwargs...))
 
 
 @inline function predict(rng::AbstractRNG, d::AbstractModel, nt::LazyMerge)
     predict(rng, d, convert(NamedTuple, nt))
 end
 
-function predict(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
+function predict(rng::AbstractRNG, d::AbstractModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
     m = Model(d)
     pred = predictive(m, N...)
     args = argvals(d)
