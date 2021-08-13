@@ -124,6 +124,18 @@ predictive(m::DAGModel, xs...) = _predictive(m, namedtuple(xs)(xs))
     return after(type2model(m), getntkeys(xs)...; strict=true)
 end
 
+@inline predictive(m::AbstractModel, xs...) = _predictive(m, NamedTuple{xs})
+# predictive(m::Model, xs...) = after(m, xs..., strict = true)
+
+@generated function _predictive(m::AbstractModel, ::Type{NT}) where {NT<:NamedTuple}
+    m = type2model(m)
+    result = after(m, getntkeys(NT)...; strict=true)
+    quote
+        $(Expr(:meta,:inline))
+        $result
+    end
+end
+
 export Do
 """
     Do(m, xs...)

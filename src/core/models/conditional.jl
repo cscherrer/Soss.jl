@@ -13,6 +13,8 @@ end
 
 export argvals
 argvals(c::ModelClosure) = c.argvals
+argvals(c::ConditionalModel) = c.argvals
+argvals(m::Model) = NamedTuple()
 
 export observations
 observations(c::ModelClosure) = c.obs
@@ -25,6 +27,9 @@ end
 Model(c::ModelClosure) = c.model
 
 ModelClosure(m::AbstractModelFunction) = ModelClosure(m,NamedTuple(), NamedTuple())
+Model(::Type{<:ConditionalModel{A,B,M}}) where {A,B,M} = type2model(Model{A,B,M})
+
+ConditionalModel(m::Model) = ConditionalModel(m,NamedTuple(), NamedTuple())
 
 (m::AbstractModelFunction)(nt::NamedTuple) = ModelClosure(m)(nt)
 
@@ -33,6 +38,7 @@ ModelClosure(m::AbstractModelFunction) = ModelClosure(m,NamedTuple(), NamedTuple
 (m::AbstractModelFunction)(;argvals...)= m((;argvals...))
 
 (m::AbstractModelFunction)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
+(m::Model)(args...) = m(NamedTuple{Tuple(m.args)}(args))
 
 import Base
 

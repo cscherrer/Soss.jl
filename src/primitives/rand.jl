@@ -19,6 +19,11 @@ Base.rand(d::ModelClosure, N::Int) = rand(GLOBAL_RNG, d, N)
     rand(GLOBAL_RNG, m; kwargs...)
 end
 
+# @inline function Base.rand(rng::AbstractRNG, c::ConditionalModel{A,B,M}) where {A,B,M}
+#     m = Model(c)
+#     return _rand(M, m, argvals(c))(rng)
+# end
+
 
 
 @inline function Base.rand(rng::AbstractRNG, mc::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
@@ -72,13 +77,3 @@ end
 end
 
 ###############################################################################
-
-@testset "rand" begin
-    m = @model begin
-        p ~ Uniform()
-        x ~ Bernoulli(p)
-    end
-
-    @test rand(m(); ctx=()) isa Bool
-    @test logdensity(m(), rand(m())) isa Float64
-end
