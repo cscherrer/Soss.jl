@@ -132,5 +132,23 @@ include("examples-list.jl")
 
         @test transform(xform(post), randn(6)) isa NamedTuple
 
+        @testset "logdensity" begin
+            dat = randn(100)
+            m = Soss.@model n begin
+                μ ~ Dists.Normal()
+                σ ~ Dists.Exponential()
+                data ~ Dists.Normal(μ, σ) |> iid(n)
+                return (; data)
+            end
+            mod = m( (; n = length(dat) ) )
+            post = mod | (data = dat,)
+
+            @test logdensity( mod( (μ = 1., σ = 2., data = dat) ) ) isa Float64
+            @test logdensity( post( (μ = 1., σ = 2.) ) ) isa Float64
+        end
+
+
     end
+
+
 end
