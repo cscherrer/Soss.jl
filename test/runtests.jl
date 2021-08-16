@@ -2,6 +2,8 @@ using Test
 using MeasureTheory
 using TransformVariables
 using Aqua
+using Soss
+
 Aqua.test_all(Soss; ambiguities=false, unbound_args=false)
 
 include("examples-list.jl")
