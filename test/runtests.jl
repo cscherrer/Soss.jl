@@ -143,8 +143,7 @@ include("examples-list.jl")
             mod = m( (; n = length(dat) ) )
             post = mod | (data = dat,)
 
-            @test logdensity( mod( (μ = 1., σ = 2., data = dat) ) ) isa Float64
-            @test logdensity( post( (μ = 1., σ = 2.) ) ) isa Float64
+            @test logdensity( mod( (μ = 1., σ = 2., data = dat) ) ) == logdensity( post( (μ = 1., σ = 2.) ) )
         end
 
 
