@@ -1,7 +1,7 @@
 name = "Soss"
 uuid = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
 author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
-version = "0.20.3"
+version = "0.20.4"
 
 [deps]
 ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
