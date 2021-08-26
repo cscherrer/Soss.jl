@@ -16,6 +16,7 @@ end
 predict(m::AbstractModel, args...) = predict(Random.GLOBAL_RNG, m, args...)
 predict(d::AbstractMeasure, x) = x
 
+predict(d::Dists.Distribution, x) = x
 
 @inline function predict(rng::AbstractRNG, m::AbstractModel, nt::NamedTuple{N}) where {N}
     pred = predictive(Model(m), N...)

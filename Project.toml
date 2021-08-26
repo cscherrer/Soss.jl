@@ -1,7 +1,7 @@
 name = "Soss"
 uuid = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
 author = ["Chad Scherrer <chad.scherrer@gmail.com>"]
-version = "0.20.2"
+version = "0.20.5"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
@@ -52,7 +52,7 @@ JuliaVariables = "0.2"
 MLStyle = "0.3,0.4"
 MacroTools = "0.5"
 MappedArrays = "0.3, 0.4"
-MeasureTheory = "0.10"
+MeasureTheory = "0.10, 0.11"
 NamedTupleTools = "0.12, 0.13"
 NestedTuples = "0.3"
 RecipesBase = "0.7,0.8, 1"
