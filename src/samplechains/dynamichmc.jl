@@ -5,7 +5,7 @@ export sample
 
 using ..Soss
 
-using SampleChainsDynamicHMC:DynamicHMCConfig
+using .SampleChainsDynamicHMC: DynamicHMCConfig
 
 function sample(rng::AbstractRNG, 
     m::ConditionalModel,
