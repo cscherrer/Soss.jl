@@ -1,37 +1,34 @@
 import SimplePosets
 using SimpleGraphs: SimpleGraph, AbstractSimpleGraph, SimpleDigraph, eltype, NV, elist, in_neighbors, add_edges!, vertex2idx
 
-import Graphs
-import Graphs.simple_graph, Graphs.add_edge!, Graphs.topological_sort_by_dfs
-export convert_simple
-
-# From https://github.com/scheinerman/SimpleGraphs.jl/blob/1396758729f95912d7f245f9c70957f4993be417/src/simple_converters.jl
-function convert_simple(G::AbstractSimpleGraph)
-    T = eltype(G)
-    n = NV(G)
-    has_dir = isa(G,SimpleDigraph)
-
-
-    d = vertex2idx(G)
-    dinv = Dict{Int,T}()
-    for k in keys(d)
-        v = d[k]
-        dinv[v] = k
-    end
-
-    H = simple_graph(n,is_directed=has_dir)
-
-    EE = elist(G)
-    for e in EE
-        u = d[e[1]]
-        v = d[e[2]]
-        add_edge!(H,u,v)
-    end
-    return (H,d,dinv)
-end
-
 export toposort
 function toposort(m::Model)
-    (g, _, names) = poset(m).D |> convert_simple
-    setdiff(map(v -> names[v], Graphs.topological_sort_by_dfs(g)), arguments(m))
+    names = toposort(poset(m).D)
+    setdiff(names, arguments(m))
+end
+
+# Thanks to @CameronBieganek for this implementation:
+# https://discourse.julialang.org/t/lightgraphs-jl-transition/69526/52?u=cscherrer
+function toposort(g::SimpleDigraph{T}) where {T}
+    g = deepcopy(g)
+    order = T[]
+    s = collect(filter(v -> SimpleGraphs.in_deg(g, v) == 0, vlist(g)))
+
+    while !isempty(s)
+        u = pop!(s)
+        push!(order, u)
+
+        for v in out_neighbors(g, u)
+            delete!(g, u, v)
+            if SimpleGraphs.in_deg(g, v) == 0
+                push!(s, v)
+            end
+        end
+    end
+
+    if SimpleGraphs.NE(g) > 0
+        error("Graph contains cycles.")
+    end
+
+    order
 end
