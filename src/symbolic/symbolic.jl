@@ -19,7 +19,7 @@ export schema
 
 export symlogdensity
 
-symlogdensity(d, x::Symbolic) = logdensity(d,x)
+symlogdensity(d, x::Symbolic) = logpdf(d,x)
 
 function symlogdensity(d::ProductMeasure{F,S,<:AbstractArray}, x::Symbolic{A}) where {F,S,A <: AbstractArray}
     dims = size(d)

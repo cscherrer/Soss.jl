@@ -32,6 +32,7 @@ function SymbolicCodegen.codegen(cm :: ConditionalModel; kwargs...)
         pushfirst!(code.args, :($v = getproperty(_pars, $vname)))
     end
 
+    code = MacroTools.flatten(code)
 
     return mk_function(getmodule(cm), (:_args, :_data, :_pars), (), code)
 
