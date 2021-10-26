@@ -6,6 +6,7 @@ using Reexport: @reexport
 
 @reexport using StatsFuns
 using MeasureTheory
+using MeasureBase: productmeasure, Returns
 
 using NamedTupleTools
 using SampleChains
@@ -40,6 +41,7 @@ using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
 
 using MeasureTheory: ∞
+
 
 """
 we use this to avoid introduce static type parameters

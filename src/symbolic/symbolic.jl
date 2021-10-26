@@ -19,17 +19,17 @@ export schema
 
 export symlogdensity
 
-symlogdensity(d, x::Symbolic) = logdensity(d,x)
+symlogdensity(d, x::Symbolic) = logpdf(d,x)
 
-function symlogdensity(d::ProductMeasure{<:AbstractArray}, x::Symbolic{A}) where {A <: AbstractArray}
+function symlogdensity(d::ProductMeasure{F,S,<:AbstractArray}, x::Symbolic{A}) where {F,S,A <: AbstractArray}
     dims = size(d)
 
     iters = Sym{Int}.(gensym.(Symbol.(:i, 1:length(dims))))
 
-    marginals = d.data
+    mar = marginals(d)
 
     # To begin, the result is just the summand
-    result = getsummand(marginals, x, iters)
+    result = getsummand(mar, x, iters)
         
     # Then we wrap in a summation index for each dimension
     for i in 1:length(dims)

@@ -1,0 +1,9 @@
+[deps]
+ArviZ = "131c737c-5715-5e2e-ad31-c244f01c1dc7"
+MeasureTheory = "eadaa1a4-d27c-401d-8699-e962e1bbc33b"
+NestedTuples = "a734d2a7-8d68-409b-9419-626914d4061d"
+PosteriorPlots = "196f2941-2d58-45ba-9f13-43a2532b2fa8"
+PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
+SampleChainsDynamicHMC = "6d9fd711-e8b2-4778-9c70-c1dfb499d4c4"
+Soss = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
+TupleVectors = "615932cf-77b6-4358-adcd-5b7eba981d7e"
