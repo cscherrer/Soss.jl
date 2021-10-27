@@ -1,7 +1,6 @@
-struct ModelClosure{M,A,O} <: AbstractModelFunction{A,B}
+struct ModelClosure{M,A} <: AbstractModelFunction{A,B}
     model :: M
     argvals :: A
-    obs :: O
 end
 
 function Base.show(io::IO, cm::ModelClosure)
@@ -13,7 +12,7 @@ end
 
 export argvals
 argvals(c::ModelClosure) = c.argvals
-argvals(c::ConditionalModel) = c.argvals
+argvals(c::ModelPosterior) = c.argvals
 argvals(m::Model) = NamedTuple()
 
 export observations
@@ -27,9 +26,9 @@ end
 Model(c::ModelClosure) = c.model
 
 ModelClosure(m::AbstractModelFunction) = ModelClosure(m,NamedTuple(), NamedTuple())
-Model(::Type{<:ConditionalModel{A,B,M}}) where {A,B,M} = type2model(Model{A,B,M})
+Model(::Type{<:ModelPosterior{M,A,O}}) where {M,A,O} = type2model(Model{M,A,O})
 
-ConditionalModel(m::Model) = ConditionalModel(m,NamedTuple(), NamedTuple())
+ModelPosterior(m::Model) = ModelPosterior(m,NamedTuple(), NamedTuple())
 
 (m::AbstractModelFunction)(nt::NamedTuple) = ModelClosure(m)(nt)
 

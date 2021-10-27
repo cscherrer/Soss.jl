@@ -19,7 +19,7 @@ Base.rand(d::ModelClosure, N::Int) = rand(GLOBAL_RNG, d, N)
     rand(GLOBAL_RNG, m; kwargs...)
 end
 
-# @inline function Base.rand(rng::AbstractRNG, c::ConditionalModel{A,B,M}) where {A,B,M}
+# @inline function Base.rand(rng::AbstractRNG, c::ModelPosterior{A,B,M}) where {A,B,M}
 #     m = Model(c)
 #     return _rand(M, m, argvals(c))(rng)
 # end

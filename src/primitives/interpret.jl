@@ -32,21 +32,21 @@ function _interpret(ast::Expr, _tilde, _args, _obs, call=nothing)
     body
 end
 
-@gg function mkfun(_mc, tilde, call)
-    _m = type2model(_mc)
+function mkfun(_mc::MC, ::T, ::C) where {MC, T, C}
+    _m = type2model(MC)
     M = getmodule(_m)
 
-    _args = argvalstype(_mc)
-    _obs = obstype(_mc)
+    _args = argvalstype(MC)
+    _obs = obstype(MC)
 
-    tilde = tilde.instance
-    call = call.instance
+    tilde = T.instance
+    call = C.instance
      
     body = _m.body |> loadvals(_args, _obs)
     body = _interpret(body, tilde, _args, _obs, call)
 
     q = (@q let M
-        function(_cfg, _ctx)
+        @inline function(_cfg, _ctx)
             local _retn
             _args = Soss.argvals(_mc)
             _obs = Soss.observations(_mc)

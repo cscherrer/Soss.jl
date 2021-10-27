@@ -68,4 +68,4 @@ function withmeasures(d::AbstractModel)
 end
 
 # TODO: Finish this
-# function predict_measure(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
+# function predict_measure(rng::AbstractRNG, d::ModelPosterior, post::AbstractVector{<:NamedTuple{N}}) where {N}

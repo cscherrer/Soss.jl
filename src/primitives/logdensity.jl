@@ -34,7 +34,7 @@ end
 end
 
 
-function MeasureTheory.logpdf(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
+function MeasureTheory.logpdf(c::ModelPosterior, x=NamedTuple())
     _logpdf(M, Model(c), argvals(c), observations(c), x)
 end
 
@@ -43,7 +43,7 @@ export sourceLogpdf
 sourceLogpdf(m::AbstractModel) = sourceLogpdf()(Model(m))
 
 function sourceLogpdf()
-    function(_m::Model)
+    function(_m::DAGModel)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
         # proc(_m, st :: Sample)     = :(_ℓ += logpdf($(st.rhs), $(st.x)))
         proc(_m, st :: Return)     = nothing
@@ -70,7 +70,7 @@ end
 # MeasureTheory.logpdf(d::Distribution, val, tr) = logpdf(d, val)
 
 
-@gg function _logpdf(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
+@gg function _logpdf(M::Type{<:TypeLevel}, _m::DAGModel, _args, _data, _pars)
     body = type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data, _pars)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
