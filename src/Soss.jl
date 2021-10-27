@@ -51,7 +51,7 @@ _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 
 export Model, ASTModel, DAGModel, @model, @dagmodel
 
-# include("callify.jl")
+include("callify.jl")
 include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/models/dagmodel/statement.jl")

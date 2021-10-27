@@ -32,7 +32,7 @@ function _interpret(ast::Expr, _tilde, _args, _obs, call=nothing)
     body
 end
 
-function mkfun(_mc::MC, ::T, ::C) where {MC, T, C}
+@gg function mkfun(_mc::MC, ::T, ::C) where {MC, T, C}
     _m = type2model(MC)
     M = getmodule(_m)
 
