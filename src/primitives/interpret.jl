@@ -1,11 +1,11 @@
 export interpret
 
-function interpret(m::ASTModel{A,B,M}, tilde, ctx0, call=nothing) where {A,B,M}
+function interpret(m::ASTModel{A,B,M}, tilde, ctx0) where {A,B,M}
     theModule = getmodule(m)
-    mk_function(theModule, _interpret(m.body, tilde, ctx0; call=call))
+    mk_function(theModule, _interpret(m.body, tilde, ctx0))
 end
 
-function _interpret(ast::Expr, _tilde, _args, _obs, call=nothing)
+function _interpret(ast::Expr, _tilde, _args, _obs)
     function go(ex)
         @match ex begin
             :($(x::Symbol) ~ $d) => begin
@@ -25,10 +25,6 @@ function _interpret(ast::Expr, _tilde, _args, _obs, call=nothing)
 
     body = go(ast)
 
-    if !isnothing(call)
-        body = callify(body; call=call)
-    end
-
     body
 end
 
@@ -43,7 +39,7 @@ end
     call = C.instance
      
     body = _m.body |> loadvals(_args, _obs)
-    body = _interpret(body, tilde, _args, _obs, call)
+    body = _interpret(body, tilde, _args, _obs)
 
     q = (@q let M
         @inline function(_cfg, _ctx)

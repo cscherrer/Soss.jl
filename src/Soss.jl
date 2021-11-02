@@ -40,6 +40,9 @@ using GeneralizedGenerated
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
 
+
+using NestedTuples: TypelevelExpr
+
 using MeasureTheory: ∞
 
 
