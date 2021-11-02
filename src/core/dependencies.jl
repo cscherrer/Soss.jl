@@ -11,6 +11,7 @@ unwrap_scoped(ex) = @match ex begin
 end
 
 globals(s::Symbol) = [s]
+globals(x) = []
 
 function globals(ex::Expr)
     branch(head, newargs) = union(newargs...)

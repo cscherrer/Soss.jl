@@ -5,7 +5,7 @@ export sample
 
 using ..Soss
 
-using SampleChainsDynamicHMC:DynamicHMCConfig
+using .SampleChainsDynamicHMC: DynamicHMCConfig
 
 function sample(rng::AbstractRNG, 
     m::ConditionalModel,
@@ -13,9 +13,8 @@ function sample(rng::AbstractRNG,
     nsamples::Int=1000,
     nchains::Int=4)
 
-    ℓ(x) = Soss.logdensity(m, x)
+    ℓ(x) = MeasureTheory.logpdf(m, x)
     tr = xform(m)
-
 
     chains = newchain(rng, nchains, config, ℓ, tr)
     sample!(chains, nsamples - 1)

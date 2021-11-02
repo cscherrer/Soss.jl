@@ -29,7 +29,7 @@ function sourceBasemeasure()
         wrap(kernel) = @q begin
             _bm = (;)
             $kernel
-            return Soss.ProductMeasure(_bm)
+            return Soss.productmeasure(identity, _bm)
         end
 
         buildSource(_m, proc, wrap) |> MacroTools.flatten
