@@ -16,7 +16,6 @@ end
 
 predict(rng::AbstractRNG, m::AbstractModel; kwargs...) = predict(rng, m, (;kwargs...))
 
-
 @inline function predict(rng::AbstractRNG, d::AbstractModel, nt::LazyMerge)
     predict(rng, d, convert(NamedTuple, nt))
 end
