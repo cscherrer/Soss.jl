@@ -1,10 +1,13 @@
 export predict
 using TupleVectors
+using SampleChains
 
-predict(m::AbstractModel, args...) = predict(Random.GLOBAL_RNG, m, args...)
+predict(args...; kwargs...) = predict(Random.GLOBAL_RNG, args...; kwargs...)
+
+# TODO: Fix this hack
 predict(d::AbstractMeasure, x) = x
-
 predict(d::Dists.Distribution, x) = x
+predict(d::AbstractModel, args...; kwargs...) = predict(Random.GLOBAL_RNG, d, args...; kwargs...)
 
 @inline function predict(rng::AbstractRNG, m::AbstractModel, nt::NamedTuple{N}) where {N}
     pred = predictive(Model(m), N...)
@@ -33,10 +36,6 @@ function predict(rng::AbstractRNG, d::AbstractModel, post::AbstractVector{<:Name
     v
 end
 
-using SampleChains
-
-predict(d::ConditionalModel, post) = predict(Random.GLOBAL_RNG, d, post)
-
 function predict(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
     m = Model(d)
     pred = predictive(m, N...)
@@ -50,8 +49,6 @@ function predict(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:N
 
     v
 end
-
-using SampleChains
 
 function predict(rng::AbstractRNG, d::ConditionalModel, post::MultiChain)
     [predict(rng, d, c) for c in getchains(post)]
