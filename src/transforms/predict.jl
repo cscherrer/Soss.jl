@@ -36,20 +36,6 @@ function predict(rng::AbstractRNG, d::AbstractModel, post::AbstractVector{<:Name
     v
 end
 
-function predict(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
-    m = Model(d)
-    pred = predictive(m, N...)
-    args = argvals(d)
-    y1 = rand(rng, pred(merge(args,post[1])))
-    n = length(post)
-    v = TupleVectors.chainvec(y1, n)
-    for j in 2:n
-        v[j] = rand(rng, pred(merge(args,post[j])))
-    end
-
-    v
-end
-
 function predict(rng::AbstractRNG, d::ConditionalModel, post::MultiChain)
     [predict(rng, d, c) for c in getchains(post)]
 end
