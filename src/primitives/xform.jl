@@ -4,6 +4,7 @@ using MLStyle
 using NestedTuples
 import NestedTuples
 import MeasureTheory: testvalue
+using TransformVariables
 
 function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
     schema(T)
@@ -15,23 +16,23 @@ end
 
 export xform
 
-xform(m::ConditionalModel{A, B}, _data::NamedTuple) where {A,B} = xform(m | _data)
+xform(m::ModelClosure{M,A}, _data::NamedTuple) where {M,A} = xform(m | _data)
 
-function xform(m::ConditionalModel{A, B}) where {A,B}
+function xform(m::ModelPosterior{M,A,O}) where {M,A,O}
     return _xform(getmoduletypencoding(m), Model(m), argvals(m), observations(m))
 end
 
-# function xform(m::Model{EmptyNTtype, B}) where {B}
+# function xform(m::DAGModel{EmptyNTtype, B}) where {B}
 #     return xform(m,NamedTuple())    
 # end
 
 
 export sourceXform
 
-sourceXform(m::Model) = sourceXform()(m)
+sourceXform(m::DAGModel) = sourceXform()(m)
 
 function sourceXform(_data=NamedTuple())
-    function(_m::Model)
+    function(_m::DAGModel)
 
         _datakeys = getntkeys(_data)
         proc(_m, st::Assign)        = :($(st.x) = $(st.rhs))
@@ -96,7 +97,7 @@ xform(μ::AbstractMeasure,  _data::NamedTuple=NamedTuple()) = as(μ)
 
 xform(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 
-@gg function _xform(M::Type{<:TypeLevel}, _m::Model{Asub,B}, _args::A, _data) where {Asub,A,B}
+@gg function _xform(M::Type{<:TypeLevel}, _m::DAGModel{Asub,B}, _args::A, _data) where {Asub,A,B}
     body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

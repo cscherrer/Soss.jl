@@ -8,7 +8,7 @@ using ..Soss
 using .SampleChainsDynamicHMC: DynamicHMCConfig
 
 function sample(rng::AbstractRNG, 
-    m::ConditionalModel,
+    m::ModelClosure,
     config::DynamicHMCConfig, 
     nsamples::Int=1000,
     nchains::Int=4)
@@ -23,7 +23,7 @@ end
 
 
 function sample(
-    m::ConditionalModel,
+    m::ModelClosure,
     config::DynamicHMCConfig, 
     nsamples::Int=1000,
     nchains::Int=4)

@@ -1,4 +1,4 @@
-function power_posterior(cm::ConditionalModel)
+function power_posterior(cm::ModelClosure)
     m = cm.model
 
     pr = prior(m, observed(cm)...)

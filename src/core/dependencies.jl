@@ -2,8 +2,6 @@ using JuliaVariables
 using MLStyle
 import MacroTools
 
-
-
 unwrap_scoped(ex) = @match ex begin
     Expr(:scoped, _, a) => unwrap_scoped(a)
     Expr(head, args...) => Expr(head, map(unwrap_scoped, args)...)
@@ -28,7 +26,7 @@ function globals(ex::Expr)
 end
 
 
-function graph(T, m::Model)
+function graph(T, m::DAGModel)
     g = T()
 
     mvars = variables(m)
@@ -52,7 +50,7 @@ function graph(T, m::Model)
 end
 
 export digraph
-digraph(m::Model) = graph(SimpleDigraph{Symbol}, m)
+digraph(m::DAGModel) = graph(SimpleDigraph{Symbol}, m)
 
 export poset
-poset(m::Model) = graph(SimplePoset{Symbol}, m)
+poset(m::DAGModel) = graph(SimplePoset{Symbol}, m)

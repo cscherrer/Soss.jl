@@ -8,8 +8,6 @@ using Reexport: @reexport
 using MeasureTheory
 using MeasureBase: productmeasure, Returns
 
-export For
-
 using NamedTupleTools
 using SampleChains
 using SymbolicCodegen
@@ -35,9 +33,15 @@ import TransformVariables
 const TV = TransformVariables
 
 using SimplePosets: SimplePoset
+import SimplePosets
 
+
+using GeneralizedGenerated
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
+
+
+using NestedTuples: TypelevelExpr
 
 using MeasureTheory: ∞
 
@@ -48,18 +52,23 @@ for generated functions
 """
 _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 
+export Model, ASTModel, DAGModel, @model, @dagmodel
+
+include("callify.jl")
 include("noted.jl")
 include("core/models/abstractmodel.jl")
-include("core/statement.jl")
+include("core/models/dagmodel/statement.jl")
+include("core/models/astmodel/astmodel.jl")
+include("core/models/dagmodel/dagmodel.jl")
 include("core/models/model.jl")
-# include("core/models/jointdistribution.jl")
 include("core/canonical.jl")
 include("core/dependencies.jl")
 include("core/toposort.jl")
 include("core/weighted.jl")
 include("core/utils.jl")
-include("core/models/conditional.jl")
-
+include("core/models/closure.jl")
+include("core/models/posterior.jl")
+include("primitives/interpret.jl")
 # include("distributions/dist.jl")
 # include("distributions/for.jl")
 include("distributions/iid.jl")
@@ -71,7 +80,7 @@ include("primitives/rand.jl")
 include("primitives/simulate.jl")
 include("primitives/logdensity.jl")
 include("primitives/xform.jl")
-include("primitives/likelihood-weighting.jl")
+# include("primitives/likelihood-weighting.jl")
 # include("primitives/gg.jl")
 # @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
 #     include("primitives/bijectors.jl")
@@ -88,11 +97,11 @@ include("transforms/utils.jl")
 include("transforms/basictransforms.jl")
 include("transforms/withmeasures.jl")
 
-include("symbolic/symcall.jl")
-include("symbolic/symify.jl")
-include("symbolic/rules.jl")
-include("symbolic/symbolic.jl")
-include("symbolic/codegen.jl")
+# include("symbolic/symcall.jl")
+# include("symbolic/symify.jl")
+# include("symbolic/rules.jl")
+# include("symbolic/symbolic.jl")
+# include("symbolic/codegen.jl")
 
 # include("particles.jl")
 include("plots.jl")

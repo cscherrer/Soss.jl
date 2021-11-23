@@ -24,7 +24,7 @@ Soss.prior(m, :x)
     end
 ```
 """
-prior(m::Model, xs...) = before(m, xs..., inclusive = false, strict = true)
+prior(m::DAGModel, xs...) = before(m, xs..., inclusive = false, strict = true)
 
 
 export likelihood
@@ -34,14 +34,14 @@ export likelihood
 Return a model with only the specified variables in the body. Required dependencies will be included as arguments.
 
 """
-function likelihood(m::Model, xs...) 
+function likelihood(m::DAGModel, xs...) 
     M = getmodule(m)
-    result = foldl(merge, (Model(M, findStatement(m,x)) for x in xs))
+    result = foldl(merge, (DAGModel(M, findStatement(m,x)) for x in xs))
 
     for x in xs
         for pa in parents(digraph(m), x)
             pa ∈ xs && continue
-            result = merge(result, Model(M, Arg(pa)))
+            result = merge(result, DAGModel(M, Arg(pa)))
         end
     end
 
@@ -90,7 +90,7 @@ prune(m, :n)
     end
 ```
 """
-prune(m::Model, xs...) = before(m, xs..., inclusive = false, strict = false)
+prune(m::DAGModel, xs...) = before(m, xs..., inclusive = false, strict = false)
 
 
 export predictive
@@ -117,10 +117,17 @@ predictive(m, :θ)
 ```
 
 """
-@inline predictive(m::Model, xs...) = _predictive(m, NamedTuple{xs})
+predictive(m::DAGModel, xs...) = _predictive(m, namedtuple(xs)(xs))
+# predictive(m::DAGModel, xs...) = after(m, xs..., strict = true)
+
+@generated function _predictive(m::DAGModel, xs)
+    return after(type2model(m), getntkeys(xs)...; strict=true)
+end
+
+@inline predictive(m::AbstractModel, xs...) = _predictive(m, NamedTuple{xs})
 # predictive(m::Model, xs...) = after(m, xs..., strict = true)
 
-@generated function _predictive(m::Model, ::Type{NT}) where {NT<:NamedTuple}
+@generated function _predictive(m::AbstractModel, ::Type{NT}) where {NT<:NamedTuple}
     m = type2model(m)
     result = after(m, getntkeys(NT)...; strict=true)
     quote
@@ -156,4 +163,4 @@ Do(m, :θ)
 ```
 
 """
-Do(m::Model, xs...) = after(m, xs..., strict = false)
+Do(m::DAGModel, xs...) = after(m, xs..., strict = false)

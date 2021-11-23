@@ -3,7 +3,7 @@ using Soss
 get_distname(x::Symbol) = Symbol(:_, x, :_dist)
 
 """
-    withmeasures(m::Model) -> Model
+    withmeasures(m::DAGModel) -> Model
 
 julia> m = @model begin
     σ ~ HalfNormal()
@@ -42,19 +42,19 @@ julia> rand(ydist)
  -0.020502677724193594
   0.04612690097957398
 """
-function withmeasures(m::Model)
+function withmeasures(m::DAGModel)
     theModule = getmodule(m)
-    m_init = Model(theModule, m.args, NamedTuple(), NamedTuple(), nothing)
+    m_init = DAGModel(theModule, m.args, NamedTuple(), NamedTuple(), nothing)
 
     function proc(st::Sample) 
         distname = get_distname(st.x)
-        assgn = Model(theModule, Assign(distname, st.rhs))
-        sampl = Model(theModule, Sample(st.x, distname))
+        assgn = DAGModel(theModule, Assign(distname, st.rhs))
+        sampl = DAGModel(theModule, Sample(st.x, distname))
         return merge(assgn, sampl)
     end
     
     proc(st::Arg) = nothing
-    proc(st) = Model(theModule, st)
+    proc(st) = DAGModel(theModule, st)
 
     # Rewrite the statements of the model one by one. 
     m_new = foldl(statements(m); init=m_init) do m0,st
@@ -63,9 +63,9 @@ function withmeasures(m::Model)
     return m_new
 end
 
-function withmeasures(d::ConditionalModel)
+function withmeasures(d::AbstractModel)
     withmeasures(Model(d))(argvals(d)) | observations(d)
 end
 
 # TODO: Finish this
-# function predict_measure(rng::AbstractRNG, d::ConditionalModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
+# function predict_measure(rng::AbstractRNG, d::ModelPosterior, post::AbstractVector{<:NamedTuple{N}}) where {N}

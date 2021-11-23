@@ -21,22 +21,22 @@ astuple(x::Symbol) = Expr(:tuple,x)
 
 
 export arguments
-arguments(m::AbstractModel) = Model(m).args
+arguments(m::AbstractModelFunction) = Model(m).args
 
 export sampled
-sampled(m::AbstractModel) = keys(Model(m).dists) |> collect
+sampled(m::AbstractModelFunction) = keys(Model(m).dists) |> collect
 
 export assigned
-assigned(m::AbstractModel) = keys(Model(m).vals) |> collect
+assigned(m::AbstractModelFunction) = keys(Model(m).vals) |> collect
 
 export parameters
-function parameters(a::AbstractModel)
+function parameters(a::AbstractModelFunction)
     m = Model(a)
     union(assigned(Model(m)), sampled(m))
 end
 
 export variables
-variables(m::Model) = union(arguments(m), parameters(m))
+variables(m::DAGModel) = union(arguments(m), parameters(m))
 
 function variables(expr :: Expr)
     leaf(x::Symbol) = begin
@@ -53,13 +53,12 @@ variables(s::Symbol) = [s]
 variables(x) = []
 
 for f in [:arguments, :assigned, :sampled, :parameters, :variables]
-    @eval function $f(m::Model, nt::NamedTuple)
+    @eval function $f(m::DAGModel, nt::NamedTuple)
         vs = $f(m)
         isempty(vs) && return NamedTuple()
         return select(nt, $f(m))
     end
 end
-
 
 export foldall
 function foldall(leaf, branch; kwargs...)
@@ -92,7 +91,7 @@ import MacroTools: striplines, @q
 
 
 
-# function arguments(model::Model)
+# function arguments(model::DAGModel)
 #     model.args
 # end
 
@@ -241,15 +240,15 @@ getntkeys(::Type{LazyMerge{A,B,S,T}}) where {A,B,S,T} = Tuple(A ∪ B)
 # These macros quickly define additional methods for when you get tired of typing `NamedTuple()`
 macro tuple3args(f)
     quote
-        $f(m::Model, (), data) = $f(m::Model, NamedTuple(), data)
-        $f(m::Model, args, ()) = $f(m::Model, args, NamedTuple())
-        $f(m::Model, (), ())   = $f(m::Model, NamedTuple(), NamedTuple())
+        $f(m::DAGModel, (), data) = $f(m::DAGModel, NamedTuple(), data)
+        $f(m::DAGModel, args, ()) = $f(m::DAGModel, args, NamedTuple())
+        $f(m::DAGModel, (), ())   = $f(m::DAGModel, NamedTuple(), NamedTuple())
     end
 end
 
 macro tuple2args(f)
     quote
-        $f(m::Model, ()) = $f(m::Model, NamedTuple())
+        $f(m::DAGModel, ()) = $f(m::DAGModel, NamedTuple())
     end
 end
 
@@ -285,6 +284,13 @@ function isleaf(m, v::Symbol)
     isempty(digraph(m).N[v])
 end
 
+export unVal
+export val2nt
 
 unVal(::Type{V}) where {T, V <: Val{T}} = T
 unVal(::Val{T}) where {T} = T
+
+function val2nt(v,x)
+    k = Soss.unVal(v)
+    NamedTuple{(k,)}((x,))
+end

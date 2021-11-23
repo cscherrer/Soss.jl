@@ -1,9 +1,7 @@
-using Test
+using Soss
 using MeasureTheory
 using TransformVariables
 using Aqua
-using Soss
-
 Aqua.test_all(Soss; ambiguities=false, unbound_args=false)
 
 include("examples-list.jl")
@@ -48,19 +46,9 @@ include("examples-list.jl")
         end
 
         x = rand(outer(sub=inner)).m
-        post = outer(sub=inner) | (m = (x=x,),)
+        post = outer(sub=inner) | (;m=  (; x))
         t = xform(post)
         @test logdensity(post, transform(t, randn(3))) isa Float64
-    end
-
-    @testset "Predict" begin
-        m = @model begin
-            p ~ Uniform()
-            y ~ Bernoulli(p)
-            return y
-        end
-            
-        mean(predict(m(), [(p=p,) for p in rand(10000)])) isa Float64
     end
 
     @testset "https://github.com/cscherrer/Soss.jl/issues/258" begin
@@ -103,14 +91,6 @@ include("examples-list.jl")
         @test testvalue(mm) isa NamedTuple
     end
 
-    @testset "https://github.com/cscherrer/Soss.jl/issues/305" begin
-        m = @model begin 
-            x ~ For(3) do j Normal(μ=j) end
-        end;
-        
-        @test logpdf(m(), rand(m())) isa Float64
-    end
-
     @testset "Local variables" begin
         # https://github.com/cscherrer/Soss.jl/issues/253
 
@@ -119,70 +99,14 @@ include("examples-list.jl")
             x ~ Normal(μ=sum(a))
         end
 
+        @test_broken let t = xform(m2() | (; m = (; x = rand(3))))
+            logdensity(m2() | (; m = (; x = rand(3))), t(randn(3))) isa Float64
+        end
+        
         @test digraph(m).N == Dict(:a => Set([:x]), :x => Set())
     end
 
     @testset "Doctests" begin
         include("doctests.jl")
     end
-
-    @testset "Distributions" begin
-        m = @model begin
-            a ~ Normal() |> iid(3)
-            b ~ Dists.Normal() |> iid(3)
-            c ~ For(3) do i
-                Normal(μ = a[i] +b[i])
-            end
-        end
-
-        c = rand(m()).c
-
-        post = m() | (c=c,)
-
-        @test transform(xform(post), randn(6)) isa NamedTuple
-
-        @testset "logdensity" begin
-            dat = randn(100)
-            m = Soss.@model n begin
-                μ ~ Dists.Normal()
-                σ ~ Dists.Exponential()
-                data ~ Dists.Normal(μ, σ) |> iid(n)
-                return (; data)
-            end
-            mod = m( (; n = length(dat) ) )
-            post = mod | (data = dat,)
-
-            @test logdensity( mod( (μ = 1., σ = 2., data = dat) ) ) == logdensity( post( (μ = 1., σ = 2.) ) )
-        end
-
-
-    end
-
-
-end
-
-
-@testset "Nested models" begin
-    m = @model begin
-        params ~ @model begin
-            p ~ Uniform()
-            end
-        obs = @model params begin
-            x ~ Bernoulli(params.p)
-            end
-        data ~ obs(params=params)
-    end
-
-    @test logdensity(m(), rand(m())) isa Float64
-end
-
-
-@testset "rand" begin
-    m = @model begin
-        p ~ Uniform()
-        x ~ Bernoulli(p)
-    end
-
-    @test rand(m(); ctx=()) isa Bool
-    @test logdensity(m(), rand(m())) isa Float64
 end

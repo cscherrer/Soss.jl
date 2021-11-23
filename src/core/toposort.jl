@@ -2,7 +2,7 @@ import SimplePosets
 using SimpleGraphs: SimpleGraph, AbstractSimpleGraph, SimpleDigraph, eltype, NV, elist, in_neighbors, add_edges!, vertex2idx
 
 export toposort
-function toposort(m::Model)
+function toposort(m::DAGModel)
     names = toposort(poset(m).D)
     setdiff(names, arguments(m))
 end

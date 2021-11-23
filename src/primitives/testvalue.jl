@@ -5,7 +5,7 @@ import MeasureTheory: testvalue
 export testvalue
 EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 
-# function testvalue(d::ConditionalModel, N::Int)
+# function testvalue(d::ModelClosure, N::Int)
 #     r = chainvec(testvalue(d), N)
 #     for j in 2:N
 #         @inbounds r[j] = testvalue(d)
@@ -13,26 +13,26 @@ EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 #     return r
 # end
 
-# testvalue(d::ConditionalModel, N::Int) = testvalue(d, N)
+# testvalue(d::ModelClosure, N::Int) = testvalue(d, N)
 
-@inline function testvalue(c::ConditionalModel)
+@inline function testvalue(c::ModelClosure)
     m = Model(c)
     return _testvalue(getmoduletypencoding(m), m, argvals(c))
 end
 
-@inline function testvalue(m::Model)
+@inline function testvalue(m::DAGModel)
     return _testvalue(getmoduletypencoding(m), m, NamedTuple())
 end
 
 
 
 
-sourceTestvalue(m::Model) = sourceTestvalue()(m)
-sourceTestvalue(jd::ConditionalModel) = sourceTestvalue(jd.model)
+sourceTestvalue(m::DAGModel) = sourceTestvalue()(m)
+sourceTestvalue(jd::ModelClosure) = sourceTestvalue(jd.model)
 
 export sourceTestvalue
 function sourceTestvalue() 
-    function(_m::Model)
+    function(_m::DAGModel)
         proc(_m, st::Assign)  = :($(st.x) = $(st.rhs))
         proc(_m, st::Sample)  = :($(st.x) = testvalue($(st.rhs)))
         proc(_m, st::Return)  = :(return $(st.rhs))
@@ -49,14 +49,14 @@ function sourceTestvalue()
     end
 end
 
-@gg function _testvalue(M::Type{<:TypeLevel}, _m::Model, _args)
+@gg function _testvalue(M::Type{<:TypeLevel}, _m::DAGModel, _args)
     body = type2model(_m) |> sourceTestvalue() |> loadvals(_args, NamedTuple())
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end
 end
 
-@gg function _testvalue(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()})
+@gg function _testvalue(M::Type{<:TypeLevel}, _m::DAGModel, _args::NamedTuple{()})
     body = type2model(_m) |> sourceTestvalue()
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

@@ -22,7 +22,7 @@ particles(post)
 
 pred = predictive(m,:β)
 
-function fit(m::Model, verbosity::Integer, X, y)
+function fit(m::DAGModel, verbosity::Integer, X, y)
     fitresult = dynamicHMC(m(X=X), (y=y,))
     cache = nothing
     report = nothing
