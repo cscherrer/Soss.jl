@@ -84,7 +84,7 @@ end
 
 @inline function visStep(N,logp,q)
     x = Particles(N,q)
-    ℓ = logp(x) - logdensity(q,x)
+    ℓ = logp(x) - logdensity_def(q,x)
     μ = expect(x,ℓ)
     Σ = cholesky(Positive, expect(0.5 * self_outer(x-μ),ℓ)) |> PDMat
     return (x,ℓ,μ,Σ)
@@ -102,7 +102,7 @@ function runInference(m; kwargs...)
 
     function logp(x::Vector{T} where T)
         prep(θ) = merge(kwargs, θ)
-        f = transform_logdensity(t, ℓp ∘ prep, x)
+        f = transform_logdensity_def(t, ℓp ∘ prep, x)
     end
 
     logp(x) = logp([x])
@@ -119,7 +119,7 @@ function runInference(m; kwargs...)
     N = 1000
     q = fit_mle(MvNormal, asmatrix(x))
     x = Particles(N,q)
-    ℓ = logp(x) - logdensity(q,x)
+    ℓ = logp(x) - logdensity_def(q,x)
 
 
     plts = []
@@ -142,7 +142,7 @@ function runInference(m; kwargs...)
 
     x = Particles(N,q)
     θ = t(x)
-    ℓ = logp(x) - logdensity(q,x)
+    ℓ = logp(x) - logdensity_def(q,x)
     (θ,q,ℓ,elbo,neff)
 end
 

@@ -8,6 +8,11 @@ using Reexport: @reexport
 using MeasureTheory
 using MeasureBase: productmeasure, Returns
 
+import DensityInterface: logdensityof
+import DensityInterface: densityof
+import DensityInterface: DensityKind
+using DensityInterface
+
 export For
 
 using NamedTupleTools
@@ -38,6 +43,7 @@ using SimplePosets: SimplePoset
 
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
+using MeasureBase: AbstractKleisli
 
 using MeasureTheory: ∞
 

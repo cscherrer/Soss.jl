@@ -5,6 +5,7 @@ version = "0.20.9"
 
 [deps]
 ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
+DensityInterface = "b429d917-457f-4dbc-8f4c-0cc954292b1d"
 DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
@@ -40,6 +41,7 @@ TupleVectors = "615932cf-77b6-4358-adcd-5b7eba981d7e"
 
 [compat]
 ArrayInterface = "3"
+DensityInterface = "0.4"
 DiffResults = "1"
 Distributions = "0.23, 0.24, 0.25"
 FillArrays = "0.10, 0.11, 0.12"

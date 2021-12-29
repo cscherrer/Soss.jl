@@ -18,7 +18,7 @@ function sourceWeightedSample(_data)
         proc(_m, st :: LineNumber) = nothing
 
         function proc(_m, st :: Sample)
-            st.x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $(st.x)))
+            st.x ∈ _datakeys && return :(_ℓ += logdensity_def($(st.rhs), $(st.x)))
             return :($(st.x) = rand($(st.rhs)))
         end
 

@@ -49,7 +49,7 @@ include("examples-list.jl")
         x = rand(outer(sub=inner)).m
         post = outer(sub=inner) | (m = (x=x,),)
         t = xform(post)
-        @test logdensity(post, transform(t, randn(3))) isa Float64
+        @test logdensity_def(post, transform(t, randn(3))) isa Float64
     end
 
     @testset "Predict" begin
@@ -107,7 +107,7 @@ include("examples-list.jl")
             x ~ For(3) do j Normal(μ=j) end
         end;
         
-        @test logpdf(m(), rand(m())) isa Float64
+        @test logdensityof(m(), rand(m())) isa Float64
     end
 
     @testset "Local variables" begin
@@ -151,7 +151,7 @@ include("examples-list.jl")
             mod = m( (; n = length(dat) ) )
             post = mod | (data = dat,)
 
-            @test logdensity( mod( (μ = 1., σ = 2., data = dat) ) ) == logdensity( post( (μ = 1., σ = 2.) ) )
+            @test logdensity_def( mod( (μ = 1., σ = 2., data = dat) ) ) == logdensity_def( post( (μ = 1., σ = 2.) ) )
         end
 
 

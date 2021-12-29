@@ -5,7 +5,7 @@
 #     t = getTransform(model)
 #     z = randn(t.dimension) |> Flux.param
 
-#     fpre = @eval $(logdensity(model))
+#     fpre = @eval $(logdensity_def(model))
 #     f(par, data) = Base.invokelatest(fpre, par, data)
 
 #     loss(data) = -f(transform(t, z), data)

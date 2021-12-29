@@ -7,7 +7,7 @@ function expect(x,ℓ)
 end
 
 x = Particles(5000,TDist(3))
-ℓ = logpdf(Normal(),x) - logpdf(TDist(3), x)
+ℓ = logdensityof(Normal(),x) - logdensityof(TDist(3), x)
 
 expect(x,ℓ)
 expect(x^2,ℓ)
@@ -26,7 +26,7 @@ expect(z^4,ℓ)
 # And now a new weighted variable
 
 y = Particles(5000,TDist(3))
-ℓ += logpdf(Normal(),y) - logpdf(TDist(3), y)
+ℓ += logdensityof(Normal(),y) - logdensityof(TDist(3), y)
 
 expect(y,ℓ)
 expect(y^2,ℓ)

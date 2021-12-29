@@ -1,28 +1,28 @@
 
-export logdensity
+export logdensityof
 
 using NestedTuples: lazymerge
 import MeasureTheory
 
-function MeasureTheory.logdensity(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
-    _logdensity(M, Model(c), argvals(c), observations(c), x)
+function MeasureBase.logdensity_def(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
+    _logdensity_def(M, Model(c), argvals(c), observations(c), x)
 end
 
-export sourceLogdensity
+export sourceLogdensityDef
 
-sourceLogdensity(m::AbstractModel) = sourceLogdensity()(Model(m))
+sourceLogdensityDef(m::AbstractModel) = sourceLogdensityDef()(Model(m))
 
-function sourceLogdensity()
+function sourceLogdensityDef()
     function(_m::Model)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
-        # proc(_m, st :: Sample)     = :(_ℓ += logdensity($(st.rhs), $(st.x)))
+        # proc(_m, st :: Sample)     = :(_ℓ += logdensity_def($(st.rhs), $(st.x)))
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
         function proc(_m, st :: Sample)
             x = st.x
             rhs = st.rhs
             @q begin
-                _ℓ += Soss.logdensity($rhs, $x)
+                _ℓ += Soss.logdensity_def($rhs, $x)
                 $x = Soss.predict($rhs, $x)
             end
         end
@@ -37,36 +37,35 @@ function sourceLogdensity()
     end
 end
 
-# MeasureTheory.logdensity(d::Distribution, val, tr) = logpdf(d, val)
+# MeasureTheory.logdensity_def(d::Distribution, val, tr) = logdensityof(d, val)
 
 
-@gg function _logdensity(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
-    body = type2model(_m) |> sourceLogdensity() |> loadvals(_args, _data, _pars)
+@gg function _logdensity_def(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
+    body = type2model(_m) |> sourceLogdensityDef() |> loadvals(_args, _data, _pars)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end
 end
 
 
-function MeasureTheory.logpdf(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
-    _logpdf(M, Model(c), argvals(c), observations(c), x)
+function logdensityof(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
+    _logdensityof(M, Model(c), argvals(c), observations(c), x)
 end
 
-export sourceLogpdf
 
-sourceLogpdf(m::AbstractModel) = sourceLogpdf()(Model(m))
+sourceLogdensityof(m::AbstractModel) = sourceLogdensityof()(Model(m))
 
-function sourceLogpdf()
+function sourceLogdensityof()
     function(_m::Model)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
-        # proc(_m, st :: Sample)     = :(_ℓ += logpdf($(st.rhs), $(st.x)))
+        # proc(_m, st :: Sample)     = :(_ℓ += logdensityof($(st.rhs), $(st.x)))
         proc(_m, st :: Return)     = nothing
         proc(_m, st :: LineNumber) = nothing
         function proc(_m, st :: Sample)
             x = st.x
             rhs = st.rhs
             @q begin
-                _ℓ += Soss.logpdf($rhs, $x)
+                _ℓ += Soss.logdensityof($rhs, $x)
                 $x = Soss.predict($rhs, $x)
             end
         end
@@ -81,11 +80,11 @@ function sourceLogpdf()
     end
 end
 
-# MeasureTheory.logpdf(d::Distribution, val, tr) = logpdf(d, val)
+# MeasureTheory.logdensityof(d::Distribution, val, tr) = logdensityof(d, val)
 
 
-@gg function _logpdf(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
-    body = type2model(_m) |> sourceLogpdf() |> loadvals(_args, _data, _pars)
+@gg function _logdensityof(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
+    body = type2model(_m) |> sourceLogdensityof() |> loadvals(_args, _data, _pars)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end

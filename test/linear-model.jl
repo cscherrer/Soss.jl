@@ -44,6 +44,6 @@ jointdist = m2(X=X)
 
 @testset "logdensity, symlogdensity" begin
     # @test_nowarn symlogdensity(m2).evalf(3)
-    @test logdensity(jointdist, (β = truth.trace.β, y=y)) ≈ -8.015157812948065
-    # @test logdensity(jointdist, truth, codegen) ≈ -28.551921801470904
+    @test logdensity_def(jointdist, (β = truth.trace.β, y=y)) ≈ -8.015157812948065
+    # @test logdensity_def(jointdist, truth, codegen) ≈ -28.551921801470904
 end
