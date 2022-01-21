@@ -4,8 +4,6 @@
 # struct MixedVariate <: VariateForm end
 
 
-abstract type AbstractModel <: AbstractMeasure end
-
 """
     AbstractModelFunction{A,B}
 
@@ -21,6 +19,13 @@ M gives the Module where the model is defined
 abstract type AbstractModelFunction{A,B,M} <: AbstractModel end
 
 
+abstract type AbstractModel{A,B,M,Args,Obs} <: AbstractKleisli end
+
+argstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = A
+argstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = A
+
+bodytype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = B
+bodytype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = B
 
 # argstype(::AbstractModelFunction{A,B}) where {M,A,O} = AT
 # argstype(::Type{AM}) where {M,A,O,AM<:AbstractModelFunction{A,B}} = AT

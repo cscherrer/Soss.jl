@@ -12,14 +12,14 @@ end
 function toposort(g::SimpleDigraph{T}) where {T}
     g = deepcopy(g)
     order = T[]
-    s = collect(filter(v -> SimpleGraphs.in_deg(g, v) == 0, vlist(g)))
+    s = Symbol[v for v in vlist(g) if SimpleGraphs.in_deg(g, v) == 0]
 
     while !isempty(s)
         u = pop!(s)
         push!(order, u)
 
         for v in out_neighbors(g, u)
-            delete!(g, u, v)
+            SimpleGraphs.delete!(g, u, v)
             if SimpleGraphs.in_deg(g, v) == 0
                 push!(s, v)
             end

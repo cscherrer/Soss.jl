@@ -1,5 +1,6 @@
 module Soss
 
+import BayesianLinearRegression
 import Base.rand
 using Random
 using Reexport: @reexport
@@ -8,9 +9,16 @@ using Reexport: @reexport
 using MeasureTheory
 using MeasureBase: productmeasure, Returns
 
+import DensityInterface: logdensityof
+import DensityInterface: densityof
+import DensityInterface: DensityKind
+using DensityInterface
+
+export For
+
 using NamedTupleTools
 using SampleChains
-using SymbolicCodegen
+# using SymbolicCodegen
 
 using SymbolicUtils: Symbolic
 const MaybeSym{T} = Union{T, Symbolic{T}}
@@ -39,12 +47,14 @@ import SimplePosets
 using GeneralizedGenerated
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
+using MeasureBase: AbstractKleisli
 
 
 using NestedTuples: TypelevelExpr
 
 using MeasureTheory: ∞
-
+@reexport using MeasureTheory
+import MeasureTheory: xform
 
 """
 we use this to avoid introduce static type parameters

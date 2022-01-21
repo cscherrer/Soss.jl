@@ -69,7 +69,7 @@ function dynamicHMC(
     rng::AbstractRNG,
     m::ModelClosure,
     N::Int = 1000;
-    # method = logpdf,
+    # method = logdensityof,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
@@ -80,7 +80,7 @@ function dynamicHMC(
     ℓ = if haskey(kwargs, :ℓ)
         codegen(m; ℓ = kwargs[:ℓ])
     else 
-        (a, o, pars) -> _logdensity(M, Model(m), a, o, pars)
+        (a, o, pars) -> _logdensity_def(M, Model(m), a, o, pars)
     end
 
     _argvals = argvals(m)
@@ -121,7 +121,7 @@ function dynamicHMC(
     kwargs...,
 )
     _data = m.obs
-    ℓ(pars) = logdensity(m, merge(pars, _data), method)
+    ℓ(pars) = logdensity_def(m, merge(pars, _data), method)
     t = xform(m, _data)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)

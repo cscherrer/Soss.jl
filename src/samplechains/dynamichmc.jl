@@ -13,7 +13,7 @@ function sample(rng::AbstractRNG,
     nsamples::Int=1000,
     nchains::Int=4)
 
-    ℓ(x) = MeasureTheory.logpdf(m, x)
+    ℓ(x) = MeasureTheory.logdensityof(m, x)
     tr = xform(m)
 
     chains = newchain(rng, nchains, config, ℓ, tr)

@@ -11,7 +11,7 @@ function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where
 end
 
 # In Bijectors.jl,
-# logdensity_with_trans(dist, x, true) == logdensity(transformed(dist), link(dist, x))
+# logdensity_with_trans(dist, x, true) == logdensity_def(transformed(dist), link(dist, x))
 
 
 export xform
@@ -93,7 +93,7 @@ end
 
 xform(d, _data) = nothing
 
-xform(μ::AbstractMeasure,  _data::NamedTuple=NamedTuple()) = as(μ)
+xform(μ::AbstractMeasure,  _data::NamedTuple) = xform(μ)
 
 xform(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 

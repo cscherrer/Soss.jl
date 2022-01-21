@@ -6,7 +6,7 @@ function makeLoss(model)
 
     t = getTransform(model)
 
-    fpre = @eval $(logdensity(model))
+    fpre = @eval $(logdensity_def(model))
     f(par, data) = Base.invokelatest(fpre, par, data)
 
     loss(x, data) = -f(t(x), data)
