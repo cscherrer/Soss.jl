@@ -4,6 +4,9 @@
 # struct MixedVariate <: VariateForm end
 
 
+abstract type AbstractModel{A,B,M,Args,Obs} <: AbstractKleisli end
+
+
 """
     AbstractModelFunction{A,B}
 
@@ -16,10 +19,8 @@ N gives the Names of arguments (each a Symbol)
 B gives the Body, as an Expr
 M gives the Module where the model is defined
 """
-abstract type AbstractModelFunction{A,B,M} <: AbstractModel end
+abstract type AbstractModelFunction{A,B,M} <: AbstractModel{A,B,M,Nothing,Nothing} end
 
-
-abstract type AbstractModel{A,B,M,Args,Obs} <: AbstractKleisli end
 
 argstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = A
 argstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = A
