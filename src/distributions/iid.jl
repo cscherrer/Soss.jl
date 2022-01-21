@@ -1,7 +1,7 @@
 export iid
 
 
-iid(n::Int...) = dist -> iid(dist, n...)
+iid(n::Integer...) = dist -> iid(dist, n...)
 
 iid(dist::AbstractMeasure, n...) = dist ^ n
 
