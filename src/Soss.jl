@@ -1,5 +1,6 @@
 module Soss
 
+import BayesianLinearRegression
 import Base.rand
 using Random
 using Reexport: @reexport
@@ -17,7 +18,7 @@ export For
 
 using NamedTupleTools
 using SampleChains
-using SymbolicCodegen
+# using SymbolicCodegen
 
 using SymbolicUtils: Symbolic
 const MaybeSym{T} = Union{T, Symbolic{T}}
@@ -46,7 +47,8 @@ RuntimeGeneratedFunctions.init(@__MODULE__)
 using MeasureBase: AbstractKleisli
 
 using MeasureTheory: ∞
-
+@reexport using MeasureTheory
+import MeasureTheory: xform
 
 """
 we use this to avoid introduce static type parameters
@@ -94,11 +96,11 @@ include("transforms/utils.jl")
 include("transforms/basictransforms.jl")
 include("transforms/withmeasures.jl")
 
-include("symbolic/symcall.jl")
-include("symbolic/symify.jl")
-include("symbolic/rules.jl")
-include("symbolic/symbolic.jl")
-include("symbolic/codegen.jl")
+# include("symbolic/symcall.jl")
+# include("symbolic/symify.jl")
+# include("symbolic/rules.jl")
+# include("symbolic/symbolic.jl")
+# include("symbolic/codegen.jl")
 
 # include("particles.jl")
 include("plots.jl")

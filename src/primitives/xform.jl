@@ -92,7 +92,7 @@ end
 
 xform(d, _data) = nothing
 
-xform(μ::AbstractMeasure,  _data::NamedTuple=NamedTuple()) = as(μ)
+xform(μ::AbstractMeasure,  _data::NamedTuple) = xform(μ)
 
 xform(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 
