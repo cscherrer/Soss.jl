@@ -14,12 +14,10 @@ function predict(m::DAGModel, post::Vector{NamedTuple{N,T}}) where {N,T}
     map(nt -> rand(pred(nt)), post)
 end
 
-predict(m::AbstractModel, args...) = predict(Random.GLOBAL_RNG, m, args...)
 predict(d::AbstractMeasure, x) = x
 predict(args...; kwargs...) = predict(Random.GLOBAL_RNG, args...; kwargs...)
 
 # TODO: Fix this hack
-predict(d::AbstractMeasure, x) = x
 predict(d::Dists.Distribution, x) = x
 predict(d::AbstractModel, args...; kwargs...) = predict(Random.GLOBAL_RNG, d, args...; kwargs...)
 

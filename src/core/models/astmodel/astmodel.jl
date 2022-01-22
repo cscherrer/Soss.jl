@@ -1,4 +1,4 @@
-struct ASTModel{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModelFunction{A,B,M}
+struct ASTModel{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModel{A,B,M}
     args :: Vector{Symbol}
     body :: Expr
 end

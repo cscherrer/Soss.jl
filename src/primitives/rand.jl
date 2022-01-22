@@ -41,7 +41,7 @@ end
     (x, ctx, ctx)
 end
 
-@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::NamedTuple, inargs, inobs)
+@inline function tilde_rand(v, d::AbstractModel, cfg, ctx::NamedTuple, inargs, inobs)
     _args = get(cfg._args, v, NamedTuple())
     cfg = merge(cfg, (_args = _args,))
     tilde_rand(v, d(cfg._args), cfg, ctx, inargs, inobs)
@@ -56,7 +56,7 @@ end
     (x, ctx, ctx)
 end
 
-@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::Dict, inargs, inobs)
+@inline function tilde_rand(v, d::AbstractModel, cfg, ctx::Dict, inargs, inobs)
     _args = get(cfg._args, v, Dict())
     cfg = merge(cfg, (_args = _args,))
     tilde_rand(v, d(cfg._args), cfg, ctx, inargs, inobs)
@@ -70,7 +70,7 @@ end
     (x, (), x)
 end
 
-@inline function tilde_rand(v, d::AbstractModelFunction, cfg, ctx::Tuple{}, inargs, inobs)
+@inline function tilde_rand(v, d::AbstractModel, cfg, ctx::Tuple{}, inargs, inobs)
     _args = get(cfg._args, v, NamedTuple())
     cfg = merge(cfg, (_args = _args,))
     tilde_rand(v, d(cfg._args), cfg, ctx, inargs, inobs)

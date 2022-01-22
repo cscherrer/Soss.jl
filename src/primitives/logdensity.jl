@@ -24,18 +24,13 @@ end
     (x, ctx, ℓ)
 end
 
-@inline function tilde_logdensity_def(v, d::AbstractModelFunction, cfg, ctx::NamedTuple, inargs, inobs)
+@inline function tilde_logdensity_def(v, d::AbstractModel, cfg, ctx::NamedTuple, inargs, inobs)
     ℓ = ctx.ℓ
     x = getproperty(cfg, v)
     Δℓ = logdensity_def(d(cfg._args), x)
     ℓ += Δℓ
     merge(ctx, (ℓ=ℓ, Δℓ=Δℓ))
     (x, ctx, ℓ)
-end
-
-
-function MeasureBase.logdensity_def(c::ModelPosterior, x=NamedTuple())
-    _logpdf(M, Model(c), argvals(c), observations(c), x)
 end
 
 export sourceLogdensityDef

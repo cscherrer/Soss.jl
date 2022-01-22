@@ -4,11 +4,11 @@
 # struct MixedVariate <: VariateForm end
 
 
-abstract type AbstractModel{A,B,M,Args,Obs} <: AbstractKleisli end
+
 
 
 """
-    AbstractModelFunction{A,B}
+    AbstractModel{A,B}
 
 Gives an abstract type for all Soss models
 
@@ -19,37 +19,39 @@ N gives the Names of arguments (each a Symbol)
 B gives the Body, as an Expr
 M gives the Module where the model is defined
 """
-abstract type AbstractModelFunction{A,B,M} <: AbstractModel{A,B,M,Nothing,Nothing} end
+abstract type AbstractModel{A,B,M} <: AbstractKleisli end
+
+abstract type AbstractConditionedModel{M, Args, Obs} <: AbstractMeasure end
 
 
-argstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = A
-argstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = A
 
-bodytype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = B
-bodytype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = B
 
-# argstype(::AbstractModelFunction{A,B}) where {M,A,O} = AT
-# argstype(::Type{AM}) where {M,A,O,AM<:AbstractModelFunction{A,B}} = AT
+argstype(::AbstractModel{A,B,M}) where {A,B,M} = A
 
-# # bodytype(::AbstractModelFunction{A,B}) where {M,A,O} = BT
-# # bodytype(::Type{AM}) where {M,A,O,AM<:AbstractModelFunction{A,B}} = BT
+bodytype(::AbstractModel{A,B,M}) where {A,B,M} = B
+
+# argstype(::AbstractModel{A,B}) where {M,A,O} = AT
+# argstype(::Type{AM}) where {M,A,O,AM<:AbstractModel{A,B}} = AT
+
+# # bodytype(::AbstractModel{A,B}) where {M,A,O} = BT
+# # bodytype(::Type{AM}) where {M,A,O,AM<:AbstractModel{A,B}} = BT
 
 # getmodule(::AbstractModel{M}) where {M<:AbstractModel} = getmodule(M)
 
-getmodule(::Type{AMF}) where {A,B,M, AMF<:AbstractModelFunction{A,B,M}} = from_type(M)
-getmodule(::AbstractModelFunction{A,B,M}) where {A,B,M} = from_type(M)
+getmodule(::Type{AMF}) where {A,B,M, AMF<:AbstractModel{A,B,M}} = from_type(M)
+getmodule(::AbstractModel{A,B,M}) where {A,B,M} = from_type(M)
 
-# getmoduletypencoding(::Type{AbstractModelFunction{A,B}}) where  {M,A,O,AM<:AbstractModelFunction{A,B}} = M
-# getmoduletypencoding(::AbstractModelFunction{A,B}) where  {M,A,O,AM<:AbstractModelFunction{A,B}} = M
+# getmoduletypencoding(::Type{AbstractModel{A,B}}) where  {M,A,O,AM<:AbstractModel{A,B}} = M
+# getmoduletypencoding(::AbstractModel{A,B}) where  {M,A,O,AM<:AbstractModel{A,B}} = M
 
-argvalstype(::AbstractModelFunction{A}) where {A} = A
-argvalstype(::Type{AM}) where {A,AM<:AbstractModelFunction{A}} = A
-
-
-obstype(::AbstractModelFunction) = NamedTuple{(), Tuple{}}
-obstype(::Type{<:AbstractModelFunction}) = NamedTuple{(), Tuple{}}
+argvalstype(::AbstractModel{A}) where {A} = A
+argvalstype(::Type{AM}) where {A,AM<:AbstractModel{A}} = A
 
 
-(m::AbstractModelFunction)(;argvals...)= m((;argvals...))
+obstype(::AbstractModel) = NamedTuple{(), Tuple{}}
+obstype(::Type{<:AbstractModel}) = NamedTuple{(), Tuple{}}
 
-(m::AbstractModelFunction)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
+
+(m::AbstractModel)(;argvals...)= m((;argvals...))
+
+(m::AbstractModel)(args...) = m(NamedTuple{Tuple(m.args)}(args...))

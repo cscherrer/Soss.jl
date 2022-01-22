@@ -1,7 +1,9 @@
-struct ModelPosterior{M,A,O}
+struct ModelPosterior{M,A,O} <: AbstractConditionedModel{M,A,O}
     closure::ModelClosure{M,A}
     obs::O
 end
+
+model(post::ModelPosterior) = model(post.closure)
 
 
 function Base.show(io::IO, cm::ModelPosterior)
@@ -34,8 +36,8 @@ end
 
 Model(post::ModelPosterior) = Model(post.closure)
 
-ModelPosterior(m::AbstractModelFunction) = ModelPosterior(m,NamedTuple(), NamedTuple())
+ModelPosterior(m::AbstractModel) = ModelPosterior(m,NamedTuple(), NamedTuple())
 
-(cm::ModelPosterior)(nt::NamedTuple) = ModelPosterior(cm.model, merge(cm.argvals, nt), cm.obs)
+(post::ModelPosterior)(nt::NamedTuple) = ModelPosterior(model(post)(merge(argvals(post), nt)), post.obs)
 
-Base.:|(cm::ModelPosterior, nt::NamedTuple) = ModelPosterior(cm.model, cm.argvals, merge(cm.obs, nt))
+Base.:|(post::ModelPosterior, nt::NamedTuple) = ModelPosterior(post.closure, merge(post.obs, nt))

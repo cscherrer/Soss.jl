@@ -60,7 +60,7 @@ function assemblefrom(m::DAGModel, params, args)
     return m
 end
 
-getReturn(am::AbstractModelFunction) = Model(am).retn
+getReturn(am::AbstractModel) = Model(am).retn
 
 function setReturn(m::DAGModel, x)
     theModule = getmodule(m)

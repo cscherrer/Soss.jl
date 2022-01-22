@@ -1,4 +1,4 @@
-struct ModelClosure{M,A} <: AbstractModelFunction{A,B}
+struct ModelClosure{M,A} <: AbstractModel{A,B}
     model :: M
     argvals :: A
 end
@@ -25,22 +25,22 @@ end
 
 Model(c::ModelClosure) = c.model
 
-ModelClosure(m::AbstractModelFunction) = ModelClosure(m,NamedTuple(), NamedTuple())
+ModelClosure(m::AbstractModel) = ModelClosure(m,NamedTuple(), NamedTuple())
 Model(::Type{<:ModelPosterior{M,A,O}}) where {M,A,O} = type2model(Model{M,A,O})
 
 ModelPosterior(m::Model) = ModelPosterior(m,NamedTuple(), NamedTuple())
 
-(m::AbstractModelFunction)(nt::NamedTuple) = ModelClosure(m)(nt)
+(m::AbstractModel)(nt::NamedTuple) = ModelClosure(m)(nt)
 
 (cm::ModelClosure)(nt::NamedTuple) = ModelClosure(cm.model, merge(cm.argvals, nt), cm.obs)
 
-(m::AbstractModelFunction)(;argvals...)= m((;argvals...))
+(m::AbstractModel)(;argvals...)= m((;argvals...))
 
-(m::AbstractModelFunction)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
+(m::AbstractModel)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
 (m::Model)(args...) = m(NamedTuple{Tuple(m.args)}(args))
 
 import Base
 
-Base.:|(m::AbstractModelFunction, nt::NamedTuple) = ModelClosure(m) | nt
+Base.:|(m::AbstractModel, nt::NamedTuple) = ModelClosure(m) | nt
 
 Base.:|(cm::ModelClosure, nt::NamedTuple) = ModelClosure(cm.model, cm.argvals, merge(cm.obs, nt))

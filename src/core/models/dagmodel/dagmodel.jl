@@ -1,4 +1,4 @@
-struct DAGModel{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModelFunction{A,B,M}
+struct DAGModel{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModel{A,B,M}
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple

@@ -1,13 +1,13 @@
-struct ModelClosure{M,A} <: AbstractModel
+struct ModelClosure{M,A} <: AbstractConditionedModel{M,A,Nothing}
     model::M
     argvals::A
 end
 
-function Base.show(io::IO, cm::ModelClosure)
+function Base.show(io::IO, mc::ModelClosure)
     println(io, "ModelClosure given")
-    println(io, "    arguments    ", keys(argvals(cm)))
-    println(io, "    observations ", keys(observations(cm)))
-    println(io, Model(cm))
+    println(io, "    arguments    ", keys(argvals(mc)))
+    println(io, "    observations ", keys(observations(mc)))
+    println(io, Model(mc))
 end
 
 export argvals
@@ -17,17 +17,17 @@ export observations
 observations(c::ModelClosure) = NamedTuple()
 
 export observed
-function observed(cm::ModelClosure{M,A}) where {M,A}
+function observed(mc::ModelClosure{M,A}) where {M,A}
     NamedTuple()
 end
 
-Model(c::ModelClosure) = c.model
+model(c::ModelClosure) = c.model
 
-ModelClosure(m::AbstractModelFunction) = ModelClosure(m,NamedTuple())
+ModelClosure(m::AbstractModel) = ModelClosure(m,NamedTuple())
 
-(m::AbstractModelFunction)(nt::NamedTuple) = ModelClosure(m, nt)
+(m::AbstractModel)(nt::NamedTuple) = ModelClosure(m, nt)
 
-(cm::ModelClosure)(nt::NamedTuple) = ModelClosure(cm.model, merge(cm.argvals, nt), cm.obs)
+(mc::ModelClosure)(nt::NamedTuple) = ModelClosure(model(mc), merge(mc.argvals, nt))
 
 argvalstype(mc::ModelClosure{M,A}) where {M,A} = A
 argvalstype(::Type{MC}) where {M,A,MC<:ModelClosure{M,A}} = A

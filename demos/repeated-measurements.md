@@ -192,8 +192,8 @@ _j1 = 1 _j2 = 1
 
 <!--
 using BenchmarkTools
-@btime logdensity(m(),truth)
-@btime logdensity(m(),truth, codegen)
+@btime logdensity_def(m(),truth)
+@btime logdensity_def(m(),truth, codegen)
 
 f1 = Soss._codegen(m, true);
 f2 = Soss._codegen(m,false);
@@ -205,7 +205,7 @@ codegen(m(),truth)
 
 
 
-logdensity(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)), codegen)
+logdensity_def(m(), merge(truth, (p_bad=shuffle(truth.p_bad),)), codegen)
 
 
 @time result = dynamicHMC(m(), (y=truth.y,), codegen) ;
