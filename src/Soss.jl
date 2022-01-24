@@ -80,6 +80,7 @@ include("primitives/simulate.jl")
 include("primitives/logdensity.jl")
 include("primitives/xform.jl")
 include("primitives/likelihood-weighting.jl")
+include("primitives/insupport.jl")
 # include("primitives/gg.jl")
 # @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
 #     include("primitives/bijectors.jl")
