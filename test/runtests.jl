@@ -49,7 +49,7 @@ include("examples-list.jl")
         x = rand(outer(sub=inner)).m
         post = outer(sub=inner) | (m = (x=x,),)
         t = xform(post)
-        @test logdensity_def(post, transform(t, randn(3))) isa Float64
+        @test logdensity_def(post, transform(t, randn(3))) isa Real
     end
 
     @testset "Predict" begin
