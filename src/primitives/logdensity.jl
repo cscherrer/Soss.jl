@@ -28,7 +28,7 @@ function sourceLogdensityDef()
         end
 
         wrap(kernel) = @q begin
-            _ℓ = 0.0
+            _ℓ = partialstatic(0.0)
             $kernel
             return _ℓ
         end
