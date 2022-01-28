@@ -24,7 +24,7 @@ function sourceInsupport()
             x = st.x
             rhs = st.rhs
             @q begin
-                Soss.insupport($rhs, $x) || return false
+                Soss.dynamic(Soss.insupport($rhs, $x)) || return false
                 $x = Soss.predict($rhs, $x)
             end
         end

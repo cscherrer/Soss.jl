@@ -34,3 +34,6 @@ argvalstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}}
 
 obstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = Obs
 obstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = Obs
+
+body(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = from_type(B)
+body(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(B)

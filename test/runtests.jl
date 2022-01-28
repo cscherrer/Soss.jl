@@ -157,5 +157,18 @@ include("examples-list.jl")
 
     end
 
+    @testset "basemeasure" begin
+        m = @model n begin
+            p ~ Uniform()
+            x ~ Bernoulli(p) ^ n
+        end
+
+        post = m(10) | (x = rand(Bool, 10),)
+        base = basemeasure(post)
+        @test logdensity_def(base, (p=0.2,)) isa Real
+    end
+end
+
+
 
 end

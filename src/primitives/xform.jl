@@ -15,9 +15,9 @@ end
 
 export xform
 
-xform(m::ConditionalModel{A, B}, _data::NamedTuple) where {A,B} = xform(m | _data)
+@inline xform(m::ConditionalModel{A, B}, _data::NamedTuple) where {A,B} = xform(m | _data)
 
-function xform(m::ConditionalModel{A, B}) where {A,B}
+@inline function xform(m::ConditionalModel{A, B}) where {A,B}
     return _xform(getmoduletypencoding(m), Model(m), argvals(m), observations(m))
 end
 
@@ -71,7 +71,7 @@ end
 
 using Distributions: support
 
-function xform(d, _data::NamedTuple)
+@inline function xform(d, _data::NamedTuple)
     if hasmethod(support, (typeof(d),))
         return asTransform(support(d)) 
     end

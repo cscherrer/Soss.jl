@@ -34,8 +34,9 @@ import MLStyle
 
 using Requires
 using ArrayInterface: StaticInt
+using Static
 
-
+using IfElse: ifelse
 using TransformVariables: as, asℝ, as𝕀, asℝ₊
 import TransformVariables
 const TV = TransformVariables
@@ -55,6 +56,18 @@ we use this to avoid introduce static type parameters
 for generated functions
 """
 _unwrap_type(a::Type{<:Type}) = a.parameters[1]
+
+import GeneralizedGenerated as GG
+
+@generated function MeasureBase.For(f::GG.Closure{F,Free}, inds::I) where {F,Free,I<:Tuple}
+    eltypes = I.types
+    freetypes = Free.types
+    T = Core.Compiler.return_type(F, Tuple{freetypes..., eltypes...})
+    quote
+        $(Expr(:meta, :inline))
+        For{$T,GG.Closure{F,Free},I}(f, inds)
+    end
+end
 
 include("noted.jl")
 include("core/models/abstractmodel.jl")
