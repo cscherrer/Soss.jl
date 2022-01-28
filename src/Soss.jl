@@ -34,8 +34,9 @@ import MLStyle
 
 using Requires
 using ArrayInterface: StaticInt
+using Static
 
-
+using IfElse: ifelse
 using TransformVariables: as, asℝ, as𝕀, asℝ₊
 import TransformVariables
 const TV = TransformVariables
@@ -65,6 +66,18 @@ _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 export Model, ASTModel, DAGModel, @model, @dagmodel
 
 include("callify.jl")
+import GeneralizedGenerated as GG
+
+@generated function MeasureBase.For(f::GG.Closure{F,Free}, inds::I) where {F,Free,I<:Tuple}
+    eltypes = I.types
+    freetypes = Free.types
+    T = Core.Compiler.return_type(F, Tuple{freetypes..., eltypes...})
+    quote
+        $(Expr(:meta, :inline))
+        For{$T,GG.Closure{F,Free},I}(f, inds)
+    end
+end
+
 include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/models/dagmodel/statement.jl")
@@ -90,7 +103,8 @@ include("primitives/rand.jl")
 include("primitives/simulate.jl")
 include("primitives/logdensity.jl")
 include("primitives/xform.jl")
-# include("primitives/likelihood-weighting.jl")
+include("primitives/likelihood-weighting.jl")
+include("primitives/insupport.jl")
 # include("primitives/gg.jl")
 # @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
 #     include("primitives/bijectors.jl")

@@ -33,11 +33,11 @@ end
     (x, ctx, ℓ)
 end
 
-export sourceLogdensityDef
+export sourceLogdensityOf
 
-sourceLogdensityDef(m::AbstractModel) = sourceLogdensityDef()(Model(m))
+sourceLogdensityOf(m::AbstractModel) = sourceLogdensityOf()(Model(m))
 
-function sourceLogdensityDef()
+function sourceLogdensityOf()
     function(_m::DAGModel)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
         # proc(_m, st :: Sample)     = :(_ℓ += logpdf($(st.rhs), $(st.x)))
@@ -47,7 +47,7 @@ function sourceLogdensityDef()
             x = st.x
             rhs = st.rhs
             @q begin
-                _ℓ += Soss.logpdf($rhs, $x)
+                _ℓ += Soss.logdensityof($rhs, $x)
                 $x = Soss.predict($rhs, $x)
             end
         end
@@ -65,8 +65,8 @@ end
 # MeasureBase.logdensity_defd::Distribution, val, tr) = logpdf(d, val)
 
 
-@gg function _logdensity_def(M::Type{<:TypeLevel}, _m::DAGModel, _args, _data, _pars)
-    body = type2model(_m) |> sourceLogdensityDef() |> loadvals(_args, _data, _pars)
+@gg function _logdensityof(M::Type{<:TypeLevel}, _m::DAGModel, _args, _data, _pars)
+    body = type2model(_m) |> sourceLogdensityOf() |> loadvals(_args, _data, _pars)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end

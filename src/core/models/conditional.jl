@@ -37,7 +37,8 @@ ModelPosterior(m::Model) = ModelPosterior(m,NamedTuple(), NamedTuple())
 (m::AbstractModel)(;argvals...)= m((;argvals...))
 
 (m::AbstractModel)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
-(m::Model)(args...) = m(NamedTuple{Tuple(m.args)}(args))
+# (m::Model)(args...) = m(NamedTuple{Tuple(m.args)}(args))
+(m::Model)(args...) = m(argstype(m)(args))
 
 import Base
 

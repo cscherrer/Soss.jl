@@ -50,7 +50,7 @@ include("examples-list.jl")
         x = rand(outer(sub=inner)).m
         post = outer(sub=inner) | (m = (x=x,),)
         t = xform(post)
-        @test logdensity_def(post, transform(t, randn(3))) isa Float64
+        @test logdensity_def(post, transform(t, randn(3))) isa Real
     end
 
     @testset "Predict" begin
@@ -157,6 +157,19 @@ include("examples-list.jl")
 
 
     end
+
+    @testset "basemeasure" begin
+        m = @model n begin
+            p ~ Uniform()
+            x ~ Bernoulli(p) ^ n
+        end
+
+        post = m(10) | (x = rand(Bool, 10),)
+        base = basemeasure(post)
+        @test logdensity_def(base, (p=0.2,)) isa Real
+    end
+end
+
 
 
 end

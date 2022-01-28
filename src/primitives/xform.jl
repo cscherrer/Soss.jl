@@ -72,7 +72,7 @@ end
 
 using Distributions: support
 
-function xform(d, _data::NamedTuple)
+@inline function xform(d, _data::NamedTuple)
     if hasmethod(support, (typeof(d),))
         return asTransform(support(d)) 
     end

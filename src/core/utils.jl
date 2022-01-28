@@ -201,27 +201,40 @@ function loadvals(argstype, datatype)
 end
 
 function loadvals(argstype, datatype, parstype)
-    args = getntkeys(argstype)
-    data = getntkeys(datatype)
-    pars = getntkeys(parstype)
+    args = schema(argstype)
+    data = schema(datatype)
+    pars = schema(parstype)
 
     loader = @q begin
 
     end
 
-    for k in args
-        push!(loader.args, :($k = _args.$k))
+    for k in keys(args)
+        T = getproperty(args, k)
+        push!(loader.args, :($k::$T = _args.$k))
     end
-    for k in setdiff(data, pars)
-        push!(loader.args, :($k = _data.$k))
-    end
-
-    for k in setdiff(pars, data)
-        push!(loader.args, :($k = _pars.$k))
+    for k in setdiff(keys(data), keys(pars))
+        T = getproperty(data, k)
+        push!(loader.args, :($k::$T = _data.$k))
     end
 
-    for k in pars ∩ data
-        push!(loader.args, :($k = Soss.NestedTuples.lazymerge(_data.$k, _pars.$k)))
+    for k in setdiff(keys(pars), keys(data))
+        T = getproperty(pars, k)
+        push!(loader.args, :($k::$T = _pars.$k))
+    end
+
+    for k in keys(pars) ∩ keys(data)
+        qk = QuoteNode(k)
+        if typejoin(getproperty(pars, k), getproperty(data, k)) <: NamedTuple
+            push!(loader.args, :($k = Soss.NestedTuples.lazymerge(_data.$k, _pars.$k)))
+        else
+            T = getproperty(pars, k)
+            push!(loader.args, quote
+                _k = $qk
+                @warn "Duplicate key, ignoring $_k in data"
+                $k::$T = _pars.$k
+            end)
+        end
     end
 
     src -> (@q begin

@@ -55,3 +55,10 @@ obstype(::Type{<:AbstractModel}) = NamedTuple{(), Tuple{}}
 (m::AbstractModel)(;argvals...)= m((;argvals...))
 
 (m::AbstractModel)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
+
+
+obstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = Obs
+obstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = Obs
+
+body(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = from_type(B)
+body(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(B)
