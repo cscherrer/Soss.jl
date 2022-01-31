@@ -1,6 +1,6 @@
 using Test
 using MeasureTheory
-using TransformVariables
+import TransformVariables as TV
 using Aqua
 using Soss
 

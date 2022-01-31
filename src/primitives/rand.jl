@@ -35,7 +35,9 @@ end
 ###############################################################################
 # ctx::NamedTuple
 
-@inline function tilde_rand(v, d, cfg, ctx::NamedTuple, inargs, inobs)
+
+
+@generated function tilde_rand(v, d, cfg, ctx::NamedTuple, inargs, inobs)
     x = rand(cfg.rng, d)
     ctx = merge(ctx, NamedTuple{(v,)}((x,)))
     (x, ctx, ctx)
@@ -77,3 +79,4 @@ end
 end
 
 ###############################################################################
+

@@ -7,13 +7,13 @@ function Base.show(io::IO, cm::ModelClosure)
     println(io, "ModelClosure given")
     println(io, "    arguments    ", keys(argvals(cm)))
     println(io, "    observations ", keys(observations(cm)))
-    println(io, Model(cm))
+    println(io, model(cm))
 end
 
 export argvals
 argvals(c::ModelClosure) = c.argvals
 argvals(c::ModelPosterior) = c.argvals
-argvals(m::Model) = NamedTuple()
+argvals(m::AbstractModel) = NamedTuple()
 
 export observations
 observations(c::ModelClosure) = c.obs
@@ -23,10 +23,10 @@ function observed(cm::ModelClosure{M,A,O}) where {M,A,O}
     keys(schema(Obs))
 end
 
-Model(c::ModelClosure) = c.model
+model(c::ModelClosure) = c.model
 
 ModelClosure(m::AbstractModel) = ModelClosure(m,NamedTuple(), NamedTuple())
-Model(::Type{<:ModelPosterior{M,A,O}}) where {M,A,O} = type2model(Model{M,A,O})
+model(::Type{<:ModelPosterior{M,A,O}}) where {M,A,O} = type2model(Model{M,A,O})
 
 ModelPosterior(m::Model) = ModelPosterior(m,NamedTuple(), NamedTuple())
 

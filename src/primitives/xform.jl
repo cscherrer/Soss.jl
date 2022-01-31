@@ -4,9 +4,8 @@ using MLStyle
 using NestedTuples
 import NestedTuples
 import MeasureTheory: testvalue
-using TransformVariables
 
-function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
+function NestedTuples.schema(::Type{TV.TransformTuple{T}}) where {T} 
     schema(T)
 end
 

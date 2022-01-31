@@ -7,7 +7,7 @@ using ForwardDiff: gradient!
 using LinearAlgebra
 using SparseArrays
 using NamedTupleTools: select
-using TransformVariables
+import TransformVariables as TV
 
 """
     bouncy(m, data, T = 1000.0; c=10.0, λ=0.1, ρ=0.0, adapt=false)

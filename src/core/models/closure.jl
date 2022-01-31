@@ -1,4 +1,4 @@
-struct ModelClosure{M,A} <: AbstractConditionedModel{M,A,Nothing}
+struct ModelClosure{M,A} <: AbstractConditionalModel{M,A,Nothing}
     model::M
     argvals::A
 end
@@ -7,7 +7,7 @@ function Base.show(io::IO, mc::ModelClosure)
     println(io, "ModelClosure given")
     println(io, "    arguments    ", keys(argvals(mc)))
     println(io, "    observations ", keys(observations(mc)))
-    println(io, Model(mc))
+    println(io, model(mc))
 end
 
 export argvals

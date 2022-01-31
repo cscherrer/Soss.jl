@@ -31,7 +31,7 @@ assigned(m::AbstractModel) = keys(Model(m).vals) |> collect
 
 export parameters
 function parameters(a::AbstractModel)
-    m = Model(a)
+    m = model(a)
     union(assigned(Model(m)), sampled(m))
 end
 

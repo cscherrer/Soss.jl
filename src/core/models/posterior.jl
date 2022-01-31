@@ -1,4 +1,4 @@
-struct ModelPosterior{M,A,O} <: AbstractConditionedModel{M,A,O}
+struct ModelPosterior{M,A,O} <: AbstractConditionalModel{M,A,O}
     closure::ModelClosure{M,A}
     obs::O
 end
@@ -34,7 +34,6 @@ function observed(cm::ModelPosterior{M,A,O}) where {M,A,O}
     keys(schema(O))
 end
 
-Model(post::ModelPosterior) = Model(post.closure)
 
 ModelPosterior(m::AbstractModel) = ModelPosterior(m,NamedTuple(), NamedTuple())
 

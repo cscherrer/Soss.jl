@@ -5,15 +5,25 @@ function interpret(m::ASTModel{A,B,M}, tilde, ctx0) where {A,B,M}
     mk_function(theModule, _interpret(m.body, tilde, ctx0))
 end
 
+# abstract type Maybe{T} end 
+
+
 function _interpret(ast::Expr, _tilde, _args, _obs)
     function go(ex)
         @match ex begin
-            :($(x::Symbol) ~ $d) => begin
-                qx = QuoteNode(x)
-                inargs = Val(x ∈ getntkeys(_args))
-                inobs = Val(x ∈ getntkeys(_obs))
+            :($x ~ $d) => begin
+                xname = static(x)
+                measure = to_type(d)
+                inargs = static(x ∈ getntkeys(_args))
+                inobs = static(x ∈ getntkeys(_obs))
                 quote
-                    ($x, _ctx, _retn) = $_tilde($qx, $d, _cfg, _ctx, $inargs, $inobs)
+                    _x_oldval =  if $(Expr(:isdefined, $qx))
+                        Just($x)
+                    else
+                        None()
+                    end
+                    _targs = TildeArgs(_ctx, _cfg, _x_oldval, _vars, $inargs, $inobs)
+                    ($x, _ctx, _retn) = $_tilde($xname, $measure, _targs)
                 end
             end
 
@@ -23,7 +33,10 @@ function _interpret(ast::Expr, _tilde, _args, _obs)
         end
     end
 
-    body = go(ast)
+    body = @q let 
+            $ast
+    end |> simplify_ex |> solve_from_local |> go
+    
 
     body
 end

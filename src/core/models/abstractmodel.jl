@@ -3,10 +3,6 @@
 # struct MixedSupport <: ValueSupport end
 # struct MixedVariate <: VariateForm end
 
-
-
-
-
 """
     AbstractModel{A,B}
 
@@ -21,22 +17,11 @@ M gives the Module where the model is defined
 """
 abstract type AbstractModel{A,B,M} <: AbstractKleisli end
 
-abstract type AbstractConditionedModel{M, Args, Obs} <: AbstractMeasure end
-
-
-
+abstract type AbstractConditionalModel{M, Args, Obs} <: AbstractMeasure end
 
 argstype(::AbstractModel{A,B,M}) where {A,B,M} = A
 
 bodytype(::AbstractModel{A,B,M}) where {A,B,M} = B
-
-# argstype(::AbstractModel{A,B}) where {M,A,O} = AT
-# argstype(::Type{AM}) where {M,A,O,AM<:AbstractModel{A,B}} = AT
-
-# # bodytype(::AbstractModel{A,B}) where {M,A,O} = BT
-# # bodytype(::Type{AM}) where {M,A,O,AM<:AbstractModel{A,B}} = BT
-
-# getmodule(::AbstractModel{M}) where {M<:AbstractModel} = getmodule(M)
 
 getmodule(::Type{AMF}) where {A,B,M, AMF<:AbstractModel{A,B,M}} = from_type(M)
 getmodule(::AbstractModel{A,B,M}) where {A,B,M} = from_type(M)
@@ -56,9 +41,5 @@ obstype(::Type{<:AbstractModel}) = NamedTuple{(), Tuple{}}
 
 (m::AbstractModel)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
 
-
-obstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = Obs
-obstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = Obs
-
-body(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = from_type(B)
-body(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(B)
+body(::AbstractModel{A,B}) where {A,B} = from_type(B)
+body(::Type{AM}) where {A,B,AM<:AbstractModel{A,B}} = from_type(B)

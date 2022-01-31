@@ -1,5 +1,5 @@
 
-using TransformVariables, Parameters, Statistics, StatsFuns, Optim
+import TransformVariables as TV, Parameters, Statistics, StatsFuns, Optim
 using NLSolversBase
 
 function makeLoss(model)

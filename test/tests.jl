@@ -1,6 +1,6 @@
 using Soss
 using MeasureTheory
-using TransformVariables
+import TransformVariables as TV
 using Aqua
 Aqua.test_all(Soss; ambiguities=false, unbound_args=false)
 

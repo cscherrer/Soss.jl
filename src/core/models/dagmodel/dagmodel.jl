@@ -118,7 +118,7 @@ function Base.convert(::Type{Expr}, m::DAGModel{T} where T)
     striplines(q).args[1]
 end
 
-Model(m::DAGModel) = m
+model(m::DAGModel) = m
 
 DAGModel(m::ASTModel) = DAGModel(getmodule(m), m.args, convert(Expr, m.body))
 
@@ -147,7 +147,7 @@ end
 # observe(m,vs::Vector{Symbol}) = merge(m, DAGModel(Symbol[], NamedTuple(), NamedTuple(), nothing, vs))
 
 function findStatement(am::DAGModel, x::Symbol)
-    m = Model(am)
+    m = model(am)
     x == :return && return Return(m.retn)
     x ∈ keys(m.vals) && return Assign(x,m.vals[x])
     x ∈ keys(m.dists) && return Sample(x,m.dists[x])
@@ -157,7 +157,7 @@ end
 
 
 function statements(am::DAGModel)
-    m = Model(am)
+    m = model(am)
     s = Statement[Soss.findStatement(m, v) for v in variables(m)]
     return s
 end

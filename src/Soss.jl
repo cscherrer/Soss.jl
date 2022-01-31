@@ -38,8 +38,7 @@ using Static
 
 using IfElse: ifelse
 using TransformVariables: as, asℝ, as𝕀, asℝ₊
-import TransformVariables
-const TV = TransformVariables
+import TransformVariables as TV
 
 using SimplePosets: SimplePoset
 import SimplePosets
@@ -63,7 +62,7 @@ for generated functions
 """
 _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 
-export Model, ASTModel, DAGModel, @model, @dagmodel
+export model, ASTModel, DAGModel, @model, @dagmodel
 
 include("callify.jl")
 import GeneralizedGenerated as GG
@@ -78,6 +77,8 @@ import GeneralizedGenerated as GG
     end
 end
 
+include("tildeargs.jl")
+include("maybe.jl")
 include("noted.jl")
 include("core/models/abstractmodel.jl")
 include("core/models/dagmodel/statement.jl")
