@@ -31,7 +31,7 @@ predict(rng::AbstractRNG, m::AbstractModel; kwargs...) = predict(rng, m, (;kwarg
 
 function predict(d::ModelClosure, post::NamedTuple{N,T}) where {N,T}
     args = argvals(d)
-    m = Model(d)
+    m =model(d)
     pred = predictive(m, keys(post)...)
     rand(pred(merge(args,post)))
 end
@@ -49,7 +49,7 @@ predict(d,x) = x
 end
 
 function predict(rng::AbstractRNG, d::AbstractModel, post::AbstractVector{<:NamedTuple{N}}) where {N}
-    m = Model(d)
+    m =model(d)
     pred = predictive(m, N...)
     args = argvals(d)
     y1 = rand(rng, pred(merge(args,post[1])))

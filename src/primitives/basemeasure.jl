@@ -4,7 +4,7 @@ export basemeasure
 import MeasureTheory
 
 function MeasureTheory.basemeasure(c::ModelClosure{M,A}, x=NamedTuple()) where {M,A}
-    _basemeasure(M, Model(c), argvals(c), observations(c), x)
+    _basemeasure(M, model(c), argvals(c), observations(c), x)
 end
 
 export sourceBasemeasure

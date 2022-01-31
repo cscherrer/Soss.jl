@@ -80,7 +80,7 @@ function dynamicHMC(
     ℓ = if haskey(kwargs, :ℓ)
         codegen(m; ℓ = kwargs[:ℓ])
     else 
-        (a, o, pars) -> _logdensity_def(M, Model(m), a, o, pars)
+        (a, o, pars) -> _logdensity_def(M, model(m), a, o, pars)
     end
 
     _argvals = argvals(m)

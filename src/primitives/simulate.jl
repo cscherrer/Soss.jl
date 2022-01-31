@@ -1,7 +1,7 @@
 import StatsBase
 
 # function simulate(rng::AbstractRNG, cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}, N::Int) where {A,B,M,Argvals}
-#     m = Model(cm)
+#     m =model(cm)
 #     cm0 = setReturn(m, nothing)(argvals(cm))
 #     info = StructArray(simulate(rng, cm0, N))
 #     vals = [predict(cm, pars) for pars in info]
@@ -14,7 +14,7 @@ import StatsBase
 
 
 # function simulate(rng::AbstractRNG, cm::ModelClosure{A,B,M,Argvals,EmptyNTtype}) where {A,B,M,Argvals}
-#     m = Model(cm)
+#     m =model(cm)
 #     cm0 = setReturn(m, nothing)(argvals(cm))
 #     info = simulate(rng, cm0)
 #     val = predict(cm, info)
@@ -50,7 +50,7 @@ end
 simulate(d::ModelClosure, N::Int; trace_assignments=false) = simulate(GLOBAL_RNG, d, N; trace_assignments)
 
 @inline function simulate(rng::AbstractRNG, c::ModelClosure; trace_assignments=false)
-    m = Model(c)
+    m =model(c)
     return _simulate(getmoduletypencoding(m), m, argvals(c), Val(trace_assignments))(rng)
 end
 

@@ -12,7 +12,7 @@ function SymbolicCodegen.codegen(cm :: ModelClosure; kwargs...)
 
     code = codegen(get(kwargs, :ℓ, symlogdensity(cm)))
 
-    m = Model(cm)
+    m =model(cm)
     for (v, rhs) in pairs(m.vals)
         pushfirst!(code.args, :($v = $rhs))
     end

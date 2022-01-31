@@ -12,16 +12,14 @@ function _interpret(ast::Expr, _tilde, _args, _obs)
     function go(ex)
         @match ex begin
             :($x ~ $d) => begin
-                xname = static(x)
+                qx = QuoteNode(x)
+                xname = to_type(x)
                 measure = to_type(d)
                 inargs = static(x ∈ getntkeys(_args))
                 inobs = static(x ∈ getntkeys(_obs))
                 quote
-                    _x_oldval =  if $(Expr(:isdefined, $qx))
-                        Just($x)
-                    else
-                        None()
-                    end
+                    # _x_oldval = ifelse($(Expr(:isdefined, $qx)), Just($x), None())
+                    _x_oldval = nothing
                     _targs = TildeArgs(_ctx, _cfg, _x_oldval, _vars, $inargs, $inobs)
                     ($x, _ctx, _retn) = $_tilde($xname, $measure, _targs)
                 end
@@ -33,15 +31,15 @@ function _interpret(ast::Expr, _tilde, _args, _obs)
         end
     end
 
-    body = @q let 
+    body = go(@q let 
             $ast
-    end |> simplify_ex |> solve_from_local |> go
+    end)
     
 
     body
 end
 
-@gg function mkfun(_mc::MC, ::T, ::C) where {MC, T, C}
+@gg function mkfun(_mc::MC, ::T) where {MC, T}
     _m = type2model(MC)
     M = getmodule(_m)
 
@@ -49,12 +47,11 @@ end
     _obs = obstype(MC)
 
     tilde = T.instance
-    call = C.instance
      
     body = _m.body |> loadvals(_args, _obs)
     body = _interpret(body, tilde, _args, _obs)
 
-    q = (@q let M
+    q = MacroTools.flatten(@q let M
         @inline function(_cfg, _ctx)
             local _retn
             _args = Soss.argvals(_mc)
@@ -63,5 +60,5 @@ end
             $body
             _retn
         end
-    end) |> MacroTools.flatten
+    end)
 end

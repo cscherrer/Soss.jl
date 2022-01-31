@@ -21,26 +21,26 @@ astuple(x::Symbol) = Expr(:tuple,x)
 
 
 export arguments
-arguments(m::AbstractModel) = Model(m).args
+arguments(m::AbstractModel) = model(m).args
 
 export sampled
-sampled(m::AbstractModel) = keys(Model(m).dists) |> collect
+sampled(m::AbstractModel) = keys(model(m).dists) |> collect
 
 export assigned
-assigned(m::AbstractModel) = keys(Model(m).vals) |> collect
+assigned(m::AbstractModel) = keys(model(m).vals) |> collect
 
 export parameters
 function parameters(a::AbstractModel)
     m = model(a)
-    union(assigned(Model(m)), sampled(m))
+    union(assigned(model(m)), sampled(m)) 
 end
 
 export variables
 variables(m::DAGModel) = union(arguments(m), parameters(m))
 
 function variables(expr :: Expr)
-    leaf(x::Symbol) = begin
-        [x]
+    leaf(s::Symbol) = begin
+        [s]
     end
     leaf(x) = []
     branch(head, newargs) = begin
@@ -306,4 +306,68 @@ unVal(::Val{T}) where {T} = T
 function val2nt(v,x)
     k = Soss.unVal(v)
     NamedTuple{(k,)}((x,))
+end
+
+function detilde(ast)
+    q = MLStyle.@match ast begin
+            :($x ~ $rhs)        => :($x = _RAND($rhs))
+            Expr(head, args...) => Expr(head, map(detilde, args)...)
+            x                   => x
+    end 
+
+    MacroTools.flatten(q)
+end
+
+retilde(s::Symbol) = s
+retilde(s::Number) = s
+
+function retilde(v::JuliaVariables.Var)
+    ifelse(v.name == :_RAND, :_RAND, v)
+end
+
+function retilde(ast)
+    MLStyle.@match ast begin
+            :($x = $v($rhs))        => begin
+                    rx = retilde(x)
+                    rv = retilde(v)
+                    rrhs = retilde(rhs) 
+                    if rv == :_RAND
+                        return :($rx ~ $rrhs)
+                    else
+                        return :($rx = $rv($rrhs))
+                    end
+            end
+            Expr(head, args...) => Expr(head, map(retilde, args)...)
+            x                   => x
+    end
+end
+
+asfun(m::AbstractModel) = :(($(arguments(m)...),) ->  $(Soss.body(m)) ) 
+
+function solve_scope(m::AbstractModel)   
+    solve_scope(asfun(m))
+end
+
+function solve_scope(ex::Expr)
+    ex |> detilde |> simplify_ex  |> MacroTools.flatten  |> solve_from_local |> retilde
+end
+
+function locally_bound(ex, optic)
+    isolated = solve_scope(optic(ex))
+    in_context = optic(solve_scope(ex))
+
+    setdiff(globals(isolated), globals(in_context))
+end    
+
+function unsolve(ex)
+    ex = unwrap_scoped(ex)
+    @match ex begin
+        v::JuliaVariables.Var => v.name
+        Expr(head, args...) => Expr(head, map(unsolve, args)...)
+        x => x
+    end
+end
+
+function locals(ex)
+    
 end

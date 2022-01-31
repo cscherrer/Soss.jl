@@ -20,22 +20,32 @@ Base.rand(d::ModelClosure, N::Int) = rand(GLOBAL_RNG, d, N)
 end
 
 # @inline function Base.rand(rng::AbstractRNG, c::ModelPosterior{A,B,M}) where {A,B,M}
-#     m = Model(c)
+#     m =model(c)
 #     return _rand(M, m, argvals(c))(rng)
 # end
 
 
 
-@inline function Base.rand(rng::AbstractRNG, mc::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple(), call=nothing)
+@inline function Base.rand(rng::AbstractRNG, mc::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple())
     cfg = merge(cfg, (rng=rng,))
-    f = mkfun(mc, tilde_rand, call)
+    f = mkfun(mc, tilde_rand)
+    @show f
     return f(cfg, ctx)
 end
 
 ###############################################################################
 # ctx::NamedTuple
 
-
+# function tilde_rand(::XName, ::M, targs::TildeArgs{Ctx,Cfg,Xold,Vars,inArgs,inObs}) where {XName, M, Ctx, Cfg, Xold, Vars, inArgs, inObs}
+#     xname = from_type(XName)
+#     measure = from_type(M)
+#     @show Ctx
+#     @show Cfg
+#     @show Xold
+#     @show Vars
+#     @show inArgs
+#     @show inObs
+# end
 
 @generated function tilde_rand(v, d, cfg, ctx::NamedTuple, inargs, inobs)
     x = rand(cfg.rng, d)

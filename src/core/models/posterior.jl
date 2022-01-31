@@ -10,7 +10,7 @@ function Base.show(io::IO, cm::ModelPosterior)
     println(io, "ModelPosterior given")
     println(io, "    arguments    ", keys(argvals(cm)))
     println(io, "    observations ", keys(observations(cm)))
-    println(io, Model(cm))
+    println(io, model(cm))
 end
 
 type2model(::Type{MP}) where {M, MP<:ModelPosterior{M}} = type2model(M)

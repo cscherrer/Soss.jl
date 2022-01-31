@@ -60,7 +60,7 @@ function assemblefrom(m::DAGModel, params, args)
     return m
 end
 
-getReturn(am::AbstractModel) = Model(am).retn
+getReturn(am::AbstractModel) =model(am).retn
 
 function setReturn(m::DAGModel, x)
     theModule = getmodule(m)
@@ -126,7 +126,7 @@ function after(m::DAGModel, xs...; strict = false)
     trim_args!(args, m, parms)
     m1 = setReturn(assemblefrom(m, parms, args), getReturn(m))
     newargs = arguments(m1) ∪ setdiff(variables(m) ∩ variables(getReturn(m1)), variables(m1))
-    return merge(m1, Model(getmodule(m), newargs, quote end))
+    return merge(m1, model(getmodule(m), newargs, quote end))
 end
 
 """

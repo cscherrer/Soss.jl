@@ -11,6 +11,8 @@ function ASTModel(theModule::Module, args::Vector{Symbol}, body::Expr)
     return ASTModel{A,B,M}(args, striplines(body))
 end
 
+model(m::ASTModel) = m
+
 # ModelClosure{A,B,M,Args,Obs} <: AbstractModel{A,B,M,Argvals,Obs}
 #     model::ASTModel{A,B,M}
 #     argvals :: Argvals

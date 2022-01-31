@@ -8,7 +8,7 @@ import MeasureBase: insupport
 export insupport
 
 function MeasureBase.insupport(c::AbstractConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
-    _insupport(M, Model(c), argvals(c), observations(c), x)
+    _insupport(M, model(c), argvals(c), observations(c), x)
 end
 
 export sourceInsupport

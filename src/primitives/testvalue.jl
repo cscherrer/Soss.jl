@@ -16,7 +16,7 @@ EmptyNTtype = NamedTuple{(),Tuple{}} where T<:Tuple
 # testvalue(d::ModelClosure, N::Int) = testvalue(d, N)
 
 @inline function testvalue(c::ModelClosure)
-    m = Model(c)
+    m =model(c)
     return _testvalue(getmoduletypencoding(m), m, argvals(c))
 end
 

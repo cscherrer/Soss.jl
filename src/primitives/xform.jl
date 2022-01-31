@@ -18,7 +18,7 @@ export xform
 xform(m::ModelClosure{M,A}, _data::NamedTuple) where {M,A} = xform(m | _data)
 
 function xform(m::ModelPosterior{M,A,O}) where {M,A,O}
-    return _xform(getmoduletypencoding(m), Model(m), argvals(m), observations(m))
+    return _xform(getmoduletypencoding(m), model(m), argvals(m), observations(m))
 end
 
 # function xform(m::DAGModel{EmptyNTtype, B}) where {B}
