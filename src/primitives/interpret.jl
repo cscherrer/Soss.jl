@@ -2,26 +2,25 @@ export interpret
 
 function interpret(m::ASTModel{A,B,M}, tilde, ctx0) where {A,B,M}
     theModule = getmodule(m)
-    mk_function(theModule, _interpret(m.body, tilde, ctx0))
+    mk_function(theModule, _interpret(theModule, m.body, tilde, ctx0))
 end
 
-# abstract type Maybe{T} end 
-
-
-function _interpret(ast::Expr, _tilde, _args, _obs)
+function _interpret(M, ast::Expr, _tilde, _args, _obs)
     function go(ex)
         @match ex begin
             :($x ~ $d) => begin
+                x = x.name
                 qx = QuoteNode(x)
                 xname = to_type(x)
                 measure = to_type(d)
                 inargs = static(x ∈ getntkeys(_args))
                 inobs = static(x ∈ getntkeys(_obs))
+                varnames = locals(d)
+                varvals = Expr(:tuple, varnames...)
                 quote
-                    # _x_oldval = ifelse($(Expr(:isdefined, $qx)), Just($x), None())
-                    _x_oldval = nothing
-                    _targs = TildeArgs(_ctx, _cfg, _x_oldval, _vars, $inargs, $inobs)
-                    ($x, _ctx, _retn) = $_tilde($xname, $measure, _targs)
+                    ($x, _ctx, _retn) = let targs = Soss.TildeArgs($xname, $measure, NamedTuple{$varnames}($varvals), $inargs, $inobs)
+                        $_tilde($qx, $d, _cfg, _ctx, targs)
+                    end
                 end
             end
 
@@ -31,10 +30,10 @@ function _interpret(ast::Expr, _tilde, _args, _obs)
         end
     end
 
+
     body = go(@q let 
-            $ast
-    end)
-    
+            $(solve_scope(ast)).args[2]
+    end) |> unsolve
 
     body
 end
@@ -49,7 +48,7 @@ end
     tilde = T.instance
      
     body = _m.body |> loadvals(_args, _obs)
-    body = _interpret(body, tilde, _args, _obs)
+    body = _interpret(M, body, tilde, _args, _obs)
 
     q = MacroTools.flatten(@q let M
         @inline function(_cfg, _ctx)
@@ -61,4 +60,6 @@ end
             _retn
         end
     end)
+
+    @under_global M q
 end

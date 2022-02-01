@@ -359,6 +359,9 @@ function locally_bound(ex, optic)
     setdiff(globals(isolated), globals(in_context))
 end    
 
+"""
+Given a JuliaVariables "solved" expression, convert back to a standard expression
+"""
 function unsolve(ex)
     ex = unwrap_scoped(ex)
     @match ex begin
@@ -368,6 +371,14 @@ function unsolve(ex)
     end
 end
 
+
+"""
+Return the set of local variable names from a *solved* expression (using JuliaVariables)
+"""
 function locals(ex)
-    
+    Tuple(@match ex begin
+        v::JuliaVariables.Var => ifelse(v.is_global, Set{Symbol}(), Set((v.name,)))
+        Expr(head, args...) => union(map(locals, args)...)
+        x => Set{Symbol}()
+    end)
 end
