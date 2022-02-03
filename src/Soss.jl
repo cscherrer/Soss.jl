@@ -68,8 +68,8 @@ include("callify.jl")
 import GeneralizedGenerated as GG
 
 @generated function MeasureBase.For(f::GG.Closure{F,Free}, inds::I) where {F,Free,I<:Tuple}
-    eltypes = I.types
     freetypes = Free.types
+    eltypes = eltype.(I.types)
     T = Core.Compiler.return_type(F, Tuple{freetypes..., eltypes...})
     quote
         $(Expr(:meta, :inline))
