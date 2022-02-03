@@ -6,6 +6,8 @@ function interpret(m::ASTModel{A,B,M}, tilde, ctx0) where {A,B,M}
 end
 
 function _interpret(M, ast::Expr, _tilde, _args, _obs)
+    myscope = Ref((bounds = Var[], freevars = Var[], bound_inits = Symbol[]))
+
     function go(ex)
         @match ex begin
             :($x ~ $d) => begin
@@ -14,14 +16,20 @@ function _interpret(M, ast::Expr, _tilde, _args, _obs)
                 xname = to_type(x)
                 measure = to_type(d)
                 inargs = static(x ∈ getntkeys(_args))
+            
                 inobs = static(x ∈ getntkeys(_obs))
-                varnames = locals(d)
+                varnames = Tuple(locals(d) ∩ myscope[].bound_inits)
                 varvals = Expr(:tuple, varnames...)
                 quote
                     ($x, _ctx, _retn) = let targs = Soss.TildeArgs($xname, $measure, NamedTuple{$varnames}($varvals), $inargs, $inobs)
                         $_tilde($qx, $d, _cfg, _ctx, targs)
                     end
                 end
+            end
+
+            Expr(:scoped, new_scope, ex) => begin
+                myscope[] = new_scope
+                go(ex)
             end
 
             Expr(head, args...) => Expr(head, map(go, args)...)
@@ -32,7 +40,7 @@ function _interpret(M, ast::Expr, _tilde, _args, _obs)
 
 
     body = go(@q let 
-            $(solve_scope(ast)).args[2]
+            $(solve_scope(ast))
     end) |> unsolve
 
     body

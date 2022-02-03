@@ -13,7 +13,7 @@ end
 
 export sourceInsupport
 
-sourceInsupport(m::AbstractModel) = sourceInsupport()(Model(m))
+sourceInsupport(m::AbstractModel) = sourceInsupport()(model(m))
 
 function sourceInsupport()
     function(_m::AbstractModel)

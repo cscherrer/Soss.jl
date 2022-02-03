@@ -342,7 +342,7 @@ function retilde(ast)
     end
 end
 
-asfun(m::AbstractModel) = :(($(arguments(m)...),) ->  $(Soss.body(m)) ) 
+asfun(m::AbstractModel) = :(($(arguments(m)...),) -> $(Soss.body(m)) ) 
 
 function solve_scope(m::AbstractModel)   
     solve_scope(asfun(m))
@@ -376,9 +376,31 @@ end
 Return the set of local variable names from a *solved* expression (using JuliaVariables)
 """
 function locals(ex)
-    Tuple(@match ex begin
+    go(ex) = @match ex begin
         v::JuliaVariables.Var => ifelse(v.is_global, Set{Symbol}(), Set((v.name,)))
-        Expr(head, args...) => union(map(locals, args)...)
+        Expr(head, args...) => union(map(go, args)...)
         x => Set{Symbol}()
-    end)
+    end
+
+    Tuple(go(ex))
 end
+
+
+# make_closure(funexpr)
+
+# @gg function make_closure(__vars::NamedTuple{N,T}, funexpr) where {N,T}
+#     funexpr = 
+#     fdict = MacroTools.splitdef(funexpr)
+#     for v in N
+#         qv = QuoteNode(v)
+#         pushfirst!(fdict[:body], :($v = getproperty(__vars, $qv)))
+#     end
+
+    
+#     fdict[:args] = Any[:__ctx, Expr(:tuple, fdict[:args]...)]  
+
+
+# f(ctx) = Base.Fix1(ctx) do ctx, j
+#     p = ctx.p
+#     Bernoulli(p/j)
+# end

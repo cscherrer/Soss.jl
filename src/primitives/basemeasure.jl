@@ -9,7 +9,7 @@ end
 
 export sourceBasemeasure
 
-sourceBasemeasure(m::AbstractModel) = sourceBasemeasure()(Model(m))
+sourceBasemeasure(m::AbstractModel) = sourceBasemeasure()(model(m))
 
 function sourceBasemeasure()
     function(_m::DAGModel)

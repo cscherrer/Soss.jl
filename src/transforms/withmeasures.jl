@@ -64,7 +64,7 @@ function withmeasures(m::DAGModel)
 end
 
 function withmeasures(d::AbstractModel)
-    withmeasures(Model(d))(argvals(d)) | observations(d)
+    withmeasures(model(d))(argvals(d)) | observations(d)
 end
 
 # TODO: Finish this
