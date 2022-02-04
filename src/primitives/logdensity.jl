@@ -71,3 +71,30 @@ end
         $body
     end
 end
+
+using Accessors
+
+
+@inline function logdensityof(mc::ModelClosure, pars::NamedTuple; cfg = NamedTuple(), ctx=NamedTuple())
+    ctx = merge(ctx, (ℓ = partialstatic(0.0), pars=pars))
+    f = mkfun(mc, tilde_logdensityof)
+    return f(cfg, ctx)
+end
+
+@inline function tilde_logdensityof(v, d, cfg, ctx::NamedTuple, targs::TildeArgs{XName,M,Vars,True,False}) where {XName,M,Vars}
+    x = getproperty(ctx.args, v)
+    @reset ctx.ℓ += MeasureBase._logdensityof(d, x)
+    (x, ctx, ctx.ℓ)
+end
+
+@inline function tilde_logdensityof(v, d, cfg, ctx::NamedTuple, targs::TildeArgs{XName,M,Vars,False,True}) where {XName,M,Vars}
+    x = getproperty(ctx.obs, v)
+    @reset ctx.ℓ += MeasureBase._logdensityof(d, x)
+    (x, ctx, ctx.ℓ)
+end
+
+@inline function tilde_logdensityof(v, d, cfg, ctx::NamedTuple, targs::TildeArgs{XName,M,Vars,False,False}) where {XName,M,Vars}
+    x = getproperty(ctx.pars, v)
+    @reset ctx.ℓ += MeasureBase._logdensityof(d, x)
+    (x, ctx, ctx.ℓ)
+end
