@@ -1,5 +1,5 @@
 using MLStyle
-import SimplePosets
+# import SimplePosets
 using NestedTuples
 using NestedTuples: LazyMerge
 
@@ -36,7 +36,7 @@ function parameters(a::AbstractModel)
 end
 
 export variables
-variables(m::DAGModel) = union(arguments(m), parameters(m))
+# variables(m::DAGModel) = union(arguments(m), parameters(m))
 
 function variables(expr :: Expr)
     leaf(s::Symbol) = begin
@@ -52,13 +52,13 @@ end
 variables(s::Symbol) = [s]
 variables(x) = []
 
-for f in [:arguments, :assigned, :sampled, :parameters, :variables]
-    @eval function $f(m::DAGModel, nt::NamedTuple)
-        vs = $f(m)
-        isempty(vs) && return NamedTuple()
-        return select(nt, $f(m))
-    end
-end
+# for f in [:arguments, :assigned, :sampled, :parameters, :variables]
+#     @eval function $f(m::DAGModel, nt::NamedTuple)
+#         vs = $f(m)
+#         isempty(vs) && return NamedTuple()
+#         return select(nt, $f(m))
+#     end
+# end
 
 export foldall
 function foldall(leaf, branch; kwargs...)

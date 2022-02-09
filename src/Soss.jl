@@ -1,6 +1,5 @@
 module Soss
 
-import BayesianLinearRegression
 import Base.rand
 using Random
 using Reexport: @reexport
@@ -19,8 +18,8 @@ using NamedTupleTools
 using SampleChains
 # using SymbolicCodegen
 
-using SymbolicUtils: Symbolic
-const MaybeSym{T} = Union{T, Symbolic{T}}
+# using SymbolicUtils: Symbolic
+# const MaybeSym{T} = Union{T, Symbolic{T}}
 
 # MeasureTheory.For(f, dims::MaybeSym{<: Integer}...) = ProductMeasure(mappedarray(i -> f(Tuple(i)...), CartesianIndices(dims))) 
 # MeasureTheory.For(f, dims::MaybeSym{<: AbstractUnitRange}...) = ProductMeasure(mappedarray(i -> f(Tuple(i)...), CartesianIndices(dims))) 
@@ -39,8 +38,8 @@ using IfElse: ifelse
 using TransformVariables: as, asℝ, as𝕀, asℝ₊
 import TransformVariables as TV
 
-using SimplePosets: SimplePoset
-import SimplePosets
+# using SimplePosets: SimplePoset
+# import SimplePosets
 
 
 using GeneralizedGenerated
@@ -79,16 +78,16 @@ end
 
 include("tildeargs.jl")
 include("maybe.jl")
-include("noted.jl")
+# include("noted.jl")
 include("core/models/abstractmodel.jl")
-include("core/models/dagmodel/statement.jl")
+# include("core/models/dagmodel/statement.jl")
 include("core/models/astmodel/astmodel.jl")
-include("core/models/dagmodel/dagmodel.jl")
+# include("core/models/dagmodel/dagmodel.jl")
 include("core/models/model.jl")
-include("core/canonical.jl")
+# include("core/canonical.jl")
 include("core/dependencies.jl")
-include("core/toposort.jl")
-include("core/weighted.jl")
+# include("core/toposort.jl")
+# include("core/weighted.jl")
 include("core/utils.jl")
 include("core/models/closure.jl")
 include("core/models/posterior.jl")
@@ -101,26 +100,26 @@ include("distributions/iid.jl")
 # include("distributions/markovchain.jl")
 
 include("primitives/rand.jl")
-include("primitives/simulate.jl")
+# include("primitives/simulate.jl")
 include("primitives/logdensity.jl")
-include("primitives/xform.jl")
-include("primitives/likelihood-weighting.jl")
+# include("primitives/xform.jl")
+# include("primitives/likelihood-weighting.jl")
 include("primitives/insupport.jl")
 # include("primitives/gg.jl")
 # @init @require Bijectors="76274a88-744f-5084-9051-94815aaf08c4" begin
 #     include("primitives/bijectors.jl")
 # end
 
-include("primitives/basemeasure.jl")
+# include("primitives/basemeasure.jl")
 include("primitives/testvalue.jl")
 # include("primitives/entropy.jl")
 
 
 include("transforms/predict.jl")
-include("transforms/markovblanket.jl")
+# include("transforms/markovblanket.jl")
 include("transforms/utils.jl")
-include("transforms/basictransforms.jl")
-include("transforms/withmeasures.jl")
+# include("transforms/basictransforms.jl")
+# include("transforms/withmeasures.jl")
 
 # include("symbolic/symcall.jl")
 # include("symbolic/symify.jl")
@@ -131,16 +130,16 @@ include("transforms/withmeasures.jl")
 # include("particles.jl")
 include("plots.jl")
 
-include("inference/rejection.jl")
+# include("inference/rejection.jl")
 # include("inference/dynamicHMC.jl")
 # include("inference/advancedhmc.jl")
-include("inference/power-posterior.jl")
+# include("inference/power-posterior.jl")
 # include("inference/Δlogdensity.jl")
 
 #
 # # include("graph.jl")
 # # # include("optim.jl")
-include("importance.jl")
+# include("importance.jl")
 #
 
 

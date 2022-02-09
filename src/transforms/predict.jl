@@ -9,10 +9,10 @@ function predict(d::ModelClosure, post::Vector{NamedTuple{N,T}}) where {N,T}
     map(nt -> rand(pred(merge(args,nt))), post)
 end
 
-function predict(m::DAGModel, post::Vector{NamedTuple{N,T}}) where {N,T}
-    pred = predictive(m, keys(post[1])...)
-    map(nt -> rand(pred(nt)), post)
-end
+# function predict(m::DAGModel, post::Vector{NamedTuple{N,T}}) where {N,T}
+#     pred = predictive(m, keys(post[1])...)
+#     map(nt -> rand(pred(nt)), post)
+# end
 
 predict(d::AbstractMeasure, x) = x
 predict(args...; kwargs...) = predict(Random.GLOBAL_RNG, args...; kwargs...)
@@ -36,12 +36,12 @@ function predict(d::ModelClosure, post::NamedTuple{N,T}) where {N,T}
     rand(pred(merge(args,post)))
 end
 
-function predict(m::DAGModel, post::NamedTuple{N,T}) where {N,T}
-    pred = predictive(m, keys(post)...)
-    rand(pred(post))
-end
+# function predict(m::DAGModel, post::NamedTuple{N,T}) where {N,T}
+#     pred = predictive(m, keys(post)...)
+#     rand(pred(post))
+# end
 
-predict(m::DAGModel; kwargs...) = predict(m,(;kwargs...))
+# predict(m::DAGModel; kwargs...) = predict(m,(;kwargs...))
 
 predict(d,x) = x
 @inline function predict(rng::AbstractRNG, d::AbstractModel, nt::LazyMerge)
