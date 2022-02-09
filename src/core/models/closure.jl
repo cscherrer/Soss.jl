@@ -1,4 +1,4 @@
-struct ModelClosure{M,A} <: AbstractConditionalModel{M,A,Nothing}
+struct ModelClosure{M,A} <: AbstractConditionalModel{M,A,NamedTuple{(), Tuple{}}}
     model::M
     argvals::A
 end

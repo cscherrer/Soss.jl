@@ -6,7 +6,7 @@ using Random
 using Reexport: @reexport
 
 @reexport using StatsFuns
-using MeasureTheory
+@reexport using MeasureTheory
 using MeasureBase: productmeasure, Returns
 
 import DensityInterface: logdensityof
@@ -14,7 +14,6 @@ import DensityInterface: densityof
 import DensityInterface: DensityKind
 using DensityInterface
 
-export For
 
 using NamedTupleTools
 using SampleChains
@@ -53,8 +52,9 @@ using MeasureBase: AbstractKleisli
 using NestedTuples: TypelevelExpr
 
 using MeasureTheory: ∞
-@reexport using MeasureTheory
 import MeasureTheory: xform
+
+using FLoops
 
 """
 we use this to avoid introduce static type parameters
@@ -67,7 +67,7 @@ export model, ASTModel, DAGModel, @model, @dagmodel
 include("callify.jl")
 import GeneralizedGenerated as GG
 
-@generated function MeasureBase.For(f::GG.Closure{F,Free}, inds::I) where {F,Free,I<:Tuple}
+@generated function MeasureTheory.For(f::GG.Closure{F,Free}, inds::I) where {F,Free,I<:Tuple}
     freetypes = Free.types
     eltypes = eltype.(I.types)
     T = Core.Compiler.return_type(F, Tuple{freetypes..., eltypes...})

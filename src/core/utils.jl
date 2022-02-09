@@ -404,3 +404,7 @@ end
 #     p = ctx.p
 #     Bernoulli(p/j)
 # end
+
+struct ReturnNow{T}
+    value::T
+end

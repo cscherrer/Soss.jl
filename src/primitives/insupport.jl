@@ -47,3 +47,9 @@ end
         $body
     end
 end
+
+function tilde_insupport(v, d, cfg, ctx, targs::TildeArgs{X,M,V}) where {X,M,V}
+    x = getproperty(lazymerge(ctx.args, ctx.obs, ctx.pars), v)
+    retn = insupport(d,x) ? true : ReturnNow(false)
+    (x, ctx, retn)
+end

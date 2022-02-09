@@ -16,3 +16,17 @@ isNone(::Just) = false
 
 fromMaybe(m::Just, default) = m.value
 fromMaybe(::None, default) = default
+
+function qisdefined(x::Symbol)
+    :($(Expr(:isdefined, x)))
+end
+
+
+function qmaybe(x::Symbol)
+    isdef = Expr(:isdefined, x)
+    :($isdef ? Just($x) : None())
+end
+
+macro qmaybe(s)
+    esc(qmaybe(s))
+end

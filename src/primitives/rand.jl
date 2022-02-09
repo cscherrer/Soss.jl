@@ -46,9 +46,9 @@ end
 end
 
 # @inline function tilde_rand(v, d::AbstractConditionalModel, cfg, ctx::NamedTuple, targs::TildeArgs)
-#     _args = get(cfg._args, v, NamedTuple())
-#     cfg = merge(cfg, (_args = _args,))
-#     tilde_rand(v, d(cfg._args), cfg, ctx, inargs, inobs)
+#     args = get(cfg.args, v, NamedTuple())
+#     cfg = merge(cfg, (args = args,))
+#     tilde_rand(v, d(cfg.args), cfg, ctx)
 # end
 
 ###############################################################################
@@ -61,9 +61,9 @@ end
 end
 
 @inline function tilde_rand(v, d::AbstractConditionalModel, cfg, ctx::Dict, targs::TildeArgs)
-    _args = get(cfg._args, v, Dict())
-    cfg = merge(cfg, (_args = _args,))
-    tilde_rand(v, d(cfg._args), cfg, ctx, inargs, inobs)
+    args = get(cfg.args, v, Dict())
+    cfg = merge(cfg, (args = args,))
+    tilde_rand(v, d(cfg.args), cfg, ctx)
 end
 
 ###############################################################################
@@ -75,9 +75,9 @@ end
 end
 
 @inline function tilde_rand(v, d::AbstractConditionalModel, cfg, ctx::Tuple{}, targs::TildeArgs)
-    _args = get(cfg._args, v, NamedTuple())
-    cfg = merge(cfg, (_args = _args,))
-    tilde_rand(v, d(cfg._args), cfg, ctx, inargs, inobs)
+    args = get(cfg.args, v, NamedTuple())
+    cfg = merge(cfg, (args = args,))
+    tilde_rand(v, d(cfg.args), cfg, ctx)
 end
 
 ###############################################################################

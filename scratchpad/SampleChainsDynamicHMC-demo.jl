@@ -42,7 +42,7 @@ p = 0.001:0.001:0.999
 plot(p, exp.([ℓ((p=pj,)) for pj in p]))
 
 
-using TransformVariables
+import TransformVariables as TV
 
 ℓ(x) = logdensity_def(Beta(4,3), x.p)
 t = xform(post)

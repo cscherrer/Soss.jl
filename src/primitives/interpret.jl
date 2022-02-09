@@ -15,15 +15,14 @@ function _interpret(M, ast::Expr, _tilde, _args, _obs)
                 qx = QuoteNode(x)
                 xname = to_type(x)
                 measure = to_type(d)
-                inargs = static(x ∈ getntkeys(_args))
-            
-                inobs = static(x ∈ getntkeys(_obs))
                 varnames = Tuple(locals(d) ∩ myscope[].bound_inits)
                 varvals = Expr(:tuple, varnames...)
                 quote
-                    ($x, _ctx, _retn) = let targs = Soss.TildeArgs($xname, $measure, NamedTuple{$varnames}($varvals), $inargs, $inobs)
+                    ($x, _ctx, _retn) = let targs = Soss.TildeArgs($xname, $measure, NamedTuple{$varnames}($varvals))
                         $_tilde($qx, $d, _cfg, _ctx, targs)
                     end
+
+                    _retn isa Soss.ReturnNow && return _retn.value
                 end
             end
 
@@ -63,7 +62,7 @@ end
             local _retn
             _args = Soss.argvals(_mc)
             _obs = Soss.observations(_mc)
-            _cfg = merge(_cfg, (_args=_args, _obs=_obs))
+            _cfg = merge(_cfg, (args=_args, obs=_obs))
             $body
             _retn
         end

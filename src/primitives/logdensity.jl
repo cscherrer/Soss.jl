@@ -74,27 +74,20 @@ end
 
 using Accessors
 
+@inline function logdensityof(cm::AbstractConditionalModel, pars::NamedTuple)
+    # TODO: Check insupport
+    dynamic(unsafe_logdensityof(cm, pars))
+end
 
-@inline function logdensityof(mc::ModelClosure, pars::NamedTuple; cfg = NamedTuple(), ctx=NamedTuple())
-    ctx = merge(ctx, (ℓ = partialstatic(0.0), pars=pars))
-    f = mkfun(mc, tilde_logdensityof)
+@inline function MeasureBase.unsafe_logdensityof(cm::AbstractConditionalModel, pars::NamedTuple; cfg = NamedTuple(), ctx=NamedTuple())
+    cfg = merge(cfg, (pars=pars,))
+    ctx = merge(ctx, (ℓ = partialstatic(0.0),))
+    f = mkfun(cm, tilde_unsafe_logdensityof)
     return f(cfg, ctx)
 end
 
-@inline function tilde_logdensityof(v, d, cfg, ctx::NamedTuple, targs::TildeArgs{XName,M,Vars,True,False}) where {XName,M,Vars}
-    x = getproperty(ctx.args, v)
-    @reset ctx.ℓ += MeasureBase._logdensityof(d, x)
-    (x, ctx, ctx.ℓ)
-end
-
-@inline function tilde_logdensityof(v, d, cfg, ctx::NamedTuple, targs::TildeArgs{XName,M,Vars,False,True}) where {XName,M,Vars}
-    x = getproperty(ctx.obs, v)
-    @reset ctx.ℓ += MeasureBase._logdensityof(d, x)
-    (x, ctx, ctx.ℓ)
-end
-
-@inline function tilde_logdensityof(v, d, cfg, ctx::NamedTuple, targs::TildeArgs{XName,M,Vars,False,False}) where {XName,M,Vars}
-    x = getproperty(ctx.pars, v)
-    @reset ctx.ℓ += MeasureBase._logdensityof(d, x)
+@inline function tilde_unsafe_logdensityof(v, d, cfg, ctx::NamedTuple, tildeargs) 
+    x = getproperty(lazymerge(cfg.args, cfg.obs, cfg.pars), v)
+    @reset ctx.ℓ += MeasureBase.unsafe_logdensityof(d, x)
     (x, ctx, ctx.ℓ)
 end
