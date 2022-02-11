@@ -66,7 +66,7 @@ StatsBase = "0.33"
 StatsFuns = "0.9"
 SymbolicCodegen = "0.2"
 SymbolicUtils = "0.15, 0.16, 0.17"
-TransformVariables = "0.4"
+TransformVariables = "0.4, 0.6"
 TupleVectors = "0.1"
 julia = "1.5"
 
