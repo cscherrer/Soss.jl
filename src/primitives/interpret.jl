@@ -53,7 +53,7 @@ end
     _obs = obstype(MC)
 
     tilde = T.instance
-     
+
     body = _m.body |> loadvals(_args, _obs)
     body = _interpret(M, body, tilde, _args, _obs)
 
@@ -69,4 +69,31 @@ end
     end)
 
     @under_global M q
+end
+
+
+@generated function mkfun_call(_mc::MC, ::T, _cfg, _ctx) where {MC, T}
+    _m = type2model(MC)
+    M = getmodule(_m)
+
+    _args = argvalstype(MC)
+    _obs = obstype(MC)
+
+    tilde = T.instance
+    body = _m.body |> loadvals(_args, _obs)
+    body = _interpret(M, body, tilde, _args, _obs)
+
+    q = MacroTools.flatten(@q let M
+            local _retn
+            _args = Soss.argvals(_mc)
+            _obs = Soss.observations(_mc)
+            _cfg = merge(_cfg, (args=_args, obs=_obs))
+            $body
+            _retn
+        end)
+
+    xs = mk_expr(M, q)
+    Base.show(xs)
+    xs
+    # @under_global M q
 end

@@ -31,9 +31,8 @@ end
 
 
 @inline function Base.rand(rng::AbstractRNG, mc::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple())
-    cfg = merge(cfg, (rng=rng,))
-    f = mkfun(mc, tilde_rand)
-    return f(cfg, ctx)
+    cfg′ = merge(cfg, (rng=rng,))
+    mkfun_call(mc, tilde_rand, cfg′, ctx)
 end
 
 ###############################################################################
