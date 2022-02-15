@@ -13,7 +13,6 @@ FLoops = "cc61a311-1640-44b5-9fba-1b764f453329"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 GeneralizedGenerated = "6b9d7cbe-bcb9-11e9-073f-15a7a543e2eb"
 IfElse = "615f187c-cbe4-4ef1-ba3b-2fcf58d6d173"
-JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 JuliaVariables = "b14d175d-62b4-44ba-8fb7-3064adc8c3ec"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MLStyle = "d8e11817-5142-5d16-987a-aa16d5891078"
@@ -76,6 +75,7 @@ Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 
 [targets]
-test = ["Aqua", "Documenter", "Literate", "Plots", "Random", "StableRNGs", "Test"]
+test = ["Aqua", "Documenter", "Literate", "Plots", "Random", "StableRNGs", "Test", "JET"]
