@@ -38,7 +38,11 @@ end
 ###############################################################################
 # ctx::NamedTuple
 
-@inline function tilde_rand(v, d, cfg, ctx::NamedTuple, targs::TildeArgs)
+
+@inline function tilde_rand(v, d, cfg, ctx::NamedTuple, targs::TArgs) where {N,TArgs<:TildeArgs{N}}
+    @show targs.vars
+    @show get_lhs(TArgs)
+    @show get_rhs(TArgs)
     x = rand(cfg.rng, d)
     ctx = merge(ctx, NamedTuple{(v,)}((x,)))
     (x, ctx, ctx)
