@@ -38,17 +38,18 @@ end
 ###############################################################################
 # ctx::NamedTuple
 
-@inline function tilde_rand(xname, o::typeof(identity), d, cfg, ctx::NamedTuple, vars)
-    xval = rand(cfg.rng, d)
-    ctx′ = merge(ctx, NamedTuple{(xname,)}((xval,)))
-    (xval, ctx′, ctx′)
+@inline function tilde_rand(xname, l::typeof(identity), d, cfg, ctx::NamedTuple, vars)
+    new_value = rand(cfg.rng, d)
+    ctx′ = merge(ctx, NamedTuple{(xname,)}((new_value,)))
+    (new_value, ctx′, ctx′)
 end
 
-@inline function tilde_rand(xname, o, d, cfg, ctx::NamedTuple, vars)
-    xval = rand(cfg.rng, d)
-    o′ = Lens!!(PropertyLens{xname}() ⨟ o)
-    ctx′ = set(vars, o′, xval)
-    (xval, ctx′, ctx′)
+@inline function tilde_rand(xname, l, d, cfg, ctx::NamedTuple, vars)
+    xold = getproperty(vars, xname)
+    new_value = rand(cfg.rng, d)
+    xnew = set(xold, Lens!!(l), new_value)
+    ctx′ = merge(ctx, NamedTuple{(xname,)}((xnew,)))
+    (xnew, ctx′, ctx′)
 end
 
 

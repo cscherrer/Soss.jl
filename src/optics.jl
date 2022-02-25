@@ -6,6 +6,10 @@ struct Lens!!{L}
     pure::L
 end
 
+function Base.show(io::IO, l::Lens!!)
+    print(io, "Lens!!", l.pure)
+end
+
 (l::Lens!!)(o) = l.pure(o)
 
 @inline function Accessors.set(o, l::Lens!!{<: ComposedOptic}, val)
@@ -13,13 +17,27 @@ end
 end
 
 @inline function Accessors.set(o, l::Lens!!{PropertyLens{prop}}, val) where {prop}
-    setproperty!!(o, prop, val)
+    if ismutable(o)
+        setproperty!(o, prop, val)
+    else
+        setproperties(o, NamedTuple{(prop,)}((val,)))
+    end
 end
 
-@inline Accessors.set(o, l::Lens!!{typeof(identity)}, val) = val
+@inline function Accessors.set(o, l::Lens!!{typeof(identity)}, val)
+    if ismutable(o)
+        o .= val
+    else
+        val 
+    end
+end
 
 @inline function Accessors.set(o, l::Lens!!{<:IndexLens}, val)
-    setindex!!(o, val, l.pure.indices...)
+    if ismutable(o)
+        setindex!(o, val, l.pure.indices...)
+    else
+        setindex(o, val, l.pure.indices...)
+    end
 end
 
 @inline function Accessors.modify(f, o, l::Lens!!)
