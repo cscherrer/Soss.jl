@@ -36,7 +36,7 @@ end
     if ismutable(o)
         setindex!(o, val, l.pure.indices...)
     else
-        setindex(o, val, l.pure.indices...)
+        Base.setindex(o, val, l.pure.indices...)
     end
 end
 

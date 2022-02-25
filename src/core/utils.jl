@@ -30,13 +30,36 @@ export assigned
 assigned(m::AbstractModel) = keys(model(m).vals) |> collect
 
 export parameters
-function parameters(a::AbstractModel)
-    m = model(a)
-    union(assigned(model(m)), sampled(m)) 
+parameters(m::AbstractModel) = parameters(m.body)
+
+function parameters(ast)
+    leaf(x) = Set{Symbol}()
+    @inline function branch(f, head, args)
+        default() = mapreduce(f, union, args)
+        head == :call || return default()
+        first(args) == :~ || return default()
+        length(args) == 3 || return default()
+
+        # If we get here, we know we're working with something like `lhs ~ rhs`
+        lhs = args[2]
+        rhs = args[3]
+        
+        lhs′ = @match lhs begin
+            :(($(x::Symbol), $o)) => return Set{Symbol}((x,))
+            :(($(x::Var), $o)) => return Set{Symbol}((x,))
+            _ => begin
+                (x, o) = unescape.(Accessors.parse_obj_optic(lhs))
+                return Set{Symbol}((x,))
+            end
+        end
+
+    end
+
+    foldast(leaf, branch)(ast)
 end
 
 export variables
-# variables(m::DAGModel) = union(arguments(m), parameters(m))
+variables(m::AbstractModel) = union(arguments(m), parameters(m))
 
 function variables(expr :: Expr)
     leaf(s::Symbol) = begin
@@ -62,15 +85,17 @@ variables(x) = []
 
 
 export foldast
-function foldast(leaf, branch)
-    @inline function go(ast)
+
+
+function foldast(leaf, branch; kwargs...)
+    @inline function f(ast::Expr; kwargs...)
         MLStyle.@match ast begin
-            Expr(head, args...) => branch(go, head, args)
-            x                   => leaf(x)
+            Expr(head, args...) => branch(f, head, args; kwargs...)
         end
     end
+    f(x; kwargs...) = leaf(x; kwargs...)
 
-    return go
+    return f
 end
 
 

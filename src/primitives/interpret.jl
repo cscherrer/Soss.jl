@@ -12,12 +12,12 @@ end
 function _interpret(M, ast::Expr)
     function go(ex, scope=(bounds = Var[], freevars = Var[], bound_inits = Symbol[]))
         @match ex begin
-            :(($x, $o) ~ $rhs) => begin
-                varnames = Tuple(locals(o) ∪ locals(rhs))
+            :(($x, $l) ~ $rhs) => begin
+                varnames = Tuple(locals(l) ∪ locals(rhs))
                 varvals = Expr(:tuple, varnames...)
 
                 x = unsolve(x)
-                o = unsolve(o)
+                l = unsolve(l)
                 q = quote
                     _vars = NamedTuple{$varnames}($varvals)
                     # @show _vars
@@ -31,13 +31,13 @@ function _interpret(M, ast::Expr)
                 M = to_type(unsolve(rhs))
 
                 push!(q.args, quote
-                    if $o !== identity
+                    if $l !== identity
                         _vars = merge(_vars, NamedTuple{($qx,)}(($x,)))
                     end
                 end)
             
                 push!(q.args, quote
-                    ($x, _ctx, _retn) = _tilde($qx, $o, $rhs, _cfg, _ctx, _vars)
+                    ($x, _ctx, _retn) = _tilde($qx, $l, $rhs, _cfg, _ctx, _vars)
                     _retn isa Soss.ReturnNow && return _retn.value
                 end)
 
@@ -55,7 +55,7 @@ function _interpret(M, ast::Expr)
     end
 
 
-    body = go(@q let 
+    body = go(@q begin 
             $(solve_scope(opticize(ast)))
     end) |> unsolve |> MacroTools.flatten
 
