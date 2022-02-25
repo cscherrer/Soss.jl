@@ -25,8 +25,8 @@ end
 # end
 
 @inline function makeRand(rng::AbstractRNG, mc::ModelClosure; cfg = NamedTuple(), ctx=NamedTuple())
-    cfg = merge(cfg, (rng=rng,))
-    f = mkfun(mc, tilde_rand)
+    cfg′ = merge(cfg, (rng=rng,))
+    mkfun_body(mc, tilde_rand, cfg′, ctx)
 end
 
 
@@ -38,21 +38,19 @@ end
 ###############################################################################
 # ctx::NamedTuple
 
-
-@inline function tilde_rand(v, d, cfg, ctx::NamedTuple, targs::TArgs) where {N,TArgs<:TildeArgs{N}}
-    @show targs.vars
-    @show get_lhs(TArgs)
-    @show get_rhs(TArgs)
-    x = rand(cfg.rng, d)
-    ctx = merge(ctx, NamedTuple{(v,)}((x,)))
-    (x, ctx, ctx)
+@inline function tilde_rand(xname, o::typeof(identity), d, cfg, ctx::NamedTuple, vars)
+    xval = rand(cfg.rng, d)
+    ctx′ = merge(ctx, NamedTuple{(xname,)}((xval,)))
+    (xval, ctx′, ctx′)
 end
 
-# @inline function tilde_rand(v, d::AbstractConditionalModel, cfg, ctx::NamedTuple, targs::TildeArgs)
-#     args = get(cfg.args, v, NamedTuple())
-#     cfg = merge(cfg, (args = args,))
-#     tilde_rand(v, d(cfg.args), cfg, ctx)
-# end
+@inline function tilde_rand(xname, o, d, cfg, ctx::NamedTuple, vars)
+    xval = rand(cfg.rng, d)
+    o′ = Lens!!(PropertyLens{xname}() ⨟ o)
+    ctx′ = set(vars, o′, xval)
+    (xval, ctx′, ctx′)
+end
+
 
 ###############################################################################
 # ctx::Dict

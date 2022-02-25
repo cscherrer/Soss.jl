@@ -60,6 +60,20 @@ variables(x) = []
 #     end
 # end
 
+
+export foldast
+function foldast(leaf, branch)
+    @inline function go(ast)
+        MLStyle.@match ast begin
+            Expr(head, args...) => branch(go, head, args)
+            x                   => leaf(x)
+        end
+    end
+
+    return go
+end
+
+
 export foldall
 function foldall(leaf, branch; kwargs...)
     function go(ast)

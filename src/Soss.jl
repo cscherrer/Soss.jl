@@ -63,7 +63,8 @@ _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 
 export model, ASTModel, DAGModel, @model, @dagmodel
 
-include("callify.jl")
+using MLStyle
+# include("callify.jl")
 import GeneralizedGenerated as GG
 
 @generated function MeasureTheory.For(f::GG.Closure{F,Free}, inds::I) where {F,Free,I<:Tuple}
@@ -77,6 +78,7 @@ import GeneralizedGenerated as GG
 end
 
 include("tildeargs.jl")
+include("optics.jl")
 include("maybe.jl")
 # include("noted.jl")
 include("core/models/abstractmodel.jl")
