@@ -39,7 +39,7 @@ TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 TupleVectors = "615932cf-77b6-4358-adcd-5b7eba981d7e"
 
 [compat]
-ArrayInterface = "3"
+ArrayInterface = "3, 5"
 DiffResults = "1"
 Distributions = "0.23, 0.24, 0.25"
 FillArrays = "0.10, 0.11, 0.12"
