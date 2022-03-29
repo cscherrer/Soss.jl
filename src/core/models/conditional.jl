@@ -1,44 +1,47 @@
-struct ConditionalModel{A,B,M,Argvals,Obs} <: AbstractModel{A,B,M,Argvals,Obs}
-    model :: Model{A,B,M}
-    argvals :: Argvals
-    obs :: Obs
+struct ModelClosure{M,A} <: AbstractModel{A,B}
+    model :: M
+    argvals :: A
 end
 
-function Base.show(io::IO, cm::ConditionalModel)
-    println(io, "ConditionalModel given")
+function Base.show(io::IO, cm::ModelClosure)
+    println(io, "ModelClosure given")
     println(io, "    arguments    ", keys(argvals(cm)))
     println(io, "    observations ", keys(observations(cm)))
-    println(io, Model(cm))
+    println(io, model(cm))
 end
 
 export argvals
-argvals(c::ConditionalModel) = c.argvals
-argvals(m::Model) = NamedTuple()
+argvals(c::ModelClosure) = c.argvals
+argvals(c::ModelPosterior) = c.argvals
+argvals(m::AbstractModel) = NamedTuple()
 
 export observations
-observations(c::ConditionalModel) = c.obs
+observations(c::ModelClosure) = c.obs
 
 export observed
-function observed(cm::ConditionalModel{A,B,M,Argvals,Obs}) where {A,B,M,Argvals,Obs}
+function observed(cm::ModelClosure{M,A,O}) where {M,A,O}
     keys(schema(Obs))
 end
 
-Model(c::ConditionalModel) = c.model
+model(c::ModelClosure) = c.model
 
-Model(::Type{<:ConditionalModel{A,B,M}}) where {A,B,M} = type2model(Model{A,B,M})
+ModelClosure(m::AbstractModel) = ModelClosure(m,NamedTuple(), NamedTuple())
+model(::Type{<:ModelPosterior{M,A,O}}) where {M,A,O} = type2model(Model{M,A,O})
 
-ConditionalModel(m::Model) = ConditionalModel(m,NamedTuple(), NamedTuple())
+ModelPosterior(m::Model) = ModelPosterior(m,NamedTuple(), NamedTuple())
 
-(m::Model)(nt::NamedTuple) = ConditionalModel(m)(nt)
+(m::AbstractModel)(nt::NamedTuple) = ModelClosure(m)(nt)
 
-(cm::ConditionalModel)(nt::NamedTuple) = ConditionalModel(cm.model, merge(cm.argvals, nt), cm.obs)
+(cm::ModelClosure)(nt::NamedTuple) = ModelClosure(cm.model, merge(cm.argvals, nt), cm.obs)
 
-(m::Model)(;argvals...)= m((;argvals...))
+(m::AbstractModel)(;argvals...)= m((;argvals...))
 
-(m::Model)(args...) = m(NamedTuple{Tuple(m.args)}(args))
+(m::AbstractModel)(args...) = m(NamedTuple{Tuple(m.args)}(args...))
+# (m::Model)(args...) = m(NamedTuple{Tuple(m.args)}(args))
+(m::Model)(args...) = m(argstype(m)(args))
 
 import Base
 
-Base.:|(m::Model, nt::NamedTuple) = ConditionalModel(m) | nt
+Base.:|(m::AbstractModel, nt::NamedTuple) = ModelClosure(m) | nt
 
-Base.:|(cm::ConditionalModel, nt::NamedTuple) = ConditionalModel(cm.model, cm.argvals, merge(cm.obs, nt))
+Base.:|(cm::ModelClosure, nt::NamedTuple) = ModelClosure(cm.model, cm.argvals, merge(cm.obs, nt))

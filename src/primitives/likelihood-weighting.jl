@@ -1,16 +1,16 @@
 
 export weightedSample
 
-function weightedSample(m::ConditionalModel, _data) 
+function weightedSample(m::ModelClosure, _data) 
     return _weightedSample(getmoduletypencoding(m.model), m.model, m.args, _data)    
 end
 
 export sourceWeightedSample
 
-sourceWeightedSample(m::Model, data=NamedTuple()) = sourceWeightedSample(data)(m)
+sourceWeightedSample(m::DAGModel, data=NamedTuple()) = sourceWeightedSample(data)(m)
 
 function sourceWeightedSample(_data)
-    function(_m::Model)
+    function(_m::DAGModel)
 
         _datakeys = getntkeys(_data)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
@@ -18,7 +18,7 @@ function sourceWeightedSample(_data)
         proc(_m, st :: LineNumber) = nothing
 
         function proc(_m, st :: Sample)
-            st.x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $(st.x)))
+            st.x ∈ _datakeys && return :(_ℓ += logdensity_def($(st.rhs), $(st.x)))
             return :($(st.x) = rand($(st.rhs)))
         end
 
@@ -35,7 +35,7 @@ function sourceWeightedSample(_data)
     end
 end
 
-@gg function _weightedSample(M::Type{<:TypeLevel}, _m::Model, _args, _data)
+@gg function _weightedSample(M::Type{<:TypeLevel}, _m::DAGModel, _args, _data)
     body = type2model(_m) |> sourceWeightedSample(_data) |> loadvals(_args, _data)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

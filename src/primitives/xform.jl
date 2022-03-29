@@ -5,33 +5,33 @@ using NestedTuples
 import NestedTuples
 import MeasureTheory: testvalue
 
-function NestedTuples.schema(::Type{TransformVariables.TransformTuple{T}}) where {T} 
+function NestedTuples.schema(::Type{TV.TransformTuple{T}}) where {T} 
     schema(T)
 end
 
 # In Bijectors.jl,
-# logdensity_with_trans(dist, x, true) == logdensity(transformed(dist), link(dist, x))
+# logdensity_with_trans(dist, x, true) == logdensity_def(transformed(dist), link(dist, x))
 
 
 export xform
 
-xform(m::ConditionalModel{A, B}, _data::NamedTuple) where {A,B} = xform(m | _data)
+xform(m::ModelClosure{M,A}, _data::NamedTuple) where {M,A} = xform(m | _data)
 
-function xform(m::ConditionalModel{A, B}) where {A,B}
-    return _xform(getmoduletypencoding(m), Model(m), argvals(m), observations(m))
+function xform(m::ModelPosterior{M,A,O}) where {M,A,O}
+    return _xform(getmoduletypencoding(m), model(m), argvals(m), observations(m))
 end
 
-# function xform(m::Model{EmptyNTtype, B}) where {B}
+# function xform(m::DAGModel{EmptyNTtype, B}) where {B}
 #     return xform(m,NamedTuple())    
 # end
 
 
 export sourceXform
 
-sourceXform(m::Model) = sourceXform()(m)
+sourceXform(m::DAGModel) = sourceXform()(m)
 
 function sourceXform(_data=NamedTuple())
-    function(_m::Model)
+    function(_m::DAGModel)
 
         _datakeys = getntkeys(_data)
         proc(_m, st::Assign)        = :($(st.x) = $(st.rhs))
@@ -71,7 +71,7 @@ end
 
 using Distributions: support
 
-function xform(d, _data::NamedTuple)
+@inline function xform(d, _data::NamedTuple)
     if hasmethod(support, (typeof(d),))
         return asTransform(support(d)) 
     end
@@ -92,11 +92,11 @@ end
 
 xform(d, _data) = nothing
 
-xform(μ::AbstractMeasure,  _data::NamedTuple=NamedTuple()) = as(μ)
+xform(μ::AbstractMeasure,  _data::NamedTuple) = xform(μ)
 
 xform(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 
-@gg function _xform(M::Type{<:TypeLevel}, _m::Model{Asub,B}, _args::A, _data) where {Asub,A,B}
+@gg function _xform(M::Type{<:TypeLevel}, _m::DAGModel{Asub,B}, _args::A, _data) where {Asub,A,B}
     body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body

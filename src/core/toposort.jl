@@ -2,7 +2,7 @@ import SimplePosets
 using SimpleGraphs: SimpleGraph, AbstractSimpleGraph, SimpleDigraph, eltype, NV, elist, in_neighbors, add_edges!, vertex2idx
 
 export toposort
-function toposort(m::Model)
+function toposort(m::DAGModel)
     names = toposort(poset(m).D)
     setdiff(names, arguments(m))
 end
@@ -12,14 +12,14 @@ end
 function toposort(g::SimpleDigraph{T}) where {T}
     g = deepcopy(g)
     order = T[]
-    s = collect(filter(v -> SimpleGraphs.in_deg(g, v) == 0, vlist(g)))
+    s = Symbol[v for v in vlist(g) if SimpleGraphs.in_deg(g, v) == 0]
 
     while !isempty(s)
         u = pop!(s)
         push!(order, u)
 
         for v in out_neighbors(g, u)
-            delete!(g, u, v)
+            SimpleGraphs.delete!(g, u, v)
             if SimpleGraphs.in_deg(g, v) == 0
                 push!(s, v)
             end

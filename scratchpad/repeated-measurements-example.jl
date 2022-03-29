@@ -77,7 +77,7 @@ function elbo(x)
 
     qλ = q(r=5,s=14, λα=λα)
     r = rand(qλ)
-    logdensity(posterior, r) - logdensity(qλ, r)
+    logdensity_def(posterior, r) - logdensity_def(qλ, r)
 end
 
 elbo(x)
@@ -139,7 +139,7 @@ x0 = zeros(48)
 
 
 
-logdensity(p(r=5, s=14) | (;y), rand(q(r=5,s=14, λ=λ.λ)))
+logdensity_def(p(r=5, s=14) | (;y), rand(q(r=5,s=14, λ=λ.λ)))
 
 
 
@@ -202,7 +202,7 @@ logdensity(p(r=5, s=14) | (;y), rand(q(r=5,s=14, λ=λ.λ)))
 
 function elbo(p, args, obs, q, λ)
     qargs = merge(args, λ)
-    mean(logpdf(p(args), merge(particles(q(qargs)), obs))) + entropy(q(args))
+    mean(logdensityof(p(args), merge(particles(q(qargs)), obs))) + entropy(q(args))
 end
 
 
@@ -249,7 +249,7 @@ advi = ADVI(10, 10_000)
 
 
 function logπ(θ)
-    logpdf(p(r=5,s=14),  merge((y=y,), tr(θ)))
+    logdensityof(p(r=5,s=14),  merge((y=y,), tr(θ)))
 end
 
 logπ(randn(24))

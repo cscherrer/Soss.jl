@@ -1,5 +1,5 @@
 using MLStyle
-import SimplePosets
+# import SimplePosets
 using NestedTuples
 using NestedTuples: LazyMerge
 
@@ -21,26 +21,49 @@ astuple(x::Symbol) = Expr(:tuple,x)
 
 
 export arguments
-arguments(m::AbstractModel) = Model(m).args
+arguments(m::AbstractModel) = model(m).args
 
 export sampled
-sampled(m::AbstractModel) = keys(Model(m).dists) |> collect
+sampled(m::AbstractModel) = keys(model(m).dists) |> collect
 
 export assigned
-assigned(m::AbstractModel) = keys(Model(m).vals) |> collect
+assigned(m::AbstractModel) = keys(model(m).vals) |> collect
 
 export parameters
-function parameters(a::AbstractModel)
-    m = Model(a)
-    union(assigned(Model(m)), sampled(m))
+parameters(m::AbstractModel) = parameters(m.body)
+
+function parameters(ast)
+    leaf(x) = Set{Symbol}()
+    @inline function branch(f, head, args)
+        default() = mapreduce(f, union, args)
+        head == :call || return default()
+        first(args) == :~ || return default()
+        length(args) == 3 || return default()
+
+        # If we get here, we know we're working with something like `lhs ~ rhs`
+        lhs = args[2]
+        rhs = args[3]
+        
+        lhs′ = @match lhs begin
+            :(($(x::Symbol), $o)) => return Set{Symbol}((x,))
+            :(($(x::Var), $o)) => return Set{Symbol}((x,))
+            _ => begin
+                (x, o) = unescape.(Accessors.parse_obj_optic(lhs))
+                return Set{Symbol}((x,))
+            end
+        end
+
+    end
+
+    foldast(leaf, branch)(ast)
 end
 
 export variables
-variables(m::Model) = union(arguments(m), parameters(m))
+variables(m::AbstractModel) = union(arguments(m), parameters(m))
 
 function variables(expr :: Expr)
-    leaf(x::Symbol) = begin
-        [x]
+    leaf(s::Symbol) = begin
+        [s]
     end
     leaf(x) = []
     branch(head, newargs) = begin
@@ -52,12 +75,27 @@ end
 variables(s::Symbol) = [s]
 variables(x) = []
 
-for f in [:arguments, :assigned, :sampled, :parameters, :variables]
-    @eval function $f(m::Model, nt::NamedTuple)
-        vs = $f(m)
-        isempty(vs) && return NamedTuple()
-        return select(nt, $f(m))
+# for f in [:arguments, :assigned, :sampled, :parameters, :variables]
+#     @eval function $f(m::DAGModel, nt::NamedTuple)
+#         vs = $f(m)
+#         isempty(vs) && return NamedTuple()
+#         return select(nt, $f(m))
+#     end
+# end
+
+
+export foldast
+
+
+function foldast(leaf, branch; kwargs...)
+    @inline function f(ast::Expr; kwargs...)
+        MLStyle.@match ast begin
+            Expr(head, args...) => branch(f, head, args; kwargs...)
+        end
     end
+    f(x; kwargs...) = leaf(x; kwargs...)
+
+    return f
 end
 
 
@@ -92,7 +130,7 @@ import MacroTools: striplines, @q
 
 
 
-# function arguments(model::Model)
+# function arguments(model::DAGModel)
 #     model.args
 # end
 
@@ -202,27 +240,40 @@ function loadvals(argstype, datatype)
 end
 
 function loadvals(argstype, datatype, parstype)
-    args = getntkeys(argstype)
-    data = getntkeys(datatype)
-    pars = getntkeys(parstype)
+    args = schema(argstype)
+    data = schema(datatype)
+    pars = schema(parstype)
 
     loader = @q begin
 
     end
 
-    for k in args
-        push!(loader.args, :($k = _args.$k))
+    for k in keys(args)
+        T = getproperty(args, k)
+        push!(loader.args, :($k::$T = _args.$k))
     end
-    for k in setdiff(data, pars)
-        push!(loader.args, :($k = _data.$k))
-    end
-
-    for k in setdiff(pars, data)
-        push!(loader.args, :($k = _pars.$k))
+    for k in setdiff(keys(data), keys(pars))
+        T = getproperty(data, k)
+        push!(loader.args, :($k::$T = _data.$k))
     end
 
-    for k in pars ∩ data
-        push!(loader.args, :($k = Soss.NestedTuples.lazymerge(_data.$k, _pars.$k)))
+    for k in setdiff(keys(pars), keys(data))
+        T = getproperty(pars, k)
+        push!(loader.args, :($k::$T = _pars.$k))
+    end
+
+    for k in keys(pars) ∩ keys(data)
+        qk = QuoteNode(k)
+        if typejoin(getproperty(pars, k), getproperty(data, k)) <: NamedTuple
+            push!(loader.args, :($k = Soss.NestedTuples.lazymerge(_data.$k, _pars.$k)))
+        else
+            T = getproperty(pars, k)
+            push!(loader.args, quote
+                _k = $qk
+                @warn "Duplicate key, ignoring $_k in data"
+                $k::$T = _pars.$k
+            end)
+        end
     end
 
     src -> (@q begin
@@ -241,15 +292,15 @@ getntkeys(::Type{LazyMerge{A,B,S,T}}) where {A,B,S,T} = Tuple(A ∪ B)
 # These macros quickly define additional methods for when you get tired of typing `NamedTuple()`
 macro tuple3args(f)
     quote
-        $f(m::Model, (), data) = $f(m::Model, NamedTuple(), data)
-        $f(m::Model, args, ()) = $f(m::Model, args, NamedTuple())
-        $f(m::Model, (), ())   = $f(m::Model, NamedTuple(), NamedTuple())
+        $f(m::DAGModel, (), data) = $f(m::DAGModel, NamedTuple(), data)
+        $f(m::DAGModel, args, ()) = $f(m::DAGModel, args, NamedTuple())
+        $f(m::DAGModel, (), ())   = $f(m::DAGModel, NamedTuple(), NamedTuple())
     end
 end
 
 macro tuple2args(f)
     quote
-        $f(m::Model, ()) = $f(m::Model, NamedTuple())
+        $f(m::DAGModel, ()) = $f(m::DAGModel, NamedTuple())
     end
 end
 
@@ -285,6 +336,114 @@ function isleaf(m, v::Symbol)
     isempty(digraph(m).N[v])
 end
 
+export unVal
+export val2nt
 
 unVal(::Type{V}) where {T, V <: Val{T}} = T
 unVal(::Val{T}) where {T} = T
+
+function val2nt(v,x)
+    k = Soss.unVal(v)
+    NamedTuple{(k,)}((x,))
+end
+
+function detilde(ast)
+    q = MLStyle.@match ast begin
+            :($x ~ $rhs)        => :($x = _RAND($rhs))
+            Expr(head, args...) => Expr(head, map(detilde, args)...)
+            x                   => x
+    end 
+
+    MacroTools.flatten(q)
+end
+
+retilde(s::Symbol) = s
+retilde(s::Number) = s
+
+function retilde(v::JuliaVariables.Var)
+    ifelse(v.name == :_RAND, :_RAND, v)
+end
+
+function retilde(ast)
+    MLStyle.@match ast begin
+            :($x = $v($rhs))        => begin
+                    rx = retilde(x)
+                    rv = retilde(v)
+                    rrhs = retilde(rhs) 
+                    if rv == :_RAND
+                        return :($rx ~ $rrhs)
+                    else
+                        return :($rx = $rv($rrhs))
+                    end
+            end
+            Expr(head, args...) => Expr(head, map(retilde, args)...)
+            x                   => x
+    end
+end
+
+asfun(m::AbstractModel) = :(($(arguments(m)...),) -> $(Soss.body(m)) ) 
+
+function solve_scope(m::AbstractModel)   
+    solve_scope(asfun(m))
+end
+
+function solve_scope(ex::Expr)
+    ex |> detilde |> simplify_ex  |> MacroTools.flatten  |> solve_from_local |> retilde
+end
+
+function locally_bound(ex, optic)
+    isolated = solve_scope(optic(ex))
+    in_context = optic(solve_scope(ex))
+
+    setdiff(globals(isolated), globals(in_context))
+end    
+
+"""
+Given a JuliaVariables "solved" expression, convert back to a standard expression
+"""
+function unsolve(ex)
+    ex = unwrap_scoped(ex)
+    @match ex begin
+        v::JuliaVariables.Var => v.name
+        Expr(head, args...) => Expr(head, map(unsolve, args)...)
+        x => x
+    end
+end
+
+
+"""
+Return the set of local variable names from a *solved* expression (using JuliaVariables)
+"""
+function locals(ex)
+    go(ex) = @match ex begin
+        v::JuliaVariables.Var => ifelse(v.is_global, Set{Symbol}(), Set((v.name,)))
+        Expr(head, args...) => union(map(go, args)...)
+        x => Set{Symbol}()
+    end
+
+    Tuple(go(ex))
+end
+
+
+# make_closure(funexpr)
+
+# @gg function make_closure(__vars::NamedTuple{N,T}, funexpr) where {N,T}
+#     funexpr = 
+#     fdict = MacroTools.splitdef(funexpr)
+#     for v in N
+#         qv = QuoteNode(v)
+#         pushfirst!(fdict[:body], :($v = getproperty(__vars, $qv)))
+#     end
+
+    
+#     fdict[:args] = Any[:__ctx, Expr(:tuple, fdict[:args]...)]  
+
+
+# f(ctx) = Base.Fix1(ctx) do ctx, j
+#     p = ctx.p
+#     Bernoulli(p/j)
+# end
+
+struct ReturnNow{T}
+    value::T
+end

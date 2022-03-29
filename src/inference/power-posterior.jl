@@ -1,4 +1,4 @@
-function power_posterior(cm::ConditionalModel)
+function power_posterior(cm::ModelClosure)
     m = cm.model
 
     pr = prior(m, observed(cm)...)
@@ -7,7 +7,7 @@ function power_posterior(cm::ConditionalModel)
     avs = argvals(cm)
     obs = observations(cm)
     function f(t, x) 
-        logdensity(pr(avs), x) + t * logdensity(lik(merge(avs, x)) | obs)
+        logdensity_def(pr(avs), x) + t * logdensity_def(lik(merge(avs, x)) | obs)
     end
 
     return f

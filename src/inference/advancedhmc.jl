@@ -48,10 +48,10 @@ println("Posterior mean β: " * string(round(E_β, digits=2)))
 
 
 """
-function advancedHMC(m :: ConditionalModel{A,B}, _data, N = 1000;
+function advancedHMC(m :: ModelClosure{A,B}, _data, N = 1000;
                                                          n_adapts  = 1000) where {A,B}
 
-    ℓ(pars) = logdensity(m, merge(pars, _data))
+    ℓ(pars) = logdensity_def(m, merge(pars, _data))
 
     t = xform(m,_data)
 

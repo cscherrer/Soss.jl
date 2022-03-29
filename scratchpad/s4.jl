@@ -18,11 +18,11 @@ end
 
 
 
-function logdensity(mc::Chain, x)
+function logdensity_def(mc::Chain, x)
     μ = mc.μ
     ℓ = 0.0
     for xj in x
-        ℓ += logdensity(μ, xj)
+        ℓ += logdensity_def(μ, xj)
         μ = mc.κ(xj)
     end
     return ℓ
@@ -30,7 +30,7 @@ end
 
 mc = Chain(Normal()) do x Normal(μ=x) end
 
-logdensity(mc, randn(100))
+logdensity_def(mc, randn(100))
 
 
 using Soss
@@ -87,7 +87,7 @@ t(randn(4))
 
 
 # julia> d =  Cauchy() ⋅ (x -> Normal(μ=x)) ⋅ (x -> Normal(μ=x)) ⋅ (x -> Normal(μ=x))
-# ConditionalModel given
+# ModelClosure given
 #     arguments    (:μ, :κ)
 #     observations ()
 # @model (μ, κ) begin

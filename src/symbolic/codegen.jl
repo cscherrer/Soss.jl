@@ -8,11 +8,11 @@ import SymbolicCodegen
 
 export codegen
 
-function SymbolicCodegen.codegen(cm :: ConditionalModel; kwargs...)
+function SymbolicCodegen.codegen(cm :: ModelClosure; kwargs...)
 
     code = codegen(get(kwargs, :ℓ, symlogdensity(cm)))
 
-    m = Model(cm)
+    m =model(cm)
     for (v, rhs) in pairs(m.vals)
         pushfirst!(code.args, :($v = $rhs))
     end
@@ -42,6 +42,6 @@ end
 
 export sourceCodegen
 
-function sourceCodegen(cm :: ConditionalModel)
+function sourceCodegen(cm :: ModelClosure)
     codegen(symlogdensity(cm))
 end

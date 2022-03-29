@@ -25,21 +25,21 @@ Weighted(-7.13971.4
 function importanceSample end
 
 export importanceSample
-@inline function importanceSample(p::ConditionalModel, q::ConditionalModel, _data)
+@inline function importanceSample(p::ModelClosure, q::ModelClosure, _data)
     return _importanceSample(getmoduletypencoding(p.model), p.model, p.args, q.model, q.args, _data)
 end
 
-sourceImportanceSample(p::Model,q::Model,_data) = sourceImportanceSample(_data)(p::Model,q::Model)
+sourceImportanceSample(p::DAGModel,q::DAGModel,_data) = sourceImportanceSample(_data)(p::DAGModel,q::DAGModel)
 
 export sourceImportanceSample
 function sourceImportanceSample(_data)
-    function(p::Model,q::Model)
+    function(p::DAGModel,q::DAGModel)
         m = merge(p,q)
 
         _datakeys = getntkeys(_data)
 
         function proc(m, st::Sample)
-            st.x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $(st.x)))
+            st.x ∈ _datakeys && return :(_ℓ += logdensity_def($(st.rhs), $(st.x)))
 
             if hasproperty(p.dists, st.x)
                 pdist = getproperty(p.dists, st.x)
@@ -81,7 +81,7 @@ end
 
 @inline function importanceSample(p, q, _data)
     x = rand(q)
-    ℓ = logdensity(p,x) - logdensity(q,x)
+    ℓ = logdensity_def(p,x) - logdensity_def(q,x)
     Weighted(ℓ,x)
 end
 
@@ -96,7 +96,7 @@ end
 #     # This determines how to initialize a Particle for a given expression
 #     vars(expr) = (bound(p) ∪ bound(q) ∪ stochastic(p) ∪ stochastic(q)) ∩ variables(expr)
 
-#     procp(p, st::Follows) = :($ℓ += logdensity($(st.rhs), $(st.x)))
+#     procp(p, st::Follows) = :($ℓ += logdensity_def($(st.rhs), $(st.x)))
 #     procp(p, st::Let)     = convert(Expr, st)
 #     procp(p, st::Return)  = nothing
 #     procp(p, st::LineNumber) = convert(Expr, st)
@@ -105,12 +105,12 @@ end
 #         if isempty(vars(st.rhs))
 #             @q begin
 #                 $(st.x) = Particles($N, $(st.rhs))
-#                 $ℓ -= logdensity($(st.rhs), $(st.x))
+#                 $ℓ -= logdensity_def($(st.rhs), $(st.x))
 #             end
 #         else
 #             @q begin
 #                 $(st.x) = rand($(st.rhs))
-#                 $ℓ -= logdensity($(st.rhs), $(st.x))
+#                 $ℓ -= logdensity_def($(st.rhs), $(st.x))
 #             end
 #         end
 #     end
@@ -164,7 +164,7 @@ function merge_pqargs(src)
 end
 
 
-@gg function _importanceSample(M::Type{<:TypeLevel}, p::Model, _pargs, q::Model, _qargs, _data)
+@gg function _importanceSample(M::Type{<:TypeLevel}, p::DAGModel, _pargs, q::DAGModel, _qargs, _data)
     p = type2model(p)
     q = type2model(q)
 

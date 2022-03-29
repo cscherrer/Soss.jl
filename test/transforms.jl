@@ -1,5 +1,5 @@
 # Check for Model equality up to reorderings of a few fields
-function ≊(m1::Model,m2::Model)
+function ≊(m1::DAGModel,m2::DAGModel)
     function eq_tuples(nt1::NamedTuple,nt2::NamedTuple)
         return length(nt1)==length(nt2) && all(nt1[k]==nt2[k] for k in keys(nt1))
     end

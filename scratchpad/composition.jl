@@ -33,17 +33,17 @@ dynamicHMC(post)
 
 
 
-logdensity(post, truth)
+logdensity_def(post, truth)
 
 speed = truth.speed
 x = truth.x
 v = truth.v
 
 _ℓ = 0.0
-_ℓ += logdensity(Normal(0.0, 100.0), speed)
+_ℓ += logdensity_def(Normal(0.0, 100.0), speed)
 speed = predict(Normal(0.0, 100.0), speed)
-_ℓ += logdensity(gps(; speed, n, t), x)
+_ℓ += logdensity_def(gps(; speed, n, t), x)
 x = predict(gps(; speed, n, t), x)
-_ℓ += logdensity(radar(; speed, n), v)
+_ℓ += logdensity_def(radar(; speed, n), v)
 v = predict(radar(; speed, n), v)
 _ℓ

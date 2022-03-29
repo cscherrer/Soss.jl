@@ -9,7 +9,7 @@ export dynamicHMC
 """
     dynamicHMC(
         rng::AbstractRNG,
-        m::ConditionalModel,
+        m::ModelClosure,
         _data,
         N::Int = 1000;
         method = logdensity,
@@ -67,9 +67,9 @@ Posterior mean β: 0.25
 """
 function dynamicHMC(
     rng::AbstractRNG,
-    m::ConditionalModel,
+    m::ModelClosure,
     N::Int = 1000;
-    # method = logpdf,
+    # method = logdensityof,
     ad_backend = Val(:ForwardDiff),
     reporter = DynamicHMC.NoProgressReport(),
     kwargs...,
@@ -80,7 +80,7 @@ function dynamicHMC(
     ℓ = if haskey(kwargs, :ℓ)
         codegen(m; ℓ = kwargs[:ℓ])
     else 
-        (a, o, pars) -> _logdensity(M, Model(m), a, o, pars)
+        (a, o, pars) -> _logdensity_def(M, model(m), a, o, pars)
     end
 
     _argvals = argvals(m)
@@ -113,7 +113,7 @@ end
 
 function dynamicHMC(
     rng::AbstractRNG,
-    m::ConditionalModel,
+    m::ModelClosure,
     ::Val{Inf};
     method = logdensity,
     ad_backend = Val(:ForwardDiff),
@@ -121,7 +121,7 @@ function dynamicHMC(
     kwargs...,
 )
     _data = m.obs
-    ℓ(pars) = logdensity(m, merge(pars, _data), method)
+    ℓ(pars) = logdensity_def(m, merge(pars, _data), method)
     t = xform(m, _data)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)
@@ -140,7 +140,7 @@ function dynamicHMC(
     return results, steps
 end
 
-function dynamicHMC(m::ConditionalModel, args...; kwargs...)
+function dynamicHMC(m::ModelClosure, args...; kwargs...)
     return dynamicHMC(Random.GLOBAL_RNG, m, args...; kwargs...)
 end
 
@@ -152,7 +152,7 @@ end
 # @resumable function stream(
 #     rng::AbstractRNG,
 #     f::typeof(dynamicHMC),
-#     m::ConditionalModel,
+#     m::ModelClosure,
 #     _data::NamedTuple,
 # )
 #     t = xform(m, _data)
@@ -166,7 +166,7 @@ end
 
 # function stream(
 #     f::typeof(dynamicHMC),
-#     m::ConditionalModel,
+#     m::ModelClosure,
 #     _data::NamedTuple;
 #     kwargs...,
 # )

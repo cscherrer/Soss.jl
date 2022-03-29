@@ -1,8 +1,8 @@
-# `Model`s and `ConditionalModel`s
+# `DAGModel`s and `ModelClosure`s
 
-A `Model` in Soss
+A `DAGModel` in Soss
 
-# Model Combinators
+# DAGModel Combinators
 
 # Building Inference Algorithms
 
@@ -24,12 +24,12 @@ For more details on inference primitives, see the *Internals* section.
 
 ## Inference Functions
 
-An *inference function* is a function that takes a `ConditionalModel` as an argument, and calls at least one inference primitive (not necessarily directly). The wrapper around each primitive is a special case of this, but most inference functions work at a higher level of abstraction.
+An *inference function* is a function that takes a `ModelClosure` as an argument, and calls at least one inference primitive (not necessarily directly). The wrapper around each primitive is a special case of this, but most inference functions work at a higher level of abstraction.
 
 There's some variability , but is often of the form
 
 ```julia
-foo(d::ConditionalModel, data::NamedTuple)
+foo(d::ModelClosure, data::NamedTuple)
 ```
 
 For example, `advancedHMC` uses [`TuringLang/AdvancedHMC.jl`](https://github.com/TuringLang/AdvancedHMC.jl) , which needs a `logdensity` and its gradient.
@@ -40,12 +40,12 @@ Most inference algorithms can be expressed in terms of inference primitives.
 
 # Internals
 
-## `Model`s
+## `DAGModel`s
 
 
 
 ```julia
-struct Model{A,B}
+struct DAGModel{A,B}
     args  :: Vector{Symbol}
     vals  :: NamedTuple
     dists :: NamedTuple
@@ -57,7 +57,7 @@ end
 
 ```julia
 function sourceWeightedSample(_data)
-    function(_m::Model)
+    function(_m::DAGModel)
 
         _datakeys = getntkeys(_data)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
@@ -65,7 +65,7 @@ function sourceWeightedSample(_data)
         proc(_m, st :: LineNumber) = nothing
 
         function proc(_m, st :: Sample)
-            st.x ∈ _datakeys && return :(_ℓ += logdensity($(st.rhs), $(st.x)))
+            st.x ∈ _datakeys && return :(_ℓ += logdensity_def($(st.rhs), $(st.x)))
             return :($(st.x) = rand($(st.rhs)))
         end
 

@@ -6,7 +6,7 @@ D = 10; initial_θ = rand(D)
 dist = Normal() ^ D
 
 # Define the target distribution
-ℓπ(θ) = logdensity(dist, θ)
+ℓπ(θ) = logdensity_def(dist, θ)
 
 # Set the number of samples to draw and warmup iterations
 n_samples, n_adapts = 2_000, 1_000

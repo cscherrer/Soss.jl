@@ -1,12 +1,12 @@
 
-using TransformVariables, Parameters, Statistics, StatsFuns, Optim
+import TransformVariables as TV, Parameters, Statistics, StatsFuns, Optim
 using NLSolversBase
 
 function makeLoss(model)
 
     t = getTransform(model)
 
-    fpre = @eval $(logdensity(model))
+    fpre = @eval $(logdensity_def(model))
     f(par, data) = Base.invokelatest(fpre, par, data)
 
     loss(x, data) = -f(t(x), data)
@@ -15,7 +15,7 @@ function makeLoss(model)
 end
 
 export getMAP
-function getMAP(m :: Model ;kwargs...)
+function getMAP(m :: DAGModel ;kwargs...)
     @unpack loss, t = makeLoss(m)
     d = dimension(t) 
 

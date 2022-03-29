@@ -28,7 +28,7 @@ end
 function makeℓ(X, y, pr)
     k = size(X,2)
     ll = loglik(X,y)
-    ℓ(pars) = ll(pars.α, pars.β, pars.σ) + logdensity(pr(k=k), pars)
+    ℓ(pars) = ll(pars.α, pars.β, pars.σ) + logdensity_def(pr(k=k), pars)
 end
 
 function bayeslm(

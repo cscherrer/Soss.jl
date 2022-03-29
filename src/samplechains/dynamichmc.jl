@@ -8,12 +8,12 @@ using ..Soss
 using .SampleChainsDynamicHMC: DynamicHMCConfig
 
 function sample(rng::AbstractRNG, 
-    m::ConditionalModel,
+    m::ModelClosure,
     config::DynamicHMCConfig, 
     nsamples::Int=1000,
     nchains::Int=4)
 
-    ℓ(x) = MeasureTheory.logpdf(m, x)
+    ℓ(x) = MeasureTheory.logdensityof(m, x)
     tr = xform(m)
 
     chains = newchain(rng, nchains, config, ℓ, tr)
@@ -23,7 +23,7 @@ end
 
 
 function sample(
-    m::ConditionalModel,
+    m::ModelClosure,
     config::DynamicHMCConfig, 
     nsamples::Int=1000,
     nchains::Int=4)
