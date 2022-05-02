@@ -6,7 +6,7 @@ using Random
 using Reexport: @reexport
 
 @reexport using StatsFuns
-using MeasureTheory
+@reexport using MeasureTheory
 using MeasureBase: productmeasure, Returns
 
 import DensityInterface: logdensityof
@@ -14,17 +14,12 @@ import DensityInterface: densityof
 import DensityInterface: DensityKind
 using DensityInterface
 
-export For
-
 using NamedTupleTools
 using SampleChains
 # using SymbolicCodegen
 
 using SymbolicUtils: Symbolic
 const MaybeSym{T} = Union{T, Symbolic{T}}
-
-# MeasureTheory.For(f, dims::MaybeSym{<: Integer}...) = ProductMeasure(mappedarray(i -> f(Tuple(i)...), CartesianIndices(dims))) 
-# MeasureTheory.For(f, dims::MaybeSym{<: AbstractUnitRange}...) = ProductMeasure(mappedarray(i -> f(Tuple(i)...), CartesianIndices(dims))) 
 
 import MacroTools: prewalk, postwalk, @q, striplines, replace, @capture
 import MacroTools
@@ -49,7 +44,7 @@ using MeasureBase: AbstractKleisli
 
 using MeasureTheory: ∞
 @reexport using MeasureTheory
-import MeasureTheory: xform
+import MeasureTheory: TV.as
 
 """
 we use this to avoid introduce static type parameters
@@ -59,15 +54,6 @@ _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 
 import GeneralizedGenerated as GG
 
-@generated function MeasureBase.For(f::GG.Closure{F,Free}, inds::I) where {F,Free,I<:Tuple}
-    eltypes = I.types
-    freetypes = Free.types
-    T = Core.Compiler.return_type(F, Tuple{freetypes..., eltypes...})
-    quote
-        $(Expr(:meta, :inline))
-        For{$T,GG.Closure{F,Free},I}(f, inds)
-    end
-end
 
 include("noted.jl")
 include("core/models/abstractmodel.jl")
@@ -91,7 +77,7 @@ include("distributions/iid.jl")
 include("primitives/rand.jl")
 include("primitives/simulate.jl")
 include("primitives/logdensity.jl")
-include("primitives/xform.jl")
+include("primitives/as.jl")
 include("primitives/likelihood-weighting.jl")
 include("primitives/insupport.jl")
 # include("primitives/gg.jl")

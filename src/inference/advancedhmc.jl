@@ -53,7 +53,7 @@ function advancedHMC(m :: ConditionalModel{A,B}, _data, N = 1000;
 
     ℓ(pars) = logdensity_def(m, merge(pars, _data))
 
-    t = xform(m,_data)
+    t = TV.as(m,_data)
 
     function f(x)
         (θ, logjac) = transform_and_logjac(t,x)

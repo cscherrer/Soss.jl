@@ -88,7 +88,7 @@ function dynamicHMC(
 
     logp(pars) = ℓ(_argvals, _obs, pars)
 
-    t = xform(m)
+    t = TV.as(m)
     P = LogDensityProblems.TransformedLogDensity(t, logp)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)
 
@@ -122,7 +122,7 @@ function dynamicHMC(
 )
     _data = m.obs
     ℓ(pars) = logdensity_def(m, merge(pars, _data), method)
-    t = xform(m, _data)
+    t = TV.as(m, _data)
     P = LogDensityProblems.TransformedLogDensity(t, ℓ)
     ∇P = LogDensityProblems.ADgradient(ad_backend, P)
 
@@ -155,7 +155,7 @@ end
 #     m::ConditionalModel,
 #     _data::NamedTuple,
 # )
-#     t = xform(m, _data)
+#     t = TV.as(m, _data)
 #     (results, steps) = dynamicHMC(rng, m, _data, Val(Inf))
 #     Q = results.final_warmup_state.Q
 #     while true

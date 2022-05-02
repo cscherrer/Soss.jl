@@ -48,8 +48,8 @@ include("examples-list.jl")
 
         x = rand(outer(sub=inner)).m
         post = outer(sub=inner) | (m = (x=x,),)
-        t = xform(post)
-        @test logdensity_def(post, transform(t, randn(3))) isa Real
+        t = TV.as(post)
+        @test logdensityof(post, transform(t, randn(3))) isa Real
     end
 
     @testset "Predict" begin
@@ -76,7 +76,7 @@ include("examples-list.jl")
 
         mm = m2(m=m1())
         
-        @test xform(mm|(y=1.0,)) isa TransformVariables.TransformTuple
+        @test TV.as(mm|(y=1.0,)) isa TransformVariables.TransformTuple
         @test basemeasure(mm | (y=1.0,)) isa ProductMeasure
         @test testvalue(mm) isa NamedTuple
     end
@@ -97,7 +97,7 @@ include("examples-list.jl")
         
         mm = m2(m=m1())
 
-        @test xform(mm|(;y=1.0,)) isa TransformVariables.TransformTuple
+        @test TV.as(mm|(;y=1.0,)) isa TransformVariables.TransformTuple
         @test basemeasure(mm | (y=1.0,)) isa ProductMeasure
         @test testvalue(mm) isa NamedTuple
     end
@@ -138,7 +138,7 @@ include("examples-list.jl")
 
         post = m() | (c=c,)
 
-        @test transform(xform(post), randn(6)) isa NamedTuple
+        @test transform(TV.as(post), randn(6)) isa NamedTuple
 
         @testset "logdensity" begin
             dat = randn(100)
@@ -151,7 +151,7 @@ include("examples-list.jl")
             mod = m( (; n = length(dat) ) )
             post = mod | (data = dat,)
 
-            @test logdensity_def( mod( (μ = 1., σ = 2., data = dat) ) ) == logdensity_def( post( (μ = 1., σ = 2.) ) )
+            @test logdensityof( mod( (μ = 1., σ = 2., data = dat) ) ) == logdensityof( post( (μ = 1., σ = 2.) ) )
         end
 
 

@@ -41,7 +41,7 @@ function bayeslm(
     kwargs...,
 )
     ℓ = makeℓ(X, y, pr)
-    t = xform(pr(k=size(X,2)))
+    t = TV.as(pr(k=size(X,2)))
 
 
     chain = initialize!(DynamicHMCChain, ℓ, t)
