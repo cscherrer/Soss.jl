@@ -165,10 +165,6 @@ include("examples-list.jl")
 
         post = m(10) | (x = rand(Bool, 10),)
         base = basemeasure(post)
-        @test logdensity_def(base, (p=0.2,)) isa Real
+        @test logdensity_def(base, (p=0.2, x=post.obs.x)) isa Real
     end
-end
-
-
-
 end
