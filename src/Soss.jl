@@ -40,7 +40,7 @@ using SimplePosets: SimplePoset
 
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
-using MeasureBase: AbstractKleisli
+using MeasureBase: AbstractTransitionKernel
 
 using MeasureTheory: ∞
 @reexport using MeasureTheory
