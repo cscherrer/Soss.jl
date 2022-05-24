@@ -16,7 +16,7 @@ function (b::Inverse{<: Transform{N,T}})(y::AbstractVector) where {N,T <:  Trans
     b.orig.t(y)
 end
 
-Bijectors.bijector(d::ConditionalModel) = Transform(xform(d))
+Bijectors.bijector(d::ConditionalModel) = Transform(as(d))
 
 function Bijectors.logabsdetjac(b::Transform, x::NamedTuple)
     -transform_and_logjac(b.t, b.t(x))[2]

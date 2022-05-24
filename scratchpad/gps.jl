@@ -8,7 +8,7 @@ y = sinpi.(x) + 0.3*randn(100)
 
 import TransformVariables
 const TV = TransformVariables 
-Soss.xform(gp::AbstractGPs.FiniteGP, _data=NamedTuple()) = TV.as(Array, TV.asℝ,size(gp)...)
+Soss.as(gp::AbstractGPs.FiniteGP, _data=NamedTuple()) = as(Array, asℝ,size(gp)...)
 
 sqexpkernel(alpha::Real, rho::Real) = 
 alpha^2 * transform(SEKernel(), 1/(rho*sqrt(2)))

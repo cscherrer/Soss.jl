@@ -28,7 +28,7 @@ end
 function makeℓ(X, y, pr)
     k = size(X,2)
     ll = loglik(X,y)
-    ℓ(pars) = ll(pars.α, pars.β, pars.σ) + logdensity(pr(k=k), pars)
+    ℓ(pars) = ll(pars.α, pars.β, pars.σ) + logdensity_def(pr(k=k), pars)
 end
 
 function bayeslm(
@@ -41,7 +41,7 @@ function bayeslm(
     kwargs...,
 )
     ℓ = makeℓ(X, y, pr)
-    t = xform(pr(k=size(X,2)))
+    t = as(pr(k=size(X,2)))
 
 
     chain = initialize!(DynamicHMCChain, ℓ, t)

@@ -39,9 +39,9 @@ y = rand(p(k=k,x=x))
 
 post = m(k=k, x=x) | (;y)
 
-ℓ(nt) = logdensity(post, nt) ;
+ℓ(nt) = logdensity_def(post, nt) ;
 
-t = xform(post);
+t = as(post);
 
 chains = initialize!(DynamicHMCChain, ℓ, t);
 drawsamples!(chains, 199)

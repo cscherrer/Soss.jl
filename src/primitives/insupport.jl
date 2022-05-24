@@ -4,15 +4,18 @@ export logdensityof
 using NestedTuples: lazymerge
 import MeasureTheory
 
-function MeasureBase.logdensityof(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
-    _logdensityof(M, Model(c), argvals(c), observations(c), x)
+import MeasureBase: insupport
+export insupport
+
+function MeasureBase.insupport(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
+    _insupport(M, Model(c), argvals(c), observations(c), x)
 end
 
-export sourceLogdensityOf
+export sourceInsupport
 
-sourceLogdensityOf(m::AbstractModel) = sourceLogdensityOf()(Model(m))
+sourceInsupport(m::AbstractModel) = sourceInsupport()(Model(m))
 
-function sourceLogdensityOf()
+function sourceInsupport()
     function(_m::Model)
         proc(_m, st :: Assign)     = :($(st.x) = $(st.rhs))
         proc(_m, st :: Return)     = nothing
@@ -21,25 +24,26 @@ function sourceLogdensityOf()
             x = st.x
             rhs = st.rhs
             @q begin
-                _ℓ += Soss.logdensityof($rhs, $x)
+                Soss.dynamic(Soss.insupport($rhs, $x)) || return false
                 $x = Soss.predict($rhs, $x)
             end
         end
 
         wrap(kernel) = @q begin
-            _ℓ = 0.0
             $kernel
-            return _ℓ
+            return true
         end
 
         buildSource(_m, proc, wrap) |> MacroTools.flatten
     end
 end
 
-@gg function _logdensityof(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
-    body = type2model(_m) |> sourceLogdensityOf() |> loadvals(_args, _data, _pars)
+# MeasureTheory.insupport(d::Distribution, val, tr) = logdensityof(d, val)
+
+
+@gg function _insupport(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
+    body = type2model(_m) |> sourceInsupport() |> loadvals(_args, _data, _pars)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
     end
 end
-

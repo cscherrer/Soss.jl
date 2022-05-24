@@ -20,10 +20,10 @@ end
 function fromObs(x,y) 
     function logp(α,β)
         ℓ = 0.0
-        ℓ += logpdf(Normal(0,1), α)
-        ℓ += logpdf(Normal(0,2), β)
+        ℓ += logdensityof(Normal(0,1), α)
+        ℓ += logdensityof(Normal(0,2), β)
         yhat = α .+ β .* x
-        ℓ += sum(logpdf.(Normal.(yhat, 1), y) )
+        ℓ += sum(logdensityof.(Normal.(yhat, 1), y) )
         ℓ
     end
 end
@@ -63,14 +63,14 @@ function runInference(x,y,logp)
     q = MvNormal(2,100000.0) # Really this would be fit from a sample from the prior
     α,β = Particles(N,q)
     m = asmatrix(α,β)
-    ℓ = sum(logp(α,β)) - Particles(logpdf(q,m))
+    ℓ = sum(logp(α,β)) - Particles(logdensityof(q,m))
 
     numiters = 60
     elbo = Vector{Float64}(undef, numiters)
     for j in 1:numiters
         α,β = Particles(N,q)
         m = asmatrix(α,β)
-        ℓ = logp(α,β) - Particles(logpdf(q,m))
+        ℓ = logp(α,β) - Particles(logdensityof(q,m))
         elbo[j] = mean(ℓ) 
         ss = suffstats(MvNormal, m,  exp(ℓ - maximum(ℓ)).particles .+ 1/N)
         q = fit_mle(MvNormal, ss)
@@ -129,7 +129,7 @@ q = MvNormal(2,100.0)
 
 
 function initialize(jointdist, obs)
-    tr = xform(jointdist, obs)
+    tr = as(jointdist, obs)
     pars = keys(tr.transformations)
     m = jointdist.model
 
@@ -140,7 +140,7 @@ function initialize(jointdist, obs)
     q = inverse.(tr, samples) 
 
 
-    ℓ = [logpdf(pred(merge(args, s)), obs) for s in samples]
+    ℓ = [logdensityof(pred(merge(args, s)), obs) for s in samples]
 end
 
 
@@ -166,14 +166,14 @@ function updateSample!(s,q)
 end
 
 function updateWeights!(w, s, p, tr)
-    map!(θ -> logpdf(p, θ), w, tr.(eachcol(s)))
+    map!(θ -> logdensityof(p, θ), w, tr.(eachcol(s)))
 end
 
 inverse(tr, select(rand(m(x=x)), pars))
 
 
-Soss.prior(m,:y) |> xform
+Soss.prior(m,:y) |> as
 
-Soss.sourcexform(Soss.prior(m,:y))
+Soss.sourceas(Soss.prior(m,:y))
 
-xform()
+as()

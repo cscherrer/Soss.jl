@@ -1,7 +1,8 @@
 using Soss
 using Test
 using MeasureTheory
-using TransformVariables
+import TransformVariables as TV
+using TransformVariables: transform
 using Aqua
 Aqua.test_all(Soss; ambiguities=false, unbound_args=false)
 
@@ -48,8 +49,8 @@ include("examples-list.jl")
 
         x = rand(outer(sub=inner)).m
         post = outer(sub=inner) | (m = (x=x,),)
-        t = xform(post)
-        @test logdensity(post, transform(t, randn(3))) isa Float64
+        t = as(post)
+        @test logdensityof(post, transform(t, randn(3))) isa Real
     end
 
     @testset "Predict" begin
@@ -59,7 +60,7 @@ include("examples-list.jl")
             return y
         end
             
-        mean(predict(m(), [(p=p,) for p in rand(10000)])) isa Float64
+        @test mean(predict(m(), [(p=p,) for p in rand(10000)])) isa Float64
     end
 
     @testset "https://github.com/cscherrer/Soss.jl/issues/258" begin
@@ -76,7 +77,7 @@ include("examples-list.jl")
 
         mm = m2(m=m1())
         
-        @test xform(mm|(y=1.0,)) isa TransformVariables.TransformTuple
+        @test as(mm|(y=1.0,)) isa TV.TransformTuple
         @test basemeasure(mm | (y=1.0,)) isa ProductMeasure
         @test testvalue(mm) isa NamedTuple
     end
@@ -97,7 +98,7 @@ include("examples-list.jl")
         
         mm = m2(m=m1())
 
-        @test xform(mm|(;y=1.0,)) isa TransformVariables.TransformTuple
+        @test as(mm|(;y=1.0,)) isa TV.TransformTuple
         @test basemeasure(mm | (y=1.0,)) isa ProductMeasure
         @test testvalue(mm) isa NamedTuple
     end
@@ -107,7 +108,7 @@ include("examples-list.jl")
             x ~ For(3) do j Normal(μ=j) end
         end;
         
-        @test logpdf(m(), rand(m())) isa Float64
+        @test logdensityof(m(), rand(m())) isa Float64
     end
 
     @testset "Local variables" begin
@@ -138,7 +139,7 @@ include("examples-list.jl")
 
         post = m() | (c=c,)
 
-        @test transform(xform(post), randn(6)) isa NamedTuple
+        @test transform(as(post), randn(6)) isa NamedTuple
 
         @testset "logdensity" begin
             dat = randn(100)
@@ -151,11 +152,20 @@ include("examples-list.jl")
             mod = m( (; n = length(dat) ) )
             post = mod | (data = dat,)
 
-            @test logdensity( mod( (μ = 1., σ = 2., data = dat) ) ) == logdensity( post( (μ = 1., σ = 2.) ) )
+            @test logdensityof( mod( (μ = 1., σ = 2., data = dat) ) ) == logdensityof( post( (μ = 1., σ = 2.) ) )
         end
 
 
     end
 
+    @testset "basemeasure" begin
+        m = @model n begin
+            p ~ Uniform()
+            x ~ Bernoulli(p) ^ n
+        end
 
+        post = m(10) | (x = rand(Bool, 10),)
+        base = basemeasure(post)
+        @test logdensity_def(base, (p=0.2, x=post.obs.x)) isa Real
+    end
 end

@@ -15,13 +15,13 @@ N gives the Names of arguments (each a Symbol)
 B gives the Body, as an Expr
 M gives the Module where the model is defined
 """
-abstract type AbstractModel{A,B,M,Args,Obs} <: AbstractMeasure end
+abstract type AbstractModel{A,B,M,Args,Obs} <: AbstractTransitionKernel end
 
-argstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = AT
-argstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = AT
+argstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = A
+argstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = A
 
-bodytype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = BT
-bodytype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = BT
+bodytype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = B
+bodytype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = B
 
 getmodule(::Type{AbstractModel{A,B,M,Args,Obs}}) where  {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(M)
 getmodule(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(M)
@@ -34,3 +34,6 @@ argvalstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}}
 
 obstype(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = Obs
 obstype(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = Obs
+
+body(::AbstractModel{A,B,M,Args,Obs}) where {A,B,M,Args,Obs} = from_type(B)
+body(::Type{AM}) where {A,B,M,Args,Obs,AM<:AbstractModel{A,B,M,Args,Obs}} = from_type(B)

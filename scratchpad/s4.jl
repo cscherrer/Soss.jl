@@ -18,11 +18,11 @@ end
 
 
 
-function logdensity(mc::Chain, x)
+function logdensity_def(mc::Chain, x)
     μ = mc.μ
     ℓ = 0.0
     for xj in x
-        ℓ += logdensity(μ, xj)
+        ℓ += logdensity_def(μ, xj)
         μ = mc.κ(xj)
     end
     return ℓ
@@ -30,7 +30,7 @@ end
 
 mc = Chain(Normal()) do x Normal(μ=x) end
 
-logdensity(mc, randn(100))
+logdensity_def(mc, randn(100))
 
 
 using Soss
@@ -82,7 +82,7 @@ rand(d2)
 
 simulate(d)
 
-t = xform(d);
+t = as(d);
 t(randn(4))
 
 
@@ -101,7 +101,7 @@ t(randn(4))
 # julia> rand(d)
 # -3.0414465047589037
 
-# julia> t = xform(d)
+# julia> t = as(d)
 # TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.Identity, TransformVariables.Identity}}}, TransformVariables.Identity}}}, TransformVariables.Identity}}}((x = TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.Identity, TransformVariables.Identity}}}, TransformVariables.Identity}}}((x = TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.Identity, TransformVariables.Identity}}}((x = asℝ, y = asℝ), 2), y = asℝ), 3), y = asℝ), 4)
 
 # julia> t(randn(4))

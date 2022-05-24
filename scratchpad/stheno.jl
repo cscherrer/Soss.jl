@@ -23,7 +23,7 @@ x = [1:50;];
 
 rand(m(x=x))
 
-# logpdf(m(x=x), (;α=9.0, β=0.1, y=births2.births))
+# logdensityof(m(x=x), (;α=9.0, β=0.1, y=births2.births))
 
 post = dynamicHMC(m(x=x), (;y=births2.births[1:50]))
 

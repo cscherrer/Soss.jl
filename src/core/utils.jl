@@ -202,27 +202,42 @@ function loadvals(argstype, datatype)
 end
 
 function loadvals(argstype, datatype, parstype)
-    args = getntkeys(argstype)
-    data = getntkeys(datatype)
-    pars = getntkeys(parstype)
+    args = schema(argstype)
+    data = schema(datatype)
+    pars = schema(parstype)
 
     loader = @q begin
 
     end
 
-    for k in args
-        push!(loader.args, :($k = _args.$k))
+    for k in keys(args)
+        T = getproperty(args, k)
+        push!(loader.args, :($k::$T = _args.$k))
     end
-    for k in setdiff(data, pars)
-        push!(loader.args, :($k = _data.$k))
-    end
-
-    for k in setdiff(pars, data)
-        push!(loader.args, :($k = _pars.$k))
+    for k in setdiff(keys(data), keys(pars))
+        T = getproperty(data, k)
+        push!(loader.args, :($k::$T = _data.$k))
     end
 
-    for k in pars ∩ data
-        push!(loader.args, :($k = Soss.NestedTuples.lazymerge(_data.$k, _pars.$k)))
+    for k in setdiff(keys(pars), keys(data))
+        T = getproperty(pars, k)
+        push!(loader.args, :($k::$T = _pars.$k))
+    end
+
+    for k in keys(pars) ∩ keys(data)
+        qk = QuoteNode(k)
+        pars_k = getproperty(pars, k)
+        data_k = getproperty(data, k)
+        if pars_k isa NamedTuple && data_k isa NamedTuple
+            push!(loader.args, :($k = Soss.NestedTuples.lazymerge(_data.$k, _pars.$k)))
+        else
+            T = getproperty(pars, k)
+            push!(loader.args, quote
+                _k = $qk
+                @warn "Duplicate key, ignoring $_k in data"
+                $k::$T = _pars.$k
+            end)
+        end
     end
 
     src -> (@q begin
@@ -235,7 +250,7 @@ end
 getntkeys(::NamedTuple{A,B}) where {A,B} = A
 getntkeys(::Type{NamedTuple{A,B}}) where {A,B} = A
 getntkeys(::Type{NamedTuple{A}}) where {A} = A
-getntkeys(::Type{LazyMerge{A,B,S,T}}) where {A,B,S,T} = Tuple(A ∪ B)
+getntkeys(::Type{LazyMerge{X,Y}}) where {X,Y} = union(getntkeys(X) ∪ getntkeys(Y))
 
 
 # These macros quickly define additional methods for when you get tired of typing `NamedTuple()`

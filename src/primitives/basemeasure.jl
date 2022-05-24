@@ -4,7 +4,7 @@ export basemeasure
 import MeasureTheory
 
 function MeasureTheory.basemeasure(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
-    _basemeasure(M, Model(c), argvals(c), observations(c), x)
+    _basemeasure(M, Model(c), argvals(c), x)  | observations(c)
 end
 
 export sourceBasemeasure
@@ -29,7 +29,7 @@ function sourceBasemeasure()
         wrap(kernel) = @q begin
             _bm = (;)
             $kernel
-            return Soss.productmeasure(identity, _bm)
+            return Soss.productmeasure(_bm)
         end
 
         buildSource(_m, proc, wrap) |> MacroTools.flatten
@@ -37,9 +37,9 @@ function sourceBasemeasure()
 end
 
 
-@gg function _basemeasure(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
-    body = type2model(_m) |> sourceBasemeasure() |> loadvals(_args, _data, _pars)
+@gg function _basemeasure(M::Type{<:TypeLevel}, _m::Model, _args, _pars)
+    body = type2model(_m) |> sourceBasemeasure() |> loadvals(_args, _pars)
     @under_global from_type(_unwrap_type(M)) @q let M
         $body
-    end
+    end 
 end
