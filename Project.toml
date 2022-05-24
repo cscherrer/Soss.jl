@@ -41,7 +41,7 @@ TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 TupleVectors = "615932cf-77b6-4358-adcd-5b7eba981d7e"
 
 [compat]
-ArrayInterface = "4,5"
+ArrayInterface = "5,6"
 BayesianLinearRegression = "0.1"
 DensityInterface = "0.4"
 DiffResults = "1"
