@@ -60,7 +60,7 @@ include("examples-list.jl")
             return y
         end
             
-        mean(predict(m(), [(p=p,) for p in rand(10000)])) isa Float64
+        @test mean(predict(m(), [(p=p,) for p in rand(10000)])) isa Float64
     end
 
     @testset "https://github.com/cscherrer/Soss.jl/issues/258" begin

@@ -1,6 +1,5 @@
 module Soss
 
-import BayesianLinearRegression
 import Base.rand
 using Random
 using Reexport: @reexport
