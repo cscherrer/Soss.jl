@@ -15,14 +15,14 @@ end
 
 export as
 
-@inline TV.as(m::ConditionalModel{A, B}, _data::NamedTuple) where {A,B} = TV.as(m | _data)
+@inline as(m::ConditionalModel{A, B}, _data::NamedTuple) where {A,B} = as(m | _data)
 
-@inline function TV.as(m::ConditionalModel{A, B}) where {A,B}
+@inline function as(m::ConditionalModel{A, B}) where {A,B}
     return _as(getmoduletypencoding(m), Model(m), argvals(m), observations(m))
 end
 
-# function TV.as(m::Model{EmptyNTtype, B}) where {B}
-#     return TV.as(m,NamedTuple())    
+# function as(m::Model{EmptyNTtype, B}) where {B}
+#     return as(m,NamedTuple())    
 # end
 
 
@@ -44,7 +44,7 @@ function sourceXform(_data=NamedTuple())
             rhs = st.rhs
             
             thecode = @q begin 
-                _t = Soss.TV.as($rhs, get(_data, $xname, NamedTuple()))
+                _t = Soss.as($rhs, get(_data, $xname, NamedTuple()))
                 if !isnothing(_t)
                     _result = merge(_result, ($x=_t,))
                 end
@@ -71,15 +71,15 @@ end
 
 using Distributions: support
 
-@inline function TV.as(d, _data::NamedTuple)
+@inline function as(d, _data::NamedTuple)
     if hasmethod(support, (typeof(d),))
         return asTransform(support(d)) 
     end
 
-    error("Not implemented:\nTV.as($d)")
+    error("Not implemented:\nas($d)")
 end
 
-using TransformVariables: ShiftedExp, ScaledShiftedLogistic, as
+using TransformVariables: ShiftedExp, ScaledShiftedLogistic
 
 function asTransform(supp:: Dists.RealInterval) 
     (lb, ub) = (supp.lb, supp.ub)
@@ -90,11 +90,11 @@ function asTransform(supp:: Dists.RealInterval)
     return ScaledShiftedLogistic(ub-lb, lb)
 end
 
-TV.as(d, _data) = nothing
+as(d, _data) = nothing
 
-TV.as(μ::AbstractMeasure,  _data::NamedTuple) = TV.as(μ)
+as(μ::AbstractMeasure,  _data::NamedTuple) = as(μ)
 
-TV.as(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
+as(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
 
 @gg function _as(M::Type{<:TypeLevel}, _m::Model{Asub,B}, _args::A, _data) where {Asub,A,B}
     body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
@@ -103,15 +103,15 @@ TV.as(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, siz
     end    
 end
 
-function TV.as(d::Dists.Distribution{Dists.Univariate}, _data::NamedTuple=NamedTuple())
+function as(d::Dists.Distribution{Dists.Univariate}, _data::NamedTuple=NamedTuple())
     sup = Dists.support(d)
     lo = isinf(sup.lb) ? -TV.∞ : sup.lb
     hi = isinf(sup.ub) ? TV.∞ : sup.ub
     as(Real, lo,hi)
 end
 
-function TV.as(d::Dists.Product, _data::NamedTuple=NamedTuple())
+function as(d::Dists.Product, _data::NamedTuple=NamedTuple())
     n = length(d)
     v = d.v
-    as(Vector, TV.as(v[1]), n)
+    as(Vector, as(v[1]), n)
 end

@@ -14,7 +14,7 @@ function sample(rng::AbstractRNG,
     nchains::Int=4)
 
     ℓ(x) = MeasureTheory.logdensityof(m, x)
-    tr = TV.as(m)
+    tr = as(m)
 
     chains = newchain(rng, nchains, config, ℓ, tr)
     sample!(chains, nsamples - 1)

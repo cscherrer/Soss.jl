@@ -45,7 +45,7 @@ plot(p, exp.([ℓ((p=pj,)) for pj in p]))
 using TransformVariables
 
 ℓ(x) = logdensity_def(Beta(4,3), x.p)
-t = xform(post)
+t = as(post)
 chain = initialize!(DynamicHMCChain, ℓ, t)
 drawsamples!(chain, 10000)
 plot(ash(chain.p))

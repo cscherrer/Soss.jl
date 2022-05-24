@@ -93,7 +93,7 @@ end
 function runInference(m; kwargs...)
     ℓp_pre = sourceLogdensity(m) |> eval
     ℓp(θ) = Base.invokelatest(ℓp_pre, θ) 
-    t = xform(m; kwargs...)
+    t = as(m; kwargs...)
     d = t.dimension
     tnames = propertynames(t.transformations)
 

@@ -29,7 +29,7 @@ rand(m())
 
 x = randn(2)
 
-xform(m() | (x=x, μ = (z = 1.0,)))
+as(m() | (x=x, μ = (z = 1.0,)))
 
 dynamicHMC(m() | (x=x, μ = (z = 1.0,)))
 

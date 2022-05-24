@@ -239,7 +239,7 @@ using AdvancedVI
 
 bad = rand(Bernoulli(0.5) |> iid(14))
 
-tr = xform(p(r=5,s=14), (y=y,));
+tr = as(p(r=5,s=14), (y=y,));
 d = tr.dimension
 
 getq(λ) = MvNormal(λ[1:d], exp.(λ[d .+ (1:d)]))

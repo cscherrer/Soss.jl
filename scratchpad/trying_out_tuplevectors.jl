@@ -41,7 +41,7 @@ post = m(k=k, x=x) | (;y)
 
 ℓ(nt) = logdensity_def(post, nt) ;
 
-t = xform(post);
+t = as(post);
 
 chains = initialize!(DynamicHMCChain, ℓ, t);
 drawsamples!(chains, 199)

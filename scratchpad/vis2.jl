@@ -129,7 +129,7 @@ q = MvNormal(2,100.0)
 
 
 function initialize(jointdist, obs)
-    tr = xform(jointdist, obs)
+    tr = as(jointdist, obs)
     pars = keys(tr.transformations)
     m = jointdist.model
 
@@ -172,8 +172,8 @@ end
 inverse(tr, select(rand(m(x=x)), pars))
 
 
-Soss.prior(m,:y) |> xform
+Soss.prior(m,:y) |> as
 
-Soss.sourcexform(Soss.prior(m,:y))
+Soss.sourceas(Soss.prior(m,:y))
 
-xform()
+as()

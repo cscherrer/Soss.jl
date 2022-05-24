@@ -32,7 +32,7 @@ using ArrayInterface: StaticInt
 using Static
 
 using IfElse: ifelse
-using TransformVariables: as, asℝ, as𝕀, asℝ₊
+using TransformVariables: asℝ, as𝕀, asℝ₊
 import TransformVariables
 const TV = TransformVariables
 
@@ -44,7 +44,7 @@ using MeasureBase: AbstractTransitionKernel
 
 using MeasureTheory: ∞
 @reexport using MeasureTheory
-import MeasureTheory: TV.as
+import MeasureTheory: as
 
 """
 we use this to avoid introduce static type parameters

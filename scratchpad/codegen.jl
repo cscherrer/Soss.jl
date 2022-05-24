@@ -8,7 +8,7 @@ m = @model σ begin
 
 x = rand(m(σ=3.0));
 
-sourceSymlogdensity(m(σ=3.0) | (;x))
+sourceSymlogdensityof(m(σ=3.0) | (;x))
 
 s = symlogdensity(m(σ=3.0))
 

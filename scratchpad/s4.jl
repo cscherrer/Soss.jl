@@ -82,7 +82,7 @@ rand(d2)
 
 simulate(d)
 
-t = xform(d);
+t = as(d);
 t(randn(4))
 
 
@@ -101,7 +101,7 @@ t(randn(4))
 # julia> rand(d)
 # -3.0414465047589037
 
-# julia> t = xform(d)
+# julia> t = as(d)
 # TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.Identity, TransformVariables.Identity}}}, TransformVariables.Identity}}}, TransformVariables.Identity}}}((x = TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.Identity, TransformVariables.Identity}}}, TransformVariables.Identity}}}((x = TransformVariables.TransformTuple{NamedTuple{(:x, :y), Tuple{TransformVariables.Identity, TransformVariables.Identity}}}((x = asℝ, y = asℝ), 2), y = asℝ), 3), y = asℝ), 4)
 
 # julia> t(randn(4))

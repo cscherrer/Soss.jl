@@ -1,7 +1,8 @@
 using Soss
 using Test
 using MeasureTheory
-using TransformVariables
+import TransformVariables as TV
+using TransformVariables: transform
 using Aqua
 Aqua.test_all(Soss; ambiguities=false, unbound_args=false)
 
@@ -48,7 +49,7 @@ include("examples-list.jl")
 
         x = rand(outer(sub=inner)).m
         post = outer(sub=inner) | (m = (x=x,),)
-        t = TV.as(post)
+        t = as(post)
         @test logdensityof(post, transform(t, randn(3))) isa Real
     end
 
@@ -76,7 +77,7 @@ include("examples-list.jl")
 
         mm = m2(m=m1())
         
-        @test TV.as(mm|(y=1.0,)) isa TransformVariables.TransformTuple
+        @test as(mm|(y=1.0,)) isa TV.TransformTuple
         @test basemeasure(mm | (y=1.0,)) isa ProductMeasure
         @test testvalue(mm) isa NamedTuple
     end
@@ -97,7 +98,7 @@ include("examples-list.jl")
         
         mm = m2(m=m1())
 
-        @test TV.as(mm|(;y=1.0,)) isa TransformVariables.TransformTuple
+        @test as(mm|(;y=1.0,)) isa TV.TransformTuple
         @test basemeasure(mm | (y=1.0,)) isa ProductMeasure
         @test testvalue(mm) isa NamedTuple
     end
@@ -138,7 +139,7 @@ include("examples-list.jl")
 
         post = m() | (c=c,)
 
-        @test transform(TV.as(post), randn(6)) isa NamedTuple
+        @test transform(as(post), randn(6)) isa NamedTuple
 
         @testset "logdensity" begin
             dat = randn(100)
