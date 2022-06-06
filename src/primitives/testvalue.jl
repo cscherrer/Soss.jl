@@ -1,4 +1,3 @@
-using GeneralizedGenerated
 using TupleVectors: chainvec
 import MeasureTheory: testvalue
 
