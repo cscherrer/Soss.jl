@@ -308,7 +308,7 @@ end
 
 @testset "#57, #59: big expression" begin
 
-: mk_function
+using GeneralizedGenerated: mk_function
 
 function rand_ex()
     u = rand()
