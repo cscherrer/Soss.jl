@@ -3,7 +3,9 @@ using Test
 using MeasureTheory
 import TransformVariables as TV
 using TransformVariables: transform
+using SampleChainsDynamicHMC
 using Aqua
+
 Aqua.test_all(Soss; ambiguities=false, unbound_args=false)
 
 include("examples-list.jl")
@@ -17,6 +19,30 @@ include("examples-list.jl")
         @testset "Transforms" begin
             include("transforms.jl")
         end
+    end
+
+    @testset "README" begin
+        
+        m = @model x begin
+            α ~ Lebesgue(ℝ)
+            β ~ Normal()
+            σ ~ Exponential()
+            y ~ For(x) do xj
+                Normal(α + β * xj, σ)
+            end
+            return y
+        end
+
+        x = randn(20)
+
+        predα = predictive(m, :α)
+
+        y = rand(predα(x=x,α=10.0))
+
+        post = sample(m(x=x) | (y=y,), dynamichmc())
+
+        @test post isa AbstractArray
+
     end
 
     @testset "Examples" begin
