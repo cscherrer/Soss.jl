@@ -1,0 +1,25 @@
+name = "GeneralizedGenerated"
+uuid = "6b9d7cbe-bcb9-11e9-073f-15a7a543e2eb"
+authors = ["thautwarm"]
+version = "0.3.3"
+
+[deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+JuliaVariables = "b14d175d-62b4-44ba-8fb7-3064adc8c3ec"
+MLStyle = "d8e11817-5142-5d16-987a-aa16d5891078"
+MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+
+[compat]
+DataStructures = "0.17, 0.18"
+JuliaVariables = "~0.2.4"
+MLStyle = "~0.4.2"
+MacroTools = "0.5"
+julia = "1"
+
+[extras]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test", "BenchmarkTools"]

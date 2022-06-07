@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+julia --compile=min -e "using JuliaFormatter;format(\"src\")"

@@ -51,7 +51,11 @@ for generated functions
 """
 _unwrap_type(a::Type{<:Type}) = a.parameters[1]
 
-import GeneralizedGenerated as GG
+include("GG/src/GeneralizedGenerated.jl")
+
+using .GeneralizedGenerated
+const GG = GeneralizedGenerated
+# import GeneralizedGenerated as GG
 
 
 include("noted.jl")

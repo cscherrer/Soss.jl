@@ -4,7 +4,6 @@ using MLStyle
 using MacroTools: @q, striplines
 
 import SimplePosets
-using GeneralizedGenerated
 
 struct Model{A,B,M<:GeneralizedGenerated.TypeLevel} <: AbstractModel{A,B,M,Nothing,Nothing}
     args  :: Vector{Symbol}

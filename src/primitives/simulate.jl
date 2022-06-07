@@ -25,7 +25,6 @@ import StatsBase
 #     return simulate(GLOBAL_RNG, cm)
 # end
 
-using GeneralizedGenerated
 using Random: GLOBAL_RNG
 using NestedTuples
 using SampleChains
