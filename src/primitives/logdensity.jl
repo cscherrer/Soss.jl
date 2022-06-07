@@ -38,7 +38,8 @@ end
 
 @gg function _logdensityof(M::Type{<:TypeLevel}, _m::Model, _args, _data, _pars)
     body = type2model(_m) |> sourceLogdensityOf() |> loadvals(_args, _data, _pars)
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end
 end

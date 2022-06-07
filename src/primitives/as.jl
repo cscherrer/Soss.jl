@@ -98,7 +98,8 @@ as(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d
 
 @gg function _as(M::Type{<:TypeLevel}, _m::Model{Asub,B}, _args::A, _data) where {Asub,A,B}
     body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end    
 end

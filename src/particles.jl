@@ -149,14 +149,16 @@ end
 
 @gg function _particles(M::Type{<:TypeLevel}, _m::Model, _args, _n::Val{_N}) where {_N}
     body = sourceParticles()(type2model(_m), _n) |> loadvals(_args, NamedTuple())
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end
 end
 
 @gg function _particles(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()}, _n::Val{_N}) where {_N}
     body = sourceParticles()(type2model(_m), _n)
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end
 end

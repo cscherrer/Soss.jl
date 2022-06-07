@@ -50,14 +50,16 @@ end
 
 @gg function _testvalue(M::Type{<:TypeLevel}, _m::Model, _args)
     body = type2model(_m) |> sourceTestvalue() |> loadvals(_args, NamedTuple())
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end
 end
 
 @gg function _testvalue(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()})
     body = type2model(_m) |> sourceTestvalue()
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end
 end
