@@ -1,0 +1,13 @@
+[deps]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d"
+MappedArrays = "dbb5928d-eab1-5f90-85c2-b9b0edb7c900"
+Pathfinder = "b1d3bc72-d0e7-4279-b92f-7fa5d6d2d454"
+ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+SampleChainsDynamicHMC = "6d9fd711-e8b2-4778-9c70-c1dfb499d4c4"
+Soss = "8ce77f84-9b61-11e8-39ff-d17a774bf41c"
+Tilde = "73a6ac3c-4b34-4cca-a813-308f7589d80d"
+TupleVectors = "615932cf-77b6-4358-adcd-5b7eba981d7e"
+UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
+ZigZagBoomerang = "36347407-b186-4a6a-8c98-4f4567861712"
