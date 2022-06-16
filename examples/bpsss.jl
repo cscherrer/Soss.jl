@@ -15,23 +15,23 @@ using Pathfinder.PDMats
 using MappedArrays
 
 full_ss_model = @Tilde.model N1, C, c, y begin
-    α ~ Tilde.Normal(0,1)
-    cc ~ Tilde.Normal(0,1)^C
+    α ~ Tilde.Normal()
+    cc ~ Tilde.Normal()^C
     for i in 1:N1
         v = α + cc[c[i]]
-        y[i] ~ Soss.Bernoulli(logistic(v))
+        y[i] ~ Bernoulli(logitp = v)
     end
 end
 
 ss_model = @Tilde.model N1, C, c, K, seed, y begin
-    α ~ Tilde.Normal(0,sqrt(N1/K))
-    cc ~ Tilde.Normal(0,sqrt(N1/K))^C
+    α ~ Tilde.Normal()
+    cc ~ Tilde.Normal()^C
     sampler = Random.SamplerRangeNDL(1:N1)
     rng = ZZB.Rng(seed)
     for _ in 1:K
-        i = rand(rng, sampler)
+        i = rand(rng, sampler) # each index expected to be sampled (K/N)*n times in n calls
         v = α + cc[c[i]]
-        y[i] ~ Soss.Bernoulli(logistic(v))
+        y[i] ~ Bernoulli(logitp = v) ↑ (N/K) # increase weight by power (N/K) 
     end
 end
 
@@ -41,29 +41,28 @@ function make_grads(full_ss_model, ss_model, N1, C, c, MAP, ∇MAP, K, y)
     post = full_ss_model(N1,C,c,y) ¦ (;y)   
     as_post = Tilde.as(post)
     post1(seed) = ss_model(N1,C,c,K,seed,y) ¦ (;y)
-    obj(θ, seed) = -(N1/K)*Tilde.unsafe_logdensityof(post1(seed), Tilde.transform(as_post, θ)) 
+    obj(θ, seed) = -Tilde.unsafe_logdensityof(post1(seed), Tilde.transform(as_post, θ)) 
 
     @inline function dneglogp(t, x, v) # two directional derivatives
         seed = hash(t)
         f(t) = obj(x + t*v, seed) - obj(MAP + t*v, seed)
         u = ForwardDiff.derivative(f, Dual{:hSrkahPmmC}(0.0, 1.0))
         u.value - dot(∇MAP, v), u.partials[]
-        #u.value, u.partials[]
     end
-    
+    y2 = copy(MAP)
     function ∇neglogp!(y, t, x)
         seed = hash(t)
         f(x) = obj(x, seed) 
         ForwardDiff.gradient!(y, f, x)
-        y .-= ForwardDiff.gradient(f, MAP) .- ∇MAP
+        ForwardDiff.gradient!(y2, f, MAP)
+        y .-= y2 .- ∇MAP
         return
     end
     dneglogp, ∇neglogp!
 end
 
-
-K = 100
-d = C+1 # number of parameters 
+K = 500
+d = C + 1 # number of parameters 
 
 dneglogp, ∇neglogp! = make_grads(full_ss_model, ss_model, N, C, data.c, MAP, ∇MAP, K, data.y)  
 # Try things out
@@ -73,7 +72,7 @@ dneglogp(2.4, randn(d), randn(d));
 #∇neglogp!(randn(d), 2.1, randn(d));
 
 t0 = 0.0;
-n = 2000
+n = 1000
 c = 10.0 # initial guess for the bound
 
 if norm(∇MAP) > 1e-4
@@ -81,7 +80,9 @@ if norm(∇MAP) > 1e-4
 end
 
 x0 = pf_result.fit_distribution.μ
-M = pf_result.fit_distribution.Σ
+#M = pf_result.fit_distribution.Σ
+M = PDMats.PDiagMat(diag(pf_result.fit_distribution.Σ));
+#M = PDMats.PDiagMat(ones(d)*9*(C/N))
 v0 = PDMats.unwhiten(M, normalize!(randn(length(x0))));
 
 # define BouncyParticle sampler (has two relevant parameters) 
@@ -134,15 +135,16 @@ end
 
 elapsed_time = @elapsed @time begin
     global bps_samples, info2
-    bps_samples2, info2 = collect_sampler(as(post), sampler, n; progress=true)
+    bps_samples2, info2 = collect_sampler(as(post), sampler, n; progress=true, progress_stops=500)
 end
  
 using MCMCChains
 bps_chain2 = MCMCChains.Chains([bps_samples2.α bps_samples2.cc.data'])
 bps_chain2 = setinfo(bps_chain2, (;start_time=0.0, stop_time=elapsed_time));
-ess_bps = MCMCChains.ess_rhat(bps_chain2).nt.ess_per_sec;
+ess_bps2 = MCMCChains.ess_rhat(bps_chain2).nt.ess_per_sec;
 
 μ̂2 = round.(mean(bps_chain2).nt[:mean], sigdigits=4)
+ŝ2 = round.(vec(std([bps_samples2.α bps_samples2.cc.data'],dims=2)), sigdigits=4)
 println("μ̂ (BPS-SS) = ", μ̂2)
 
 @show info2.bound

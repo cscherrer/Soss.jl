@@ -24,8 +24,8 @@ model = @model (N, C, c) begin
     return y
 end
 
-N = 20000
-C = 100
+N = 100000
+C = 400
 Random.seed!(1)
 data = (;c=rand(1:C, N), y=rand(Bool, N))
 condmodel = model(;N,C,c=data.c) | (;y=data.y);
@@ -55,18 +55,20 @@ post, ℓ, dneglogp, ∇neglogp! = make_grads(model(;N,C,c=data.c), data.y)
 # Try things out
 
 
-d = C+1 # number of parameters 
+d = C + 1 # number of parameters 
 dneglogp(2.4, randn(d), randn(d));
 #∇neglogp!(randn(d), 2.1, randn(d));
 
 t0 = 0.0;
-n = 2000
-c = 1.0 # initial guess for the bound
+n = 20
+c = 0.1 # initial guess for the bound
 
-init_scale=0.1;
+init_scale=3.2*sqrt(C/N);
 @time pf_result = pathfinder(ℓ; dim=d, init_scale);
 x0 = pf_result.fit_distribution.μ
-M = pf_result.fit_distribution.Σ
+#M = pf_result.fit_distribution.Σ
+M = PDMats.PDiagMat(diag(pf_result.fit_distribution.Σ));
+
 v0 = PDMats.unwhiten(M, normalize!(randn(length(x0))));
 MAP = pf_result.optim_solution; # MAP, could be useful for control variates
 
@@ -120,11 +122,11 @@ function collect_sampler(t, sampler, n; progress=true, progress_stops=20)
     ismissing(prg) || ProgressMeter.finish!(prg)
     tv, (;uT=state[1], acc=state[3][1], total=state[3][2], bound=state[4].c)
 end
-collect_sampler(as(post), sampler, 10; progress=false);
+#collect_sampler(as(post), sampler, 10; progress=false);
 
 elapsed_time = @elapsed @time begin
     global bps_samples, info 
-    bps_samples, info = collect_sampler(as(post), sampler, n; progress=true)
+    bps_samples, info = collect_sampler(as(post), sampler, n; progress=true, progress_stops=500)
 end
 
  
