@@ -70,7 +70,7 @@ StatsBase = "0.33"
 StatsFuns = "0.9, 1"
 SymbolicUtils = "0.17, 0.18, 0.19"
 TransformVariables = "0.5, 0.6"
-TupleVectors = "0.1"
+TupleVectors = "0.1, 0.2"
 julia = "1.6"
 
 [extras]
