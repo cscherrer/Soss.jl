@@ -1,5 +1,6 @@
 using Soss
 using Test
+using LinearAlgebra
 using MeasureTheory
 import TransformVariables as TV
 using TransformVariables: transform
@@ -193,5 +194,13 @@ include("examples-list.jl")
         post = m(10) | (x = rand(Bool, 10),)
         base = basemeasure(post)
         @test logdensity_def(base, (p=0.2, x=post.obs.x)) isa Real
+    end
+
+    @testset "https://github.com/cscherrer/Soss.jl/issues/342" begin
+        m = Soss.@model () begin
+            z ~ Dists.MvNormal(zeros(10), I)
+        end
+        t = Soss.as(m()) 
+        @test TV.transform(t, zeros(10)) == (z = zeros(10), )
     end
 end
