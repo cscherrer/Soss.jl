@@ -44,9 +44,11 @@ function sourceXform(_data=NamedTuple())
             rhs = st.rhs
             
             thecode = @q begin 
-                _t = Soss.as($rhs, get(_data, $xname, NamedTuple()))
-                if !isnothing(_t)
-                    _result = merge(_result, ($x=_t,))
+                _d = get(_data, $xname, nothing)
+                if isnothing(_d) # xname is not defined in _data
+                    _result = merge(_result, ($x = Soss.as($rhs),))
+                elseif _d isa NamedTuple
+                    _result = merge(_result, ($x = Soss.as($rhs, _d),))
                 end
             end
 
@@ -90,11 +92,9 @@ function asTransform(supp:: Dists.RealInterval)
     return ScaledShiftedLogistic(ub-lb, lb)
 end
 
-as(d, _data) = nothing
-
 as(μ::AbstractMeasure,  _data::NamedTuple) = as(μ)
 
-as(d::Dists.AbstractMvNormal, _data::NamedTuple=NamedTuple()) = as(Array, size(d))
+as(d::Dists.AbstractMvNormal, _data::NamedTuple = NamedTuple()) = TV.as(Array, size(d))
 
 @gg function _as(M::Type{<:TypeLevel}, _m::Model{Asub,B}, _args::A, _data) where {Asub,A,B}
     body = type2model(_m) |> sourceXform(_data) |> loadvals(_args, _data)
