@@ -47,7 +47,6 @@ end
 
 
 function MeasureBase.logdensity_def(c::ConditionalModel{A,B,M}, x=NamedTuple()) where {A,B,M}
-    @show c
     _logdensity_def(M, Model(c), argvals(c), observations(c), x)
 end
 
