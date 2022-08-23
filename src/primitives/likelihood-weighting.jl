@@ -37,7 +37,8 @@ end
 
 @gg function _weightedSample(M::Type{<:TypeLevel}, _m::Model, _args, _data)
     body = type2model(_m) |> sourceWeightedSample(_data) |> loadvals(_args, _data)
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end
 end

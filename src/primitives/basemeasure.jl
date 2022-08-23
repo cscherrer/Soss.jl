@@ -39,7 +39,8 @@ end
 
 @gg function _basemeasure(M::Type{<:TypeLevel}, _m::Model, _args, _pars)
     body = type2model(_m) |> sourceBasemeasure() |> loadvals(_args, _pars)
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end 
 end

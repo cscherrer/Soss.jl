@@ -173,7 +173,8 @@ end
         loadvals(_pargs, NamedTuple()) |>
         merge_pqargs
 
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end
 end

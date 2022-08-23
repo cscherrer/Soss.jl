@@ -124,7 +124,8 @@ simulate(rng::AbstractRNG, μ::AbstractMeasure; trace_assignments=false) = rand(
 @gg function _simulate(M::Type{<:TypeLevel}, _m::Model, _args, trace_assignments::Val{V}) where {V}
     trace_assignments = V
     body = type2model(_m) |> sourceSimulate(trace_assignments) |> loadvals(_args, NamedTuple())
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end
 end
@@ -132,7 +133,8 @@ end
 @gg function _simulate(M::Type{<:TypeLevel}, _m::Model, _args::NamedTuple{()}, trace_assignments::Val{V}) where {V}
     trace_assignments = V
     body = type2model(_m) |> sourceSimulate(trace_assignments)
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end
 end

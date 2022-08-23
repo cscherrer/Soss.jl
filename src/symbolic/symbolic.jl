@@ -143,7 +143,8 @@ end
     types = GeneralizedGenerated.from_type(T)
     Sym = SymbolicUtils.Sym
     body = type2model(_m) |> sourceSymlogdensity(types)
-    @under_global from_type(_unwrap_type(M)) @q let M
+    @gensym _M
+@under_global from_type(_unwrap_type(M)) @q let $_M
         $body
     end    
 end
